@@ -2,3 +2,4 @@
 /target/
 **/example/*.wasm
 **/example/*.wat
+/.vscode
