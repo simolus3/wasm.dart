@@ -1,2 +1,4 @@
 .dart_tool/
 /target/
+**/example/*.wasm
+**/example/*.wat

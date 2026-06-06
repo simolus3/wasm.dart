@@ -6,17 +6,20 @@ import 'utils.dart';
 /// The string implementation used when compiling Dart to WebAssembly
 /// components.
 sealed class WasmStringImplementation {
+  const WasmStringImplementation._();
+
   int get length;
 
   static WasmStringImplementation fromExtern(WasmExternRef? ref) {
-    return ref!.internalize() as WasmStringImplementation;
+    return ref!.internalize().toObject() as WasmStringImplementation;
   }
 }
 
-final class Latin1String implements WasmStringImplementation {
+final class Latin1String extends WasmStringImplementation {
   final WasmArray<WasmI8> codeUnits;
 
-  const Latin1String.unsafeWrap(this.codeUnits);
+  @pragma('wasm:entry-point')
+  const Latin1String.unsafeWrap(this.codeUnits) : super._();
 
   static const empty = Latin1String.unsafeWrap(WasmArray.literal([]));
 
@@ -41,10 +44,10 @@ final class Latin1String implements WasmStringImplementation {
   int get length => codeUnits.length;
 }
 
-final class Utf16String implements WasmStringImplementation {
+final class Utf16String extends WasmStringImplementation {
   final WasmArray<WasmI16> codeUnits;
 
-  Utf16String.unsafeWrap(this.codeUnits);
+  Utf16String.unsafeWrap(this.codeUnits) : super._();
 
   factory Utf16String.fromCharCodes(
     WasmArray<WasmI16> charCodes,

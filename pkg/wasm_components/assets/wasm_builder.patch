@@ -37,3 +37,33 @@ index 90e38acea97..7b0b832ba7d 100644
  
    RefFunc(this.function);
  
+diff --git a/pkg/wasm_builder/lib/src/ir/module.dart b/pkg/wasm_builder/lib/src/ir/module.dart
+index 5f277ca427a..c3ab103854c 100644
+--- a/pkg/wasm_builder/lib/src/ir/module.dart
++++ b/pkg/wasm_builder/lib/src/ir/module.dart
+@@ -24,7 +24,7 @@ class Module implements Serializable {
+ 
+   late final String? _moduleName;
+   late final Functions _functions;
+-  late final BaseFunction? _start;
++  BaseFunction? start;
+   late final Tables _tables;
+   late final Elements _elements;
+   late final Tags _tags;
+@@ -62,7 +62,7 @@ class Module implements Serializable {
+     _initialized = true;
+     _moduleName = moduleName;
+     _functions = functions;
+-    _start = start;
++    start = start;
+     _tables = tables;
+     _elements = elements;
+     _tags = tags;
+@@ -79,7 +79,6 @@ class Module implements Serializable {
+ 
+   String? get moduleName => _moduleName;
+   Functions get functions => _functions;
+-  BaseFunction? get start => _start;
+   Tables get tables => _tables;
+   Elements get elements => _elements;
+   Tags get tags => _tags;

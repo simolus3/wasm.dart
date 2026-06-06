@@ -1,17 +1,10 @@
 use core::slice;
-use std::{
-    alloc::{Layout, alloc, dealloc},
-    io::{Write, stdout},
-};
+use std::alloc::{Layout, alloc, dealloc};
 
 #[unsafe(no_mangle)]
-pub extern "C" fn stdout_write(len: usize, ptr: *const u8) {
-    let _ = stdout().write(unsafe { slice::from_raw_parts(ptr, len) });
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn stdout_flush() {
-    let _ = stdout().flush();
+pub extern "C" fn dart_writeln(len: usize, ptr: *const u8) {
+    let msg = unsafe { str::from_utf8_unchecked(slice::from_raw_parts(ptr, len)) };
+    println!("{msg}")
 }
 
 #[unsafe(no_mangle)]

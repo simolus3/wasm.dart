@@ -29,7 +29,6 @@ void main() async {
       '--no-minify',
       '--no-strip-wasm',
       'example/hello_world.dart',
-      '-O0', // TODO: Generate start function and remove this
       '--output',
       dart2wasmOut,
     ], mode: .inheritStdio)).exitCode;
@@ -40,6 +39,7 @@ void main() async {
     );
     transformer.transform();
     File(lowered).writeAsBytesSync(transformer.serialize());
+    //    File('example/lowered.wasm').writeAsBytesSync(transformer.serialize());
 
     print('Merging with libc');
     result = await (await Process.start('wasm-merge', [
@@ -48,6 +48,7 @@ void main() async {
       '--enable-multivalue',
       '--enable-bulk-memory',
       '--enable-exception-handling',
+      '--debuginfo',
       lowered,
       'dart',
       '../../target/wasm32-wasip1/release/dart_libc.wasm',

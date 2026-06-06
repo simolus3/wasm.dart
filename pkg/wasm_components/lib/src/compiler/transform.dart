@@ -27,7 +27,7 @@ final class ModuleTransformer {
   void transform() {
     _patchImports();
     _removeExports();
-    _invokeMainInStartFunction();
+    _addExportedStartFunction();
   }
 
   void _patchImports() {
@@ -88,36 +88,39 @@ final class ModuleTransformer {
     }
   }
 
-  void _invokeMainInStartFunction() {
-    // Patch the generated
+  void _addExportedStartFunction() {
     final mainFunction =
         (_exports[r'$invokeMain'] as w.FunctionExport).function;
     final argsArrayType =
         (mainFunction.type.inputs[0] as w.RefType).containedDefType
             as w.ArrayType;
 
-    List<w.Instruction> instructions;
-    if (module.start case final existing?) {
-      instructions = (existing as w.DefinedFunction).body.instructions;
-    } else {
-      instructions = [w.End()];
+    final emptyFunctionType = module.types.defined
+        .whereType<w.FunctionType>()
+        .firstWhere((e) => e.inputs.isEmpty && e.outputs.isEmpty);
 
-      final startFunction = w.DefinedFunction(
-        module,
-        w.Instructions([], {}, instructions, {}, [], []),
-        w.FinalizableIndex(),
-        w.FunctionType([], []),
-      );
-      //module.start = startFunction;
-    }
-
-    final start = module.start! as w.DefinedFunction;
-    final code = start.body.instructions;
-    // Insert call to main before End instruction.
-    code.insertAll(code.length - 1, [
-      w.I32Const(0),
-      w.ArrayNewDefault(argsArrayType),
-      w.Call(mainFunction),
-    ]);
+    final startFunction = w.DefinedFunction(
+      module,
+      w.Instructions(
+        [],
+        {},
+        [
+          w.I32Const(0),
+          w.ArrayNewDefault(argsArrayType),
+          w.Call(mainFunction),
+          w.End(),
+        ],
+        null,
+        [],
+        [],
+      ),
+      w.FinalizableIndex(),
+      emptyFunctionType,
+      '_start',
+    );
+    startFunction.finalizableIndex.value =
+        module.functions.defined.last.index + 1;
+    module.functions.defined.add(startFunction);
+    module.exports.exported.add(w.FunctionExport('_start', startFunction));
   }
 }

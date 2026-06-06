@@ -6,9 +6,11 @@ import 'string.dart';
 
 void printImpl(WasmStringImplementation string) {
   switch (string) {
-    case Latin1String(:final codeUnits):
+    case Latin1String():
+      final codeUnits = string.codeUnits;
+
       final length = codeUnits.length;
-      final bufferLength = WasmI32.fromInt(length + 1);
+      final bufferLength = WasmI32.fromInt(length);
       final ptr = dartMalloc(bufferLength);
       final dartPtr = ptr.toIntUnsigned();
 
@@ -18,11 +20,11 @@ void printImpl(WasmStringImplementation string) {
           WasmI32.fromInt(codeUnits.readUnsigned(i)),
         );
       }
-      memory.storeInt8(dartPtr + length, const WasmI32(10)); // Add newline
-      stdoutWrite(bufferLength, ptr);
+      dartWriteln(bufferLength, ptr);
       dartFree(ptr, bufferLength);
-      stdoutFlush();
     case Utf16String():
+      dartWriteln(const WasmI32(0), const WasmI32(3));
+
       // We would have to encode this
       throw UnimplementedError();
   }
