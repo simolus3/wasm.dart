@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "pkg/libc"
+]
+resolver = "3"

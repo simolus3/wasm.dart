@@ -96,6 +96,21 @@ final class ModuleTransformer {
         (mainFunction.type.inputs[0] as w.RefType).containedDefType
             as w.ArrayType;
 
+    List<w.Instruction> instructions;
+    if (module.start case final existing?) {
+      instructions = (existing as w.DefinedFunction).body.instructions;
+    } else {
+      instructions = [w.End()];
+
+      final startFunction = w.DefinedFunction(
+        module,
+        w.Instructions([], {}, instructions, {}, [], []),
+        w.FinalizableIndex(),
+        w.FunctionType([], []),
+      );
+      //module.start = startFunction;
+    }
+
     final start = module.start! as w.DefinedFunction;
     final code = start.body.instructions;
     // Insert call to main before End instruction.

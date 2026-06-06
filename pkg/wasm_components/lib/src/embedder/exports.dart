@@ -105,5 +105,6 @@ WasmVoid debugger(WasmExternRef? message) {
 
 @pragma('wasm:export', 'print')
 WasmVoid wasiPrint(WasmExternRef? string) {
+  printImpl(.fromExtern(string));
   return WasmVoid();
 }
