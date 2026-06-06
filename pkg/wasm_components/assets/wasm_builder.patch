@@ -1,0 +1,39 @@
+diff --git a/pkg/wasm_builder/lib/src/ir/finalizable.dart b/pkg/wasm_builder/lib/src/ir/finalizable.dart
+index 6f24bc54681..e0034fb3f54 100644
+--- a/pkg/wasm_builder/lib/src/ir/finalizable.dart
++++ b/pkg/wasm_builder/lib/src/ir/finalizable.dart
+@@ -25,9 +25,9 @@ class Finalizable<T> {
+   }
+ 
+   void finalize(T v) {
+-    if (_value != null) {
+-      throw 'Value already finalized';
+-    }
++    //if (_value != null) {
++    //  throw 'Value already finalized';
++    //}
+     _value = v;
+   }
+ 
+diff --git a/pkg/wasm_builder/lib/src/ir/instruction.dart b/pkg/wasm_builder/lib/src/ir/instruction.dart
+index 90e38acea97..7b0b832ba7d 100644
+--- a/pkg/wasm_builder/lib/src/ir/instruction.dart
++++ b/pkg/wasm_builder/lib/src/ir/instruction.dart
+@@ -1197,7 +1197,7 @@ class Return extends SingleByteInstruction {
+ }
+ 
+ class Call extends Instruction {
+-  final BaseFunction function;
++  BaseFunction function;
+ 
+   Call(this.function);
+ 
+@@ -2150,7 +2150,7 @@ class RefIsNull extends SingleByteInstruction {
+ }
+ 
+ class RefFunc extends Instruction {
+-  final BaseFunction function;
++  BaseFunction function;
+ 
+   RefFunc(this.function);
+ 

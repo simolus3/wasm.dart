@@ -1,6 +1,8 @@
 // ignore: import_internal_library
 import 'dart:_wasm';
 
+import 'utils.dart';
+
 /// The string implementation used when compiling Dart to WebAssembly
 /// components.
 sealed class WasmStringImplementation {
@@ -27,11 +29,11 @@ final class Latin1String implements WasmStringImplementation {
     final dartLength = length.toIntUnsigned();
 
     if (dartStart == 0 && dartLength == charCodes.length) {
-      return Latin1String.unsafeWrap(charCodes.clone());
+      return Latin1String.unsafeWrap(charCodes.cloneTyped());
     }
 
     final copy = WasmArray<WasmI8>(dartLength);
-    copy.copy(0, charCodes, dartStart, dartLength);
+    copy.copyTyped(0, charCodes, dartStart, dartLength);
     return Latin1String.unsafeWrap(copy);
   }
 
@@ -53,11 +55,11 @@ final class Utf16String implements WasmStringImplementation {
     final dartLength = length.toIntUnsigned();
 
     if (dartStart == 0 && dartLength == charCodes.length) {
-      return Utf16String.unsafeWrap(charCodes.clone());
+      return Utf16String.unsafeWrap(charCodes.cloneTyped());
     }
 
     final copy = WasmArray<WasmI16>(dartLength);
-    copy.copy(0, charCodes, dartStart, dartLength);
+    copy.copyTyped(0, charCodes, dartStart, dartLength);
     return Utf16String.unsafeWrap(copy);
   }
 

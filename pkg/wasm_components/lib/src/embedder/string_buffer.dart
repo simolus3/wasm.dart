@@ -2,6 +2,7 @@
 import 'dart:_wasm';
 
 import 'string.dart';
+import 'utils.dart';
 
 final class WasmStringBuffer {
   _StringBuffer? _state;
@@ -85,7 +86,7 @@ final class _Latin1Buffer extends _StringBuffer {
   @override
   void writeLatin1String(int length, Latin1String string) {
     ensureCapacity(length, string.length);
-    buffer.copy(length, string.codeUnits, 0, string.length);
+    buffer.copyTyped(length, string.codeUnits, 0, string.length);
   }
 
   void ensureCapacity(int length, int additionalCapacity) {
@@ -96,7 +97,7 @@ final class _Latin1Buffer extends _StringBuffer {
 
     final newCapacity = 1 << (currentCapacity + additionalCapacity).bitLength;
     final newBuffer = WasmArray<WasmI8>(newCapacity);
-    newBuffer.copy(0, buffer, 0, length);
+    newBuffer.copyTyped(0, buffer, 0, length);
     buffer = newBuffer;
   }
 }
@@ -132,7 +133,7 @@ final class _Utf16Buffer extends _StringBuffer {
 
   void writeUtf16String(int length, Utf16String string) {
     ensureCapacity(length, string.length);
-    buffer.copy(length, string.codeUnits, 0, string.length);
+    buffer.copyTyped(length, string.codeUnits, 0, string.length);
   }
 
   void ensureCapacity(int length, int additionalCapacity) {
@@ -143,7 +144,7 @@ final class _Utf16Buffer extends _StringBuffer {
 
     final newCapacity = 1 << (currentCapacity + additionalCapacity).bitLength;
     final newBuffer = WasmArray<WasmI16>(newCapacity);
-    newBuffer.copy(0, buffer, 0, length);
+    newBuffer.copyTyped(0, buffer, 0, length);
     buffer = newBuffer;
   }
 }

@@ -11,6 +11,7 @@ import 'number_format.dart';
 import 'stack_trace.dart';
 import 'string.dart';
 import 'string_buffer.dart';
+import 'tmp_print.dart';
 import 'utils.dart';
 
 @pragma('wasm:export')
@@ -27,6 +28,12 @@ WasmExternRef stringFromAsciiBytes(
 @pragma('wasm:export')
 WasmExternRef i64ToString(WasmI64 value, WasmI32 radix) {
   return intToString(value.toInt(), radix.toIntUnsigned()).externalize();
+}
+
+@pragma('wasm:export')
+WasmExternRef f64ToString(WasmF64 value) {
+  // TODO
+  return $0.externalize();
 }
 
 @pragma('wasm:export')
@@ -81,7 +88,7 @@ WasmExternRef stackTraceGetCurrent() {
 }
 
 @pragma('wasm:export')
-WasmExternRef stackTraceToString() {
+WasmExternRef stackTraceToString(WasmExternRef? _) {
   return stackTracesAreUnavailableMessage.externalize();
 }
 
@@ -93,5 +100,10 @@ WasmExternRef jsonEncodeString(WasmExternRef? line) {
 
 @pragma('wasm:export')
 WasmVoid debugger(WasmExternRef? message) {
+  return WasmVoid();
+}
+
+@pragma('wasm:export', 'print')
+WasmVoid wasiPrint(WasmExternRef? string) {
   return WasmVoid();
 }
