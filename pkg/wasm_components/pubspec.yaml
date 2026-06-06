@@ -1,0 +1,11 @@
+name: wasm_components
+description: Create and consume WebAssembly components with Dart.
+resolution: workspace
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  collection: ^1.19.1
+  logging: ^1.3.0
+  wasm_builder:
+    path: /home/simon/src/dart-sdk/sdk/pkg/wasm_builder
