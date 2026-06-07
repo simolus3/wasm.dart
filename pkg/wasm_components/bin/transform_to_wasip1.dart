@@ -16,6 +16,8 @@ void main() async {
       '--release',
       '--target',
       'wasm32-wasip1',
+      '-p',
+      'libc_wasip1',
     ], mode: .inheritStdio)).exitCode;
     if (result != 0) exit(result);
 

@@ -2,6 +2,7 @@
 
 members = [
     "pkg/libc_common",
+    "pkg/libc_standalone",
     "pkg/libc_wasip1"
 ]
 resolver = "3"
