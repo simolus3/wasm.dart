@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [lib]
-name = "dart_libc"
+name = "dart_libc_wasip1"
 crate-type = ["cdylib"]
 
 [dependencies]
+libc_common = { path = "../libc_common" }

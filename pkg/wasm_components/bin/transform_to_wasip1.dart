@@ -51,7 +51,7 @@ void main() async {
       '--debuginfo',
       lowered,
       'dart',
-      '../../target/wasm32-wasip1/release/dart_libc.wasm',
+      '../../target/wasm32-wasip1/release/dart_libc_wasip1.wasm',
       'libc',
       '-o',
       'example/app.wasm',

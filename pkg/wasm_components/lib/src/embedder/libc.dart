@@ -8,8 +8,13 @@ external Memory get memory;
 @pragma('wasm:import', 'libc.dart_writeln')
 external WasmVoid dartWriteln(WasmI32 length, WasmI32 ptr);
 
-@pragma('wasm:import', 'libc.dart_malloc')
-external WasmI32 dartMalloc(WasmI32 sizeInBytes);
+@pragma('wasm:import', 'libc.dart_realloc')
+external WasmI32 dartRealloc(
+  WasmI32 oldPtr,
+  WasmI32 oldLen,
+  WasmI32 align,
+  WasmI32 newLen,
+);
 
 @pragma('wasm:import', 'libc.dart_free')
-external WasmVoid dartFree(WasmI32 ptr, WasmI32 sizeInBytes);
+external WasmVoid dartFree(WasmI32 ptr, WasmI32 sizeInBytes, WasmI32 alignment);

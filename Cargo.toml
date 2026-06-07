@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
-    "pkg/libc"
+    "pkg/libc_common",
+    "pkg/libc_wasip1"
 ]
 resolver = "3"

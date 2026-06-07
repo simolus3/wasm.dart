@@ -11,7 +11,13 @@ void printImpl(WasmStringImplementation string) {
 
       final length = codeUnits.length;
       final bufferLength = WasmI32.fromInt(length);
-      final ptr = dartMalloc(bufferLength);
+      const align = WasmI32(1);
+      final ptr = dartRealloc(
+        const WasmI32(0),
+        const WasmI32(0),
+        align,
+        bufferLength,
+      );
       final dartPtr = ptr.toIntUnsigned();
 
       for (var i = 0; i < length; i++) {
@@ -21,7 +27,7 @@ void printImpl(WasmStringImplementation string) {
         );
       }
       dartWriteln(bufferLength, ptr);
-      dartFree(ptr, bufferLength);
+      dartFree(ptr, bufferLength, align);
     case Utf16String():
       dartWriteln(const WasmI32(0), const WasmI32(3));
 
