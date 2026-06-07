@@ -24,17 +24,25 @@ enum LibcVariant { standalone, wasip1 }
 Future<void> compileLibc(LibcVariant variant) async {
   switch (variant) {
     case LibcVariant.standalone:
-      await runSubprocess('cargo', [
-        '+nightly',
-        'build',
-        '--release',
-        '-Zbuild-std=core,alloc,panic_abort',
-        '-Zbuild-std-features=',
-        '--target',
-        'wasm32-unknown-unknown',
-        '-p',
-        'libc_standalone',
-      ]);
+      await runSubprocess(
+        'cargo',
+        [
+          '+nightly',
+          'build',
+          '--release',
+          '-Zbuild-std=core,alloc,panic_abort',
+          '-Zbuild-std-features=',
+          '--target',
+          'wasm32-unknown-unknown',
+          '-p',
+          'libc_standalone',
+        ],
+        env: {
+          'RUSTFLAGS':
+              '-Zlocation-detail=none -Zfmt-debug=none -Zunstable-options '
+              '-Cpanic=immediate-abort',
+        },
+      );
     case LibcVariant.wasip1:
       await runSubprocess('cargo', [
         'build',
