@@ -9,13 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c880a97d28a3681c0267bd29cff89621202715b065127cd445fa0f0fe0aa2880"
 
 [[package]]
-name = "libc"
-version = "0.1.0"
-dependencies = [
- "libc_common",
-]
-
-[[package]]
 name = "libc_common"
 version = "0.1.0"
 
@@ -25,6 +18,13 @@ version = "0.1.0"
 dependencies = [
  "libc_common",
  "talc",
+]
+
+[[package]]
+name = "libc_wasip1"
+version = "0.1.0"
+dependencies = [
+ "libc_common",
 ]
 
 [[package]]

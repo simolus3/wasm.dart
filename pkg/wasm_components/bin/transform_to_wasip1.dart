@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:wasm_components/src/compiler/subprocess.dart';
 import 'package:wasm_components/src/compiler/transform.dart';
 import 'package:path/path.dart' as p;
 
@@ -11,18 +12,10 @@ void main() async {
 
   try {
     print('Building wasi helpers');
-    var result = await (await Process.start('cargo', [
-      'build',
-      '--release',
-      '--target',
-      'wasm32-wasip1',
-      '-p',
-      'libc_wasip1',
-    ], mode: .inheritStdio)).exitCode;
-    if (result != 0) exit(result);
+    await compileLibc(.wasip1);
 
     print('Compiling main file');
-    result = await (await Process.start(Platform.executable, [
+    var result = await (await Process.start(Platform.executable, [
       'compile',
       'wasm',
       '--standalone',

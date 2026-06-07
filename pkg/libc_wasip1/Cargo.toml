@@ -1,5 +1,5 @@
 [package]
-name = "libc"
+name = "libc_wasip1"
 version = "0.1.0"
 edition = "2024"
 

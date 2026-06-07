@@ -12,7 +12,7 @@ RUSTFLAGS="-Zlocation-detail=none -Zfmt-debug=none -Zunstable-options -Cpanic=im
 #![no_std]
 pub use libc_common::*;
 
-#[cfg(all(not(target_feature = "atomics"), target_family = "wasm"))]
+#[cfg(all(target_family = "wasm"))]
 #[global_allocator]
 static TALC: talc::wasm::WasmDynamicTalc = talc::wasm::new_wasm_dynamic_allocator();
 
