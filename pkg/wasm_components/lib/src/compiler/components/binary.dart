@@ -168,3 +168,25 @@ final class TypesSection extends w.Section {
     _writeType(type, s);
   }
 }
+
+final class ImportsSection extends w.Section {
+  final List<(String, ModelTypeReference<InstanceType>)> imports;
+
+  ImportsSection(this.imports, [super.watchPoints = const []]);
+
+  @override
+  int get id => 10;
+
+  @override
+  void serializeContents(w.Serializer s) {
+    s.writeUnsigned(imports.length);
+    for (final (name, importedInstanceType) in imports) {
+      // importname'
+      s.writeByte(0x00);
+      s.writeName(name);
+
+      s.writeByte(0x05); // in externdesc production, tag instance type
+      s.writeUnsigned(importedInstanceType.index.index);
+    }
+  }
+}

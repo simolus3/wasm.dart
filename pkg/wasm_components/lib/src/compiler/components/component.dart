@@ -36,6 +36,10 @@ final class ComponentBuilder implements w.Serializable {
   final List<ModelType> _types = [];
   final Map<ModelType, ModelTypeReference> _typesToIndex = {};
 
+  /// Imported component instances (we don't support any other type of import
+  /// currently).
+  final List<(String, ModelTypeReference<InstanceType>)> _imports = [];
+
   CoreModule _defineCoreModule(CoreModule Function(ModuleIndex) create) {
     final index = ModuleIndex(_modules.length);
     final module = create(index);
@@ -49,6 +53,15 @@ final class ComponentBuilder implements w.Serializable {
 
   CoreModule defineModule(w.Module module) {
     return _defineCoreModule((idx) => CoreModuleParsed(idx, module));
+  }
+
+  ComponentInstanceIndex importInstance(
+    String name,
+    ModelTypeReference<InstanceType> type,
+  ) {
+    final idx = ComponentInstanceIndex(_imports.length);
+    _imports.add((name, type));
+    return idx;
   }
 
   ModelTypeReference<T> addType<T extends ModelType>(T type) {
@@ -67,6 +80,7 @@ final class ComponentBuilder implements w.Serializable {
       ModuleSection(module).serialize(s);
     }
     TypesSection(_types).serialize(s);
+    ImportsSection(_imports).serialize(s);
   }
 
   Uint8List serializeToBytes() {
