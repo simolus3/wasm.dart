@@ -1,24 +1,52 @@
 import 'package:collection/collection.dart';
 
+import 'index_space.dart';
+
 const _listEquality = ListEquality<Object?>();
 
 /// A type in the component model.
 sealed class ModelType {}
 
+final class ModelTypeReference<T extends ModelType> extends ModelType {
+  final ComponentTypeIndex index;
+  final T resolvedType;
+
+  ModelTypeReference(this.index, this.resolvedType);
+
+  // Replacing a type with a type reference must not change hash codes or
+  // equality.
+
+  @override
+  int get hashCode => resolvedType.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ModelTypeReference &&
+      (
+      // Comparing indices is an optimization, if the index is the same then so
+      // is the underlying type.
+      index == other.index || other.resolvedType == resolvedType);
+}
+
 sealed class ValueType extends ModelType {}
 
 enum PrimitiveType implements ValueType {
-  s8,
-  u8,
-  s16,
-  u16,
-  s32,
-  u32,
-  s64,
-  u64,
-  f32,
-  f64,
-  char,
+  bool(0x7f),
+  s8(0x7e),
+  u8(0x7d),
+  s16(0x7c),
+  u16(0x7b),
+  s32(0x7a),
+  u32(0x79),
+  s64(0x78),
+  u64(0x77),
+  f32(0x76),
+  f64(0x75),
+  char(0x74);
+
+  final int typeCode;
+
+  const PrimitiveType(this.typeCode);
 }
 
 /// The `string` type, which decays to a `list<char>` but has a special ABI
@@ -59,11 +87,11 @@ final class VariantType implements ValueType {
   int get hashCode => _listEquality.hash(fields);
 }
 
-typedef RecordField = RecordOrVariantField<ValueType>;
+typedef RecordField = RecordOrVariantField<ModelTypeReference<ValueType>>;
 
-typedef VariantField = RecordOrVariantField<ValueType>?;
+typedef VariantField = RecordOrVariantField<ModelTypeReference<ValueType>?>;
 
-final class RecordOrVariantField<T extends ValueType?> {
+final class RecordOrVariantField<T extends ModelTypeReference<ValueType>?> {
   final String label;
   final T type;
 
@@ -80,7 +108,7 @@ final class RecordOrVariantField<T extends ValueType?> {
 }
 
 final class VariableLengthListType implements ValueType {
-  final ValueType elementType;
+  final ModelTypeReference<ValueType> elementType;
 
   VariableLengthListType({required this.elementType});
 
@@ -93,7 +121,7 @@ final class VariableLengthListType implements ValueType {
 }
 
 final class FixedLengthListType implements ValueType {
-  final ValueType elementType;
+  final ModelTypeReference<ValueType> elementType;
   final int length;
 
   FixedLengthListType({required this.elementType, required this.length});
@@ -109,7 +137,7 @@ final class FixedLengthListType implements ValueType {
 }
 
 final class TupleType implements ValueType {
-  final List<ModelType> elements;
+  final List<ModelTypeReference<ValueType>> elements;
 
   TupleType(this.elements);
 
@@ -148,7 +176,7 @@ final class EnumType implements ValueType {
 }
 
 final class OptionType implements ValueType {
-  final ValueType inner;
+  final ModelTypeReference<ValueType> inner;
 
   OptionType(this.inner);
 
@@ -160,8 +188,8 @@ final class OptionType implements ValueType {
 }
 
 final class ResultType implements ValueType {
-  final ValueType? ok;
-  final ValueType? error;
+  final ModelTypeReference<ValueType>? ok;
+  final ModelTypeReference<ValueType>? error;
 
   ResultType({this.ok, this.error});
 
@@ -174,7 +202,7 @@ final class ResultType implements ValueType {
 }
 
 final class OwnType implements ValueType {
-  final ResourceType resource;
+  final ModelTypeReference<ResourceType> resource;
 
   OwnType(this.resource);
 
@@ -187,7 +215,7 @@ final class OwnType implements ValueType {
 }
 
 final class BorrowType implements ValueType {
-  final ResourceType resource;
+  final ModelTypeReference<ResourceType> resource;
 
   BorrowType(this.resource);
 
@@ -200,23 +228,28 @@ final class BorrowType implements ValueType {
 }
 
 final class StreamType implements ValueType {
-  final ValueType element;
+  final ModelTypeReference<ValueType> element;
 
   StreamType(this.element);
 }
 
 final class FutureType implements ValueType {
-  final ValueType element;
+  final ModelTypeReference<ValueType> element;
 
   FutureType(this.element);
 }
 
-final class ResourceType extends ModelType {}
+final class ResourceType extends ModelType {
+  final bool hasInt64Representation;
+  final CoreFunctionIndex? destructor;
+
+  ResourceType(this.hasInt64Representation, this.destructor);
+}
 
 final class FunctionType extends ModelType {
   final bool async;
   final List<RecordField> parameters;
-  final ValueType? result;
+  final ModelTypeReference<ValueType>? result;
 
   FunctionType({
     required this.async,
@@ -236,4 +269,19 @@ final class FunctionType extends ModelType {
       Object.hash(async, _listEquality.hash(parameters), result);
 }
 
-final class InstanceType extends ModelType {}
+final class InstanceType extends ModelType {
+  /// The functions exported by this instance.
+  ///
+  /// The component model also supports exporting other values, but we don't
+  /// currently support that.
+  final List<(String, ModelTypeReference<FunctionType>)> exports;
+
+  InstanceType(this.exports);
+
+  @override
+  int get hashCode => _listEquality.hash(exports);
+
+  @override
+  bool operator ==(Object other) =>
+      other is InstanceType && _listEquality.equals(other.exports, exports);
+}

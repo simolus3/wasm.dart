@@ -1,30 +1,51 @@
 import 'dart:typed_data';
 
 import '../../third_party/wasm_builder/wasm_builder.dart' as w;
+
 import 'binary.dart';
+import 'index_space.dart';
+import 'type.dart';
 
-final class WasmComponent implements w.Serializable {
-  final List<ComponentCoreModule> modules = [];
-  final List<CoreInstantiation> coreInstances = [];
+/// Utilities to build a WebAssembly component.
+///
+/// Since we only generate components (and don't transform / inspect existing
+/// ones), we can get away with only supporting the supset of the full component
+/// model we really need.
+///
+/// In our case, components are unconditionally created like this:
+///
+///  1. We include the core module for the transformed dart2wasm app and our
+///     libc.
+///  2. We create a `(core instance)` of libc.
+///  3. We generate a type section with all types used in public imports/exports.
+///  4. We import existing instances.
+///  5. We extract functions from imported instances to component functions via
+///     `(alias export $imported-instance "export" (func $...))`.
+///  6. We lower these imported functions to core functions with
+///     `(canon lower)`.
+///  7. We define a `(core instance)` exporting imported functions as core
+///     functions with the correct name.
+///  8. We create a `(core instance)` of the dart2wasm module.
+///  9. We lift exported functions from dart2wasm into module functions.
+/// 10. We create an instance exporting all these functions.
+/// 11. We export that instance.
+final class ComponentBuilder implements w.Serializable {
+  final List<ModelType> _types = [];
+  final Map<ModelType, ModelTypeReference> _typesToIndex = {};
 
-  Uint8List serializeToBytes() {
-    final serializer = w.Serializer();
-    serialize(serializer);
-    return serializer.data;
+  ModelTypeReference<T> addType<T extends ModelType>(T type) {
+    return _typesToIndex.putIfAbsent(type, () {
+          final idx = _types.length;
+          _types.add(type);
+          return ModelTypeReference<T>(ComponentTypeIndex(idx), type);
+        })
+        as ModelTypeReference<T>;
   }
 
   @override
   void serialize(w.Serializer s) {
     s.writeBytes(_preamble);
-
-    for (final (i, module) in modules.indexed) {
-      ModuleSection(module).serialize(s);
-      module.id.finalize(i);
-    }
-
-    if (coreInstances.isNotEmpty) {
-      CoreInstanceSection(coreInstances).serialize(s);
-    }
+    TypesSection(_types).serialize(s);
   }
 
   static final _preamble = Uint8List.fromList([
@@ -39,57 +60,41 @@ final class WasmComponent implements w.Serializable {
   ]);
 }
 
-sealed class ComponentCoreModule {
-  final w.FinalizableIndex id = w.FinalizableIndex();
+/**
+TODO: Be able to generate something like this
 
-  void serializeModule(w.Serializer serializer);
-}
+(component
+  (type $result (result))
+  (type $exit-type (func (param "status" $result)))
 
-final class ParsedCoreModule extends ComponentCoreModule {
-  final w.Module coreModule;
+  (type $ty-exit-instance (instance
+      (export (;0;) "exit" (func (type $exit-type)))
+  ))
+  (import "wasi:cli/exit@0.2.12" (instance $exit-instance (type $ty-exit-instance)))
 
-  ParsedCoreModule(this.coreModule);
+  (core module $C
+    (func $exit (import "runtime" "exit") (param i32))
+    (func (export "add") (result i32) (i32.const 1))
+  )
 
-  @override
-  void serializeModule(w.Serializer serializer) {
-    coreModule.serialize(serializer);
-  }
-}
+  (alias export $exit-instance "exit" (func $exit))
+  (canon lower (func $exit) (core func $exit))
+  (core instance $host-imports
+    (export "exit" (func $exit))
+  )
 
-/// A `(core module)` section backed by an unparsed WebAssembly module.
-final class RawCoreModule extends ComponentCoreModule {
-  final Uint8List coreModuleBytes;
+  (core instance $c (instantiate $C (with "runtime" (instance $host-imports))))
 
-  RawCoreModule(this.coreModuleBytes);
+  (type $main (func (result (result))))
+  (component $exports
+    (import "import-main" (func (type $main)))
+    (export "run" (func 0) (func (type $main)))
+  )
 
-  @override
-  void serializeModule(w.Serializer serializer) {
-    serializer.writeBytes(coreModuleBytes);
-  }
-}
-
-/// An instantiation of a [ComponentCoreModule].
-final class CoreInstantiation implements w.Serializable {
-  final w.FinalizableIndex id = w.FinalizableIndex();
-
-  final ComponentCoreModule module;
-
-  /// Existing instances to use as instantiations.
-  final List<({String name, CoreInstantiation instance})> withInstances;
-
-  CoreInstantiation({required this.module, required this.withInstances});
-
-  @override
-  void serialize(w.Serializer s) {
-    // https://github.com/WebAssembly/component-model/blob/main/design/mvp/Binary.md#instance-definitions
-    s.writeByte(0x00); // We don't support inline exports.
-    s.writeUnsigned(module.id.value);
-
-    s.writeUnsigned(withInstances.length);
-    for (final (:name, :instance) in withInstances) {
-      s.writeName(name);
-      s.writeByte(0x12);
-      s.writeUnsigned(instance.id.value);
-    }
-  }
-}
+  (canon lift (core func $c "add") (func $run (type $main)))
+  (instance $mainInstance (instantiate $exports
+    (with "import-main" (func $run))
+  ))
+  (export "wasi:cli/run@0.2.12" (instance $mainInstance))
+)
+ */
