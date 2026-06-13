@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:wasm_components/src/compiler/components/component.dart';
 import 'package:wasm_components/src/compiler/subprocess.dart';
 import 'package:wasm_components/src/compiler/transform.dart';
 import 'package:path/path.dart' as p;
@@ -80,19 +81,15 @@ void main() async {
     )
     */
 
-    /*
-    final component = WasmComponent();
-    component.modules.add(ParsedCoreModule(transformer.module));
-    component.modules.add(
-      RawCoreModule(
-        await File(
-          '../../target/wasm32-unknown-unknown/release/dart_libc_standalone.wasm',
-        ).readAsBytes(),
-      ),
+    final component = ComponentBuilder();
+    component.defineModule(transformer.module);
+    component.defineModuleFromBytes(
+      await File(
+        '../../target/wasm32-unknown-unknown/release/dart_libc_standalone.wasm',
+      ).readAsBytes(),
     );
 
     File('example/app.wasm').writeAsBytes(component.serializeToBytes());
-    */
   } finally {
     await workspace.delete(recursive: true);
   }

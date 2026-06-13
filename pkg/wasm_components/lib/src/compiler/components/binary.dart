@@ -1,6 +1,21 @@
 import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 
+import 'core_module.dart';
 import 'type.dart';
+
+final class ModuleSection extends w.Section {
+  final CoreModule module;
+
+  ModuleSection(this.module, [super.watchPoints = const []]);
+
+  @override
+  int get id => 1;
+
+  @override
+  void serializeContents(w.Serializer s) {
+    module.serialize(s);
+  }
+}
 
 final class TypesSection extends w.Section {
   final List<ModelType> types;

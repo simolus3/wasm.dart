@@ -3,26 +3,18 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:wasm_components/src/compiler/components/component.dart';
-import 'package:wasm_components/src/third_party/wasm_builder/wasm_builder.dart';
 
 Future<String> componentToWat(ComponentBuilder builder) async {
-  final serializer = Serializer();
-  builder.serialize(serializer);
+  final bytes = builder.serializeToBytes();
 
   {
-    final (exitCode, _, stderr) = await _runWasmTool(
-      'validate',
-      serializer.data,
-    );
+    final (exitCode, _, stderr) = await _runWasmTool('validate', bytes);
     if (exitCode != 0) {
       throw ArgumentError('wasm-tools validate failed: $stderr');
     }
   }
 
-  final (exitCode, stdout, stderr) = await _runWasmTool(
-    'print',
-    serializer.data,
-  );
+  final (exitCode, stdout, stderr) = await _runWasmTool('print', bytes);
   if (exitCode != 0) {
     throw ArgumentError('Could not print to WAT: $stderr');
   }

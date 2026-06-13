@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 
 import 'binary.dart';
+import 'core_module.dart';
 import 'index_space.dart';
 import 'type.dart';
 
@@ -30,8 +31,25 @@ import 'type.dart';
 /// 10. We create an instance exporting all these functions.
 /// 11. We export that instance.
 final class ComponentBuilder implements w.Serializable {
+  final List<CoreModule> _modules = [];
+
   final List<ModelType> _types = [];
   final Map<ModelType, ModelTypeReference> _typesToIndex = {};
+
+  CoreModule _defineCoreModule(CoreModule Function(ModuleIndex) create) {
+    final index = ModuleIndex(_modules.length);
+    final module = create(index);
+    _modules.add(module);
+    return module;
+  }
+
+  CoreModule defineModuleFromBytes(Uint8List bytes) {
+    return _defineCoreModule((idx) => CoreModuleFromBytes(idx, bytes));
+  }
+
+  CoreModule defineModule(w.Module module) {
+    return _defineCoreModule((idx) => CoreModuleParsed(idx, module));
+  }
 
   ModelTypeReference<T> addType<T extends ModelType>(T type) {
     return _typesToIndex.putIfAbsent(type, () {
@@ -45,7 +63,16 @@ final class ComponentBuilder implements w.Serializable {
   @override
   void serialize(w.Serializer s) {
     s.writeBytes(_preamble);
+    for (final module in _modules) {
+      ModuleSection(module).serialize(s);
+    }
     TypesSection(_types).serialize(s);
+  }
+
+  Uint8List serializeToBytes() {
+    final serializer = w.Serializer();
+    serialize(serializer);
+    return serializer.data;
   }
 
   static final _preamble = Uint8List.fromList([
