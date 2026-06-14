@@ -121,6 +121,12 @@ final class LinkingBuilder implements w.Serializable {
     return def;
   }
 
+  ModuleInstanceIndex coreInstantiate(CoreInstanceExpression expr) {
+    final index = _component._counters.incrementCoreInstance();
+    _instructions.add(expr);
+    return index;
+  }
+
   @override
   void serialize(w.Serializer s) {
     for (final section in _toSections()) {
@@ -146,6 +152,13 @@ final class LinkingBuilder implements w.Serializable {
           } else {
             if (currentSection != null) yield currentSection;
             currentSection = CanonSection([instruction]);
+          }
+        case CoreInstanceExpression():
+          if (currentSection is CoreInstanceSection) {
+            currentSection.instances.add(instruction);
+          } else {
+            if (currentSection != null) yield currentSection;
+            currentSection = CoreInstanceSection([instruction]);
           }
       }
     }

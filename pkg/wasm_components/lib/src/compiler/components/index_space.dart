@@ -26,6 +26,7 @@ final class IndexSpaceCounters {
 
   var _coreMemory = 0;
   var _coreFunction = 0;
+  var _coreInstance = 0;
 
   I increment<I extends Index>(Sort<I> sort) {
     return switch (sort) {
@@ -51,5 +52,9 @@ final class IndexSpaceCounters {
 
   CoreMemoryIndex incrementCoreMemory() {
     return CoreMemoryIndex(_coreMemory++);
+  }
+
+  ModuleInstanceIndex incrementCoreInstance() {
+    return ModuleInstanceIndex(_coreInstance++);
   }
 }

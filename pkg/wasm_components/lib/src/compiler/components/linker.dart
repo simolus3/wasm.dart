@@ -1,11 +1,11 @@
 import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 
+import 'core_module.dart';
 import 'index_space.dart';
 
-sealed class LinkingInstruction {}
+sealed class LinkingInstruction extends w.Serializable {}
 
-final class AliasDefinition<I extends Index> extends LinkingInstruction
-    implements w.Serializable {
+final class AliasDefinition<I extends Index> extends LinkingInstruction {
   final Sort<I> sort;
 
   /// The index used to refer to the aliased definition.
@@ -77,8 +77,7 @@ final class CoreExportTarget extends AliasTarget {
 }
 
 /// https://github.com/WebAssembly/component-model/blob/main/design/mvp/Explainer.md#canonical-definitions
-sealed class CanonicalDefinition extends LinkingInstruction
-    implements w.Serializable {}
+sealed class CanonicalDefinition extends LinkingInstruction {}
 
 abstract final class _CanonicalLiftOrLower extends CanonicalDefinition {
   StringEncoding? stringEncoding;
@@ -143,3 +142,58 @@ final class CanonLower extends _CanonicalLiftOrLower {
 }
 
 enum StringEncoding { utf8, utf16, latin1OrUtf16 }
+
+abstract final class CoreInstanceExpression extends LinkingInstruction {
+  CoreInstanceExpression._();
+
+  factory CoreInstanceExpression.moduleAndArgs(
+    CoreModule module,
+    Map<String, ModuleInstanceIndex> args,
+  ) = _InstantiateCoreModule;
+
+  factory CoreInstanceExpression.inlineExports(
+    List<(String, Sort, Index)> exports,
+  ) = _InstantiateFromInlineExports;
+}
+
+final class _InstantiateCoreModule extends CoreInstanceExpression {
+  final CoreModule module;
+  final Map<String, ModuleInstanceIndex> args;
+
+  _InstantiateCoreModule(this.module, this.args) : super._();
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x00);
+    s.writeUnsigned(module.index.index);
+    s.writeUnsigned(args.length);
+    for (final MapEntry(key: name, value: module) in args.entries) {
+      s.writeName(name);
+      s.writeByte(0x12);
+      s.writeUnsigned(module.index);
+    }
+  }
+}
+
+final class _InstantiateFromInlineExports extends CoreInstanceExpression {
+  final List<(String, Sort, Index)> exports;
+
+  _InstantiateFromInlineExports(this.exports) : super._();
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x01);
+    s.writeUnsigned(exports.length);
+    for (final (name, sort, index) in exports) {
+      s.writeName(name);
+      s.writeByte(switch (sort) {
+        .coreFunction => 0x00,
+        .coreMemory => 0x02,
+        .componentFunction || .componentInstance => throw ArgumentError(
+          'Unsupported sort for core instance: $sort',
+        ),
+      });
+      s.writeUnsigned(index.index);
+    }
+  }
+}

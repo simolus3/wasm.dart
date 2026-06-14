@@ -10,7 +10,7 @@ import 'utils.dart';
 void main() {
   test('can define simple component', () async {
     final builder = ComponentBuilder();
-    builder.defineModule(_defineModuleCallingExit0());
+    final app = builder.defineModule(_defineModuleCallingExit0());
 
     final resultType = builder.addType(ResultType());
     final exitFunctionType = builder.addType(
@@ -32,6 +32,15 @@ void main() {
       .instanceExport(exitInstance, 'exit'),
     );
     final coreExitFunc = builder.linker.canonLower(componentExitFunc);
+    final instantiatedApp = builder.linker.coreInstantiate(
+      .moduleAndArgs(app, {
+        'runtime': builder.linker.coreInstantiate(
+          .inlineExports([
+            ('exit', .coreFunction, coreExitFunc.createdCoreFunction),
+          ]),
+        ),
+      }),
+    );
 
     expect(await componentToWat(builder), '''
 (component
@@ -58,6 +67,13 @@ void main() {
   (import "wasi:cli/exit@0.2.12" (instance (;0;) (type 2)))
   (alias export 0 "exit" (func (;0;)))
   (core func (;0;) (canon lower (func 0)))
+  (core instance (;0;)
+    (export "exit" (func 0))
+  )
+  (core instance (;1;) (instantiate 0
+      (with "runtime" (instance 0))
+    )
+  )
 )
 ''');
   });

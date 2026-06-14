@@ -18,6 +18,20 @@ final class ModuleSection extends w.Section {
   }
 }
 
+final class CoreInstanceSection extends w.Section {
+  final List<CoreInstanceExpression> instances;
+
+  CoreInstanceSection(this.instances, [super.watchPoints = const []]);
+
+  @override
+  int get id => 2;
+
+  @override
+  void serializeContents(w.Serializer s) {
+    s.writeList(instances);
+  }
+}
+
 final class AliasSection extends w.Section {
   final List<AliasDefinition> aliases;
 
