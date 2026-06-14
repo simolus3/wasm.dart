@@ -145,6 +145,10 @@ final class LinkingBuilder implements w.Serializable {
     return index;
   }
 
+  void export(Export export) {
+    _instructions.add(export);
+  }
+
   @override
   void serialize(w.Serializer s) {
     for (final section in _toSections()) {
@@ -184,6 +188,13 @@ final class LinkingBuilder implements w.Serializable {
           } else {
             if (currentSection != null) yield currentSection;
             currentSection = InstanceSection([instruction]);
+          }
+        case Export():
+          if (currentSection is ExportsSection) {
+            currentSection.exports.add(instruction);
+          } else {
+            if (currentSection != null) yield currentSection;
+            currentSection = ExportsSection([instruction]);
           }
       }
     }

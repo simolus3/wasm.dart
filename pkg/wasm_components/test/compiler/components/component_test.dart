@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:wasm_components/src/compiler/components/linker.dart';
 
 import 'package:wasm_components/src/third_party/wasm_builder/wasm_builder.dart'
     as w;
@@ -52,6 +53,9 @@ void main() {
     final finalInstance = builder.linker.instance(
       inlineExports: [('run', .componentFunction, main.createdFunction)],
     );
+    builder.linker.export(
+      Export('wasi:cli/run@0.2.12', .componentInstance, finalInstance),
+    );
 
     expect(await componentToWat(builder), '''
 (component
@@ -91,6 +95,7 @@ void main() {
   (instance (;1;)
     (export "run" (func 1))
   )
+  (export (;2;) "wasi:cli/run@0.2.12" (instance 1))
 )
 ''');
   });

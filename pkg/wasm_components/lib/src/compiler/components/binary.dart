@@ -247,3 +247,17 @@ final class ImportsSection extends w.Section {
     }
   }
 }
+
+final class ExportsSection extends w.Section {
+  final List<Export> exports;
+
+  ExportsSection(this.exports, [super.watchPoints = const []]);
+
+  @override
+  int get id => 11;
+
+  @override
+  void serializeContents(w.Serializer s) {
+    s.writeList(exports);
+  }
+}

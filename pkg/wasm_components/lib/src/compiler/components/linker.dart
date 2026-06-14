@@ -224,3 +224,20 @@ final class InstanceFromInlineExports extends LinkingInstruction {
     }
   }
 }
+
+final class Export extends LinkingInstruction {
+  final String name;
+  final Sort sort;
+  final Index exported;
+
+  Export(this.name, this.sort, this.exported);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x00);
+    s.writeName(name);
+    sort.serializeAsSort(s);
+    s.writeUnsigned(exported.index);
+    s.writeByte(0x00); // No externdesc
+  }
+}
