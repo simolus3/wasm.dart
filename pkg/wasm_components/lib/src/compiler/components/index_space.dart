@@ -1,3 +1,5 @@
+import '../../third_party/wasm_builder/wasm_builder.dart' as w;
+
 extension type const Index(int index) {}
 
 extension type const ComponentFunctionIndex(int index) implements Index {}
@@ -13,7 +15,22 @@ enum Sort<I extends Index> {
   componentInstance<ComponentInstanceIndex>(),
   componentFunction<ComponentFunctionIndex>(),
   coreFunction<CoreFunctionIndex>(),
-  coreMemory<CoreMemoryIndex>(),
+  coreMemory<CoreMemoryIndex>();
+
+  void serializeAsSort(w.Serializer s) {
+    switch (this) {
+      case .coreFunction:
+        s.writeByte(0x00);
+        s.writeByte(0x00);
+      case .coreMemory:
+        s.writeByte(0x00);
+        s.writeByte(0x02);
+      case .componentFunction:
+        s.writeByte(0x01);
+      case .componentInstance:
+        s.writeByte(0x05);
+    }
+  }
 }
 
 /// Tracking index counters for elements used in components and modules.

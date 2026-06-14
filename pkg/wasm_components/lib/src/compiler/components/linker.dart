@@ -2,6 +2,7 @@ import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 
 import 'core_module.dart';
 import 'index_space.dart';
+import 'type.dart';
 
 sealed class LinkingInstruction extends w.Serializable {}
 
@@ -17,19 +18,7 @@ final class AliasDefinition<I extends Index> extends LinkingInstruction {
 
   @override
   void serialize(w.Serializer s) {
-    switch (sort) {
-      case .coreFunction:
-        s.writeByte(0x00);
-        s.writeByte(0x00);
-      case .coreMemory:
-        s.writeByte(0x00);
-        s.writeByte(0x02);
-      case .componentFunction:
-        s.writeByte(0x01);
-      case .componentInstance:
-        s.writeByte(0x05);
-    }
-
+    sort.serializeAsSort(s);
     target.serialize(s);
   }
 }
@@ -141,6 +130,25 @@ final class CanonLower extends _CanonicalLiftOrLower {
   }
 }
 
+/// Create a component function from a core WebAssembly function by enriching it
+/// with an ABI function type.
+final class CanonLift extends _CanonicalLiftOrLower {
+  final CoreFunctionIndex function;
+  final ModelTypeReference<FunctionType> type;
+  final ComponentFunctionIndex createdFunction;
+
+  CanonLift(this.function, this.type, this.createdFunction);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x00);
+    s.writeByte(0x00);
+    s.writeUnsigned(function.index);
+    _serializeOptions(s);
+    s.writeUnsigned(type.index.index);
+  }
+}
+
 enum StringEncoding { utf8, utf16, latin1OrUtf16 }
 
 abstract final class CoreInstanceExpression extends LinkingInstruction {
@@ -193,6 +201,25 @@ final class _InstantiateFromInlineExports extends CoreInstanceExpression {
           'Unsupported sort for core instance: $sort',
         ),
       });
+      s.writeUnsigned(index.index);
+    }
+  }
+}
+
+final class InstanceFromInlineExports extends LinkingInstruction {
+  final List<(String, Sort, Index)> exports;
+
+  InstanceFromInlineExports(this.exports);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x01);
+    s.writeUnsigned(exports.length);
+    for (final (name, sort, index) in exports) {
+      s.writeByte(0x00);
+      s.writeName(name);
+
+      sort.serializeAsSort(s);
       s.writeUnsigned(index.index);
     }
   }

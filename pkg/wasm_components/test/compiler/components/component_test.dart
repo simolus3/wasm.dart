@@ -20,6 +20,9 @@ void main() {
         result: null,
       ),
     );
+    final mainType = builder.addType(
+      FunctionType(async: false, parameters: [], result: resultType),
+    );
     final wasiCliExitInstanceType = builder.addType(
       InstanceType([('exit', exitFunctionType)]),
     );
@@ -41,6 +44,14 @@ void main() {
         ),
       }),
     );
+    final coreMain = builder.linker.alias(
+      .coreFunction,
+      .coreInstanceExport(instantiatedApp, 'main'),
+    );
+    final main = builder.linker.canonLift(coreMain, mainType);
+    final finalInstance = builder.linker.instance(
+      inlineExports: [('run', .componentFunction, main.createdFunction)],
+    );
 
     expect(await componentToWat(builder), '''
 (component
@@ -58,13 +69,14 @@ void main() {
   )
   (type (;0;) (result))
   (type (;1;) (func (param "status" 0)))
-  (type (;2;)
+  (type (;2;) (func (result 0)))
+  (type (;3;)
     (instance
       (alias outer 1 1 (type (;0;)))
       (export (;0;) "exit" (func (type 0)))
     )
   )
-  (import "wasi:cli/exit@0.2.12" (instance (;0;) (type 2)))
+  (import "wasi:cli/exit@0.2.12" (instance (;0;) (type 3)))
   (alias export 0 "exit" (func (;0;)))
   (core func (;0;) (canon lower (func 0)))
   (core instance (;0;)
@@ -73,6 +85,11 @@ void main() {
   (core instance (;1;) (instantiate 0
       (with "runtime" (instance 0))
     )
+  )
+  (alias core export 1 "main" (core func (;1;)))
+  (func (;1;) (type 2) (canon lift (core func 1)))
+  (instance (;1;)
+    (export "run" (func 1))
   )
 )
 ''');

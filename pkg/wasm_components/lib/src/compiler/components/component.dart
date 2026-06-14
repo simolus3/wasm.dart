@@ -121,9 +121,27 @@ final class LinkingBuilder implements w.Serializable {
     return def;
   }
 
+  CanonLift canonLift(
+    CoreFunctionIndex function,
+    ModelTypeReference<FunctionType> type,
+  ) {
+    final index = _component._counters.incrementComponentFunction();
+    final def = CanonLift(function, type, index);
+    _instructions.add(def);
+    return def;
+  }
+
   ModuleInstanceIndex coreInstantiate(CoreInstanceExpression expr) {
     final index = _component._counters.incrementCoreInstance();
     _instructions.add(expr);
+    return index;
+  }
+
+  ComponentInstanceIndex instance({
+    required List<(String, Sort, Index)> inlineExports,
+  }) {
+    final index = _component._counters.incrementComponentInstance();
+    _instructions.add(InstanceFromInlineExports(inlineExports));
     return index;
   }
 
@@ -159,6 +177,13 @@ final class LinkingBuilder implements w.Serializable {
           } else {
             if (currentSection != null) yield currentSection;
             currentSection = CoreInstanceSection([instruction]);
+          }
+        case InstanceFromInlineExports():
+          if (currentSection is InstanceSection) {
+            currentSection.instances.add(instruction);
+          } else {
+            if (currentSection != null) yield currentSection;
+            currentSection = InstanceSection([instruction]);
           }
       }
     }
