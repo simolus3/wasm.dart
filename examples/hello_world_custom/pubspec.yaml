@@ -1,0 +1,10 @@
+name: hello_world_custom
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  hooks: ^2.0.2
+  wasm_components:

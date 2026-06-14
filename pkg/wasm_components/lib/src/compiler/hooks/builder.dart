@@ -1,0 +1,65 @@
+import 'dart:io';
+
+import 'package:file/local.dart';
+import 'package:hooks_runner/hooks_runner.dart';
+import 'package:logging/logging.dart';
+import 'package:package_config/package_config.dart';
+
+import '../abi.dart';
+import 'extension.dart';
+import 'extension.dart' as hooks;
+
+Future<Uri> findPackageConfigUri(File mainFile) async {
+  final result = await findPackageConfigAndUri(mainFile.uri);
+  if (result == null) {
+    throw StateError('No package config found for ${mainFile.path}');
+  }
+  return result.file;
+}
+
+Future<DartProgramAbi?> resolveProgramAbi({
+  required File mainFile,
+  required Logger logger,
+}) async {
+  final pkgConfig = await findPackageConfigAndUri(mainFile.uri);
+  final mainPackage = pkgConfig?.config.packageOf(mainFile.uri);
+  if (pkgConfig == null || mainPackage == null) {
+    logger.shout('No package config was found for ${mainFile.path}');
+    return null;
+  }
+
+  const fs = LocalFileSystem();
+
+  final buildRunner = NativeAssetsBuildRunner(
+    logger: logger,
+    dartExecutable: File(Platform.resolvedExecutable).uri,
+    fileSystem: fs,
+    packageLayout: PackageLayout.fromPackageConfig(
+      fs,
+      pkgConfig.config,
+      pkgConfig.file,
+      mainPackage.name,
+      includeDevDependencies: false,
+    ),
+  );
+
+  final buildResult = await buildRunner.build(
+    extensions: [WasmComponentExtension()],
+    linkingEnabled: false,
+  );
+  if (buildResult.isFailure) {
+    final error = buildResult.asFailure.value;
+    logger.shout('Invoking build hooks failed: ${error.name}');
+    return null;
+  }
+
+  final abi = DartProgramAbi();
+  final assets = buildResult.asSuccess.value.encodedAssets;
+  for (final asset in assets) {
+    if (asset.type == hooks.name) {
+      abi.includeAsset(logger, asset);
+    }
+  }
+
+  return abi;
+}

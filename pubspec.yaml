@@ -5,7 +5,12 @@ environment:
   sdk: ^3.12.0
 
 workspace:
+  - examples/hello_world_custom
+  
   - pkg/wasm_components
 
 dev_dependencies:
   lints: ^6.1.0
+
+dependency_overrides:
+  package_config: ^3.0.0
