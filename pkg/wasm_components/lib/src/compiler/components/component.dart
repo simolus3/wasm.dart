@@ -64,14 +64,26 @@ final class ComponentBuilder implements w.Serializable {
     return idx;
   }
 
-  ModelTypeReference<T> addType<T extends ModelType>(T type) {
+  R _addType<T extends ModelType, R extends ModelTypeReference<T>>(
+    T type,
+    R Function(ComponentTypeIndex, T) create,
+  ) {
     return _typesToIndex.putIfAbsent(type, () {
-          final idx = _types.length;
+          final idx = ComponentTypeIndex(_types.length);
           _types.add(type);
-          return ModelTypeReference<T>(ComponentTypeIndex(idx), type);
+          return create(idx, type);
         })
-        as ModelTypeReference<T>;
+        as R;
   }
+
+  FunctionTypeReference<T> addFunctionType<T extends FunctionType>(T type) =>
+      _addType(type, FunctionTypeReference.new);
+
+  InstanceTypeReference<T> addInstanceType<T extends InstanceType>(T type) =>
+      _addType(type, InstanceTypeReference.new);
+
+  ValueTypeReference<T> addValueType<T extends ValueType>(T type) =>
+      _addType(type, ValueTypeReference.new);
 
   @override
   void serialize(w.Serializer s) {
@@ -121,10 +133,7 @@ final class LinkingBuilder implements w.Serializable {
     return def;
   }
 
-  CanonLift canonLift(
-    CoreFunctionIndex function,
-    ModelTypeReference<FunctionType> type,
-  ) {
+  CanonLift canonLift(CoreFunctionIndex function, FunctionTypeReference type) {
     final index = _component._counters.incrementComponentFunction();
     final def = CanonLift(function, type, index);
     _instructions.add(def);

@@ -13,18 +13,18 @@ void main() {
     final builder = ComponentBuilder();
     final app = builder.defineModule(_defineModuleCallingExit0());
 
-    final resultType = builder.addType(ResultType());
-    final exitFunctionType = builder.addType(
+    final resultType = builder.addValueType(ResultType());
+    final exitFunctionType = builder.addFunctionType(
       FunctionType(
         async: false,
         parameters: [RecordOrVariantField(label: 'status', type: resultType)],
         result: null,
       ),
     );
-    final mainType = builder.addType(
+    final mainType = builder.addFunctionType(
       FunctionType(async: false, parameters: [], result: resultType),
     );
-    final wasiCliExitInstanceType = builder.addType(
+    final wasiCliExitInstanceType = builder.addInstanceType(
       InstanceType([('exit', exitFunctionType)]),
     );
     final exitInstance = builder.importInstance(

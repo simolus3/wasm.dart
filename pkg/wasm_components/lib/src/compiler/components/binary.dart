@@ -159,9 +159,11 @@ final class TypesSection extends w.Section {
         s.writeByte(async ? 0x43 : 0x40);
         s.writeUnsigned(parameters.length);
         for (final param in parameters) {
+          assert(param.type is ModelTypeReference);
           _writeLabelledType(s, param.label, param.type);
         }
         if (result != null) {
+          assert(result is ModelTypeReference);
           s.writeByte(0x00);
           _writeType(result, s);
         } else {
@@ -175,11 +177,16 @@ final class TypesSection extends w.Section {
         // first need to add it to the current scope via an (alias outer).
         s.writeUnsigned(2 * exports.length);
         for (final (_, function) in exports) {
-          s.writeByte(0x02); // in instancedecl production, tag alias
-          s.writeByte(0x03); // sort: type
-          s.writeByte(0x02);
-          s.writeUnsigned(1); // outer scope (main component)
-          s.writeUnsigned(function.index.index);
+          if (function case FunctionTypeReference(:final index)) {
+            s.writeByte(0x02); // in instancedecl production, tag alias
+            s.writeByte(0x03); // sort: type
+            s.writeByte(0x02);
+            s.writeUnsigned(1); // outer scope (main component)
+            s.writeUnsigned(index.index);
+          } else {
+            s.writeByte(0x01); // in instancedecl production, tag type
+            _writeType(function, s);
+          }
         }
 
         for (final (i, (name, _)) in exports.indexed) {

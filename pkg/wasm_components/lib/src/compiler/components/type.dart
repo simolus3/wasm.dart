@@ -30,6 +30,12 @@ final class ModelTypeReference<T extends ModelType> extends ModelType {
 
 sealed class ValueType extends ModelType {}
 
+final class ValueTypeReference<T extends ValueType>
+    extends ModelTypeReference<T>
+    implements ValueType {
+  ValueTypeReference(super.index, super.resolvedType);
+}
+
 enum PrimitiveType implements ValueType {
   bool(0x7f),
   s8(0x7e),
@@ -87,11 +93,11 @@ final class VariantType implements ValueType {
   int get hashCode => _listEquality.hash(fields);
 }
 
-typedef RecordField = RecordOrVariantField<ModelTypeReference<ValueType>>;
+typedef RecordField = RecordOrVariantField<ValueType>;
 
-typedef VariantField = RecordOrVariantField<ModelTypeReference<ValueType>?>;
+typedef VariantField = RecordOrVariantField<ValueType?>;
 
-final class RecordOrVariantField<T extends ModelTypeReference<ValueType>?> {
+final class RecordOrVariantField<T extends ValueType?> {
   final String label;
   final T type;
 
@@ -188,8 +194,8 @@ final class OptionType implements ValueType {
 }
 
 final class ResultType implements ValueType {
-  final ModelTypeReference<ValueType>? ok;
-  final ModelTypeReference<ValueType>? error;
+  final ValueType? ok;
+  final ValueType? error;
 
   ResultType({this.ok, this.error});
 
@@ -249,7 +255,7 @@ final class ResourceType extends ModelType {
 final class FunctionType extends ModelType {
   final bool async;
   final List<RecordField> parameters;
-  final ModelTypeReference<ValueType>? result;
+  final ValueType? result;
 
   FunctionType({
     required this.async,
@@ -269,12 +275,27 @@ final class FunctionType extends ModelType {
       Object.hash(async, _listEquality.hash(parameters), result);
 }
 
+final class FunctionTypeReference<T extends FunctionType>
+    extends ModelTypeReference<T>
+    implements FunctionType {
+  FunctionTypeReference(super.index, super.resolvedType);
+
+  @override
+  bool get async => resolvedType.async;
+
+  @override
+  List<RecordField> get parameters => resolvedType.parameters;
+
+  @override
+  ValueType? get result => resolvedType.result;
+}
+
 final class InstanceType extends ModelType {
   /// The functions exported by this instance.
   ///
   /// The component model also supports exporting other values, but we don't
   /// currently support that.
-  final List<(String, ModelTypeReference<FunctionType>)> exports;
+  final List<(String, FunctionType)> exports;
 
   InstanceType(this.exports);
 
@@ -284,4 +305,13 @@ final class InstanceType extends ModelType {
   @override
   bool operator ==(Object other) =>
       other is InstanceType && _listEquality.equals(other.exports, exports);
+}
+
+final class InstanceTypeReference<T extends InstanceType>
+    extends ModelTypeReference<T>
+    implements InstanceType {
+  InstanceTypeReference(super.index, super.resolvedType);
+
+  @override
+  List<(String, FunctionType)> get exports => resolvedType.exports;
 }

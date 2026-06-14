@@ -32,7 +32,7 @@ void main() async {
     final transformer = ModuleTransformer.fromBytes(
       File(dart2wasmOut).readAsBytesSync(),
     );
-    transformer.transform();
+    transformer.transform({});
 
     /*
     We want to generate a component like the following

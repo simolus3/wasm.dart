@@ -7,9 +7,9 @@ import 'utils.dart';
 void main() {
   test('can write types', () async {
     final c = ComponentBuilder();
-    final bool = c.addType(PrimitiveType.bool);
-    final int32 = c.addType(PrimitiveType.s32);
-    c.addType(
+    final bool = c.addValueType(PrimitiveType.bool);
+    final int32 = c.addValueType(PrimitiveType.s32);
+    c.addFunctionType(
       FunctionType(
         async: false,
         parameters: [
@@ -32,15 +32,15 @@ void main() {
 
   test('can write instances', () async {
     final c = ComponentBuilder();
-    final result = c.addType(ResultType());
-    final exitFunction = c.addType(
+    final result = c.addValueType(ResultType());
+    final exitFunction = c.addFunctionType(
       FunctionType(
         async: false,
         parameters: [RecordOrVariantField(label: 'status', type: result)],
         result: null,
       ),
     );
-    c.addType(InstanceType([('exit', exitFunction)]));
+    c.addInstanceType(InstanceType([('exit', exitFunction)]));
 
     expect(await componentToWat(c), r'''
 (component

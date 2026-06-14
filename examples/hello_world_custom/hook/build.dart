@@ -13,7 +13,14 @@ void main(List<String> args) => build(args, (input, output) async {
               'interfaces': {'run': 0},
             },
           ],
-          'types': [],
+          'types': [
+            {
+              'name': null,
+              'kind': {
+                'result': {'ok': null, 'err': null},
+              },
+            },
+          ],
           'interfaces': [
             {
               'name': 'run',
@@ -34,7 +41,8 @@ void main(List<String> args) => build(args, (input, output) async {
         imports: [],
         exports: [
           ExportedInstance(
-            name: 'wasi:cli/run@0.3.0',
+            name: 'wasi:cli/run@0.2.12',
+            interfaceIndex: 0,
             functions: {'run': ExportedInstanceFunction(exportName: 'runCli')},
           ),
         ],

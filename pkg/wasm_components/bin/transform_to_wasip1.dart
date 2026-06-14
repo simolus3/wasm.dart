@@ -32,7 +32,7 @@ void main() async {
     final transformer = ModuleTransformer.fromBytes(
       File(dart2wasmOut).readAsBytesSync(),
     );
-    transformer.transform();
+    transformer.transform({});
     File(lowered).writeAsBytesSync(transformer.serialize());
     //    File('example/lowered.wasm').writeAsBytesSync(transformer.serialize());
 

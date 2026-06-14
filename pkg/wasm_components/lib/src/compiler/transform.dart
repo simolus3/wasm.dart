@@ -24,9 +24,9 @@ final class ModuleTransformer {
     return serializer.data;
   }
 
-  void transform() {
+  void transform(Set<String> expectedExports) {
     _patchImports();
-    _removeExports();
+    _removeExports(expectedExports);
     _addExportedStartFunction();
   }
 
@@ -82,9 +82,15 @@ final class ModuleTransformer {
     );
   }
 
-  void _removeExports() {
+  void _removeExports(Set<String> expectedExports) {
     for (final export in _exports.values) {
-      module.exports.exported.remove(export);
+      if (!expectedExports.remove(export.name)) {
+        module.exports.exported.remove(export);
+      }
+    }
+
+    if (expectedExports.isNotEmpty) {
+      throw ArgumentError('Expected compiled app to export $expectedExports');
     }
   }
 

@@ -94,13 +94,19 @@ final class ImportedComponentFunction {
 final class ExportedInstance {
   /// The name of the exported instance, e.g. `wasi:cli/run@0.3.0`.
   final String name;
+  final int interfaceIndex;
   final Map<String, ExportedInstanceFunction> functions;
 
-  const ExportedInstance({required this.name, required this.functions});
+  const ExportedInstance({
+    required this.name,
+    required this.interfaceIndex,
+    required this.functions,
+  });
 
   Map<String, Object?> toJson() {
     return {
       'name': name,
+      'interfaceIndex': interfaceIndex,
       'functions': {
         for (final MapEntry(:key, :value) in functions.entries)
           key: value.exportName,

@@ -9,20 +9,13 @@ import '../abi.dart';
 import 'extension.dart';
 import 'extension.dart' as hooks;
 
-Future<Uri> findPackageConfigUri(File mainFile) async {
-  final result = await findPackageConfigAndUri(mainFile.uri);
-  if (result == null) {
-    throw StateError('No package config found for ${mainFile.path}');
-  }
-  return result.file;
-}
-
 Future<DartProgramAbi?> resolveProgramAbi({
   required File mainFile,
   required Logger logger,
 }) async {
-  final pkgConfig = await findPackageConfigAndUri(mainFile.uri);
-  final mainPackage = pkgConfig?.config.packageOf(mainFile.uri);
+  final mainUri = mainFile.absolute.uri;
+  final pkgConfig = await findPackageConfigAndUri(mainUri);
+  final mainPackage = pkgConfig?.config.packageOf(mainUri);
   if (pkgConfig == null || mainPackage == null) {
     logger.shout('No package config was found for ${mainFile.path}');
     return null;
