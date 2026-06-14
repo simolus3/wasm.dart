@@ -23,7 +23,15 @@ void main() {
     final wasiCliExitInstanceType = builder.addType(
       InstanceType([('exit', exitFunctionType)]),
     );
-    builder.importInstance('wasi:cli/exit@0.2.12', wasiCliExitInstanceType);
+    final exitInstance = builder.importInstance(
+      'wasi:cli/exit@0.2.12',
+      wasiCliExitInstanceType,
+    );
+    final componentExitFunc = builder.linker.alias(
+      .componentFunction,
+      .instanceExport(exitInstance, 'exit'),
+    );
+    final coreExitFunc = builder.linker.canonLower(componentExitFunc);
 
     expect(await componentToWat(builder), '''
 (component
@@ -48,6 +56,8 @@ void main() {
     )
   )
   (import "wasi:cli/exit@0.2.12" (instance (;0;) (type 2)))
+  (alias export 0 "exit" (func (;0;)))
+  (core func (;0;) (canon lower (func 0)))
 )
 ''');
   });

@@ -5,6 +5,7 @@ import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 import 'binary.dart';
 import 'core_module.dart';
 import 'index_space.dart';
+import 'linker.dart';
 import 'type.dart';
 
 /// Utilities to build a WebAssembly component.
@@ -13,32 +14,31 @@ import 'type.dart';
 /// ones), we can get away with only supporting the supset of the full component
 /// model we really need.
 ///
-/// In our case, components are unconditionally created like this:
+/// In our case, components unconditionally have the following shape:
 ///
-///  1. We include the core module for the transformed dart2wasm app and our
-///     libc.
-///  2. We create a `(core instance)` of libc.
-///  3. We generate a type section with all types used in public imports/exports.
-///  4. We import existing instances.
-///  5. We extract functions from imported instances to component functions via
-///     `(alias export $imported-instance "export" (func $...))`.
-///  6. We lower these imported functions to core functions with
-///     `(canon lower)`.
-///  7. We define a `(core instance)` exporting imported functions as core
-///     functions with the correct name.
-///  8. We create a `(core instance)` of the dart2wasm module.
-///  9. We lift exported functions from dart2wasm into module functions.
-/// 10. We create an instance exporting all these functions.
-/// 11. We export that instance.
+///  1. Define core modules (the Rust helper and the dart2wasm-compiled app).
+///  2. Define all (component-level) types.
+///  3. Import used component instances.
+///  4. Create a `(core instance)` of the Rust helper.
+///  5. Create `(alias export)` and `(canon lower)` definitions to turn builtins
+///     and imported definitions into core modules.
+///  6. Create a `(core instance)` exporting those imports.
+///  7. Create a `(core instance)` of the dart2wasm app.
+///  8. Create a `(instance)` with inlineexports.
+///  9. Export that instance.
 final class ComponentBuilder implements w.Serializable {
   final List<CoreModule> _modules = [];
 
   final List<ModelType> _types = [];
   final Map<ModelType, ModelTypeReference> _typesToIndex = {};
 
+  final IndexSpaceCounters _counters = IndexSpaceCounters();
+
   /// Imported component instances (we don't support any other type of import
   /// currently).
   final List<(String, ModelTypeReference<InstanceType>)> _imports = [];
+
+  late final LinkingBuilder linker = LinkingBuilder(this);
 
   CoreModule _defineCoreModule(CoreModule Function(ModuleIndex) create) {
     final index = ModuleIndex(_modules.length);
@@ -59,7 +59,7 @@ final class ComponentBuilder implements w.Serializable {
     String name,
     ModelTypeReference<InstanceType> type,
   ) {
-    final idx = ComponentInstanceIndex(_imports.length);
+    final idx = _counters.incrementComponentInstance();
     _imports.add((name, type));
     return idx;
   }
@@ -81,6 +81,7 @@ final class ComponentBuilder implements w.Serializable {
     }
     TypesSection(_types).serialize(s);
     ImportsSection(_imports).serialize(s);
+    linker.serialize(s);
   }
 
   Uint8List serializeToBytes() {
@@ -99,6 +100,58 @@ final class ComponentBuilder implements w.Serializable {
     0x01,
     0x00,
   ]);
+}
+
+final class LinkingBuilder implements w.Serializable {
+  final ComponentBuilder _component;
+  final List<LinkingInstruction> _instructions = [];
+
+  LinkingBuilder(this._component);
+
+  I alias<I extends Index>(Sort<I> sort, AliasTarget target) {
+    final index = _component._counters.increment(sort);
+    _instructions.add(AliasDefinition(sort, index, target));
+    return index;
+  }
+
+  CanonLower canonLower(ComponentFunctionIndex function) {
+    final index = _component._counters.incrementCoreFunction();
+    final def = CanonLower(function, index);
+    _instructions.add(def);
+    return def;
+  }
+
+  @override
+  void serialize(w.Serializer s) {
+    for (final section in _toSections()) {
+      section.serialize(s);
+    }
+  }
+
+  Iterable<w.Section> _toSections() sync* {
+    w.Section? currentSection;
+
+    for (final instruction in _instructions) {
+      switch (instruction) {
+        case AliasDefinition():
+          if (currentSection is AliasSection) {
+            currentSection.aliases.add(instruction);
+          } else {
+            if (currentSection != null) yield currentSection;
+            currentSection = AliasSection([instruction]);
+          }
+        case CanonicalDefinition():
+          if (currentSection is CanonSection) {
+            currentSection.definitions.add(instruction);
+          } else {
+            if (currentSection != null) yield currentSection;
+            currentSection = CanonSection([instruction]);
+          }
+      }
+    }
+
+    if (currentSection != null) yield currentSection;
+  }
 }
 
 /**

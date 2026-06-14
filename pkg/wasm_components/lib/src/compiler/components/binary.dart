@@ -1,6 +1,7 @@
 import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 
 import 'core_module.dart';
+import 'linker.dart';
 import 'type.dart';
 
 final class ModuleSection extends w.Section {
@@ -14,6 +15,20 @@ final class ModuleSection extends w.Section {
   @override
   void serializeContents(w.Serializer s) {
     module.serialize(s);
+  }
+}
+
+final class AliasSection extends w.Section {
+  final List<AliasDefinition> aliases;
+
+  AliasSection(this.aliases, [super.watchPoints = const []]);
+
+  @override
+  int get id => 6;
+
+  @override
+  void serializeContents(w.Serializer s) {
+    s.writeList(aliases);
   }
 }
 
@@ -166,6 +181,20 @@ final class TypesSection extends w.Section {
   void _writeLabelledType(w.Serializer s, String name, ModelType type) {
     s.writeName(name);
     _writeType(type, s);
+  }
+}
+
+final class CanonSection extends w.Section {
+  final List<CanonicalDefinition> definitions;
+
+  CanonSection(this.definitions, [super.watchPoints = const []]);
+
+  @override
+  int get id => 8;
+
+  @override
+  void serializeContents(w.Serializer s) {
+    s.writeList(definitions);
   }
 }
 
