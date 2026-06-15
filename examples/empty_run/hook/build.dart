@@ -6,7 +6,7 @@ void main(List<String> args) => build(args, (input, output) async {
     output.assets.webAssemblyComponents.add(
       const WasmComponentAsset(
         wit: {
-          // Generating this can be automated with wasm-tools wit -j
+          // Generating this can be automated with wasm-tools wit -j <file.wit>
           'packages': [
             {
               'name': 'wasi:cli@0.3.0',

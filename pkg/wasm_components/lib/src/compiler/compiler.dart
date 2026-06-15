@@ -102,6 +102,7 @@ final class ComponentCompiler {
         );
       }
 
+      logger.info('Writing component to ${options.output.path}');
       await options.output.writeAsBytes(builder.serializeToBytes());
     } finally {
       await workspace.delete(recursive: true);
