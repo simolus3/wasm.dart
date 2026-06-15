@@ -76,14 +76,80 @@ final class ComponentBuilder implements w.Serializable {
         as R;
   }
 
-  FunctionTypeReference<T> addFunctionType<T extends FunctionType>(T type) =>
-      _addType(type, FunctionTypeReference.new);
+  FunctionTypeReference addFunctionType(FunctionType type) {
+    if (type is FunctionTypeReference) {
+      return type;
+    }
 
-  InstanceTypeReference<T> addInstanceType<T extends InstanceType>(T type) =>
-      _addType(type, InstanceTypeReference.new);
+    final result = switch (type.result) {
+      null => null,
+      final type => addValueType(type),
+    };
+    final params = [
+      for (final param in type.parameters)
+        RecordOrVariantField(
+          label: param.label,
+          type: addValueType(param.type),
+        ),
+    ];
 
-  ValueTypeReference<T> addValueType<T extends ValueType>(T type) =>
-      _addType(type, ValueTypeReference.new);
+    return _addType(
+      FunctionType(async: type.async, parameters: params, result: result),
+      FunctionTypeReference.new,
+    );
+  }
+
+  InstanceTypeReference addInstanceType(InstanceType type) {
+    // TODO: Also normalize to use inner references.
+    return _addType(type, InstanceTypeReference.new);
+  }
+
+  ValueTypeReference addValueType(ValueType type) {
+    ValueTypeReference addInner(ValueType type) =>
+        _addType(type, ValueTypeReference.new);
+
+    switch (type) {
+      case ValueTypeReference():
+        return type;
+      case RecordType():
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case VariantType():
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case VariableLengthListType():
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case FixedLengthListType():
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case TupleType():
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case OptionType():
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case ResultType(:final ok, :final error):
+        final normalizedOk = ok != null ? addValueType(ok) : null;
+        final normalizedError = error != null ? addValueType(error) : null;
+        return addInner(ResultType(ok: normalizedOk, error: normalizedError));
+      case OwnType():
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case BorrowType():
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case StreamType(:final element):
+        return addInner(StreamType(addValueType(element)));
+      case FutureType(:final element):
+        return addInner(FutureType(addValueType(element)));
+      case EnumType():
+      case PrimitiveType():
+      case StringType():
+      case FlagsType():
+        return addInner(type);
+    }
+  }
 
   @override
   void serialize(w.Serializer s) {

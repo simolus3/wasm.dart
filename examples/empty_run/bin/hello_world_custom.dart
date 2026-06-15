@@ -8,5 +8,5 @@ void main() {}
 
 @pragma('wasm:export', 'runCli')
 WasmI32 cliEntrypoint() {
-  return const WasmI32(0);
+  return const WasmI32(1);
 }

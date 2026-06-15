@@ -30,8 +30,7 @@ final class ModelTypeReference<T extends ModelType> extends ModelType {
 
 sealed class ValueType extends ModelType {}
 
-final class ValueTypeReference<T extends ValueType>
-    extends ModelTypeReference<T>
+final class ValueTypeReference extends ModelTypeReference<ValueType>
     implements ValueType {
   ValueTypeReference(super.index, super.resolvedType);
 }
@@ -234,13 +233,13 @@ final class BorrowType implements ValueType {
 }
 
 final class StreamType implements ValueType {
-  final ModelTypeReference<ValueType> element;
+  final ValueType element;
 
   StreamType(this.element);
 }
 
 final class FutureType implements ValueType {
-  final ModelTypeReference<ValueType> element;
+  final ValueType element;
 
   FutureType(this.element);
 }
@@ -275,8 +274,7 @@ final class FunctionType extends ModelType {
       Object.hash(async, _listEquality.hash(parameters), result);
 }
 
-final class FunctionTypeReference<T extends FunctionType>
-    extends ModelTypeReference<T>
+final class FunctionTypeReference extends ModelTypeReference<FunctionType>
     implements FunctionType {
   FunctionTypeReference(super.index, super.resolvedType);
 
@@ -307,8 +305,7 @@ final class InstanceType extends ModelType {
       other is InstanceType && _listEquality.equals(other.exports, exports);
 }
 
-final class InstanceTypeReference<T extends InstanceType>
-    extends ModelTypeReference<T>
+final class InstanceTypeReference extends ModelTypeReference<InstanceType>
     implements InstanceType {
   InstanceTypeReference(super.index, super.resolvedType);
 
