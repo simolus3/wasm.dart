@@ -47,7 +47,7 @@ __Legend__:
 | clearSchedule                            |             | 📦        |                               |
 | currentTimeMicros                        |             | 📦        |                               |
 | stringFromCharCodeArray                  |             | 🎯        |                               |
-| stringFromAsciiBytes                     | ✅           | 🎯        |                               |
+| stringFromAsciiBytes                     | ✅          | 🎯        |                               |
 | stringLength                             |             | 🎯        |                               |
 | stringEquals                             |             | 🎯        |                               |
 | stringCompare                            |             | 🎯        |                               |
@@ -75,23 +75,23 @@ __Legend__:
 | finalizerDetach                          |             | 🛑        |                               |
 | baseUri                                  |             | 📦        |                               |
 | isWindows                                |             | 📦        |                               |
-| stackTraceGetCurrent                     | ✅           | 🛑        | Impossible, stub used         |
-| stackTraceToString                       | ✅           | 🛑        | Impossible, stub used         |
+| stackTraceGetCurrent                     | ✅          | 🛑        | Impossible, stub used         |
+| stackTraceToString                       | ✅          | 🛑        | Impossible, stub used         |
 | doubleTryParse                           |             | 🎯        |                               |
 | tryParseResultGetDouble                  |             | 🎯        |                               |
 | doubleParseInfallible                    |             | 🎯        |                               |
-| i64ToString                              | ✅           | 🎯        | Needs optimization for base10 |
+| i64ToString                              | ✅          | 🎯        | Needs optimization for base10 |
 | f64ToExponential                         |             | 🎯        |                               |
 | f64ToExponentialWithFractionDigits       |             | 🎯        |                               |
 | f64ToPrecision                           |             | 🎯        |                               |
 | f64ToFixed                               |             | 🎯        |                               |
 | f64ToString                              |             | 🎯        | Currently a stub              |
-| stringBufferCreate                       | ✅           | 🎯        |                               |
-| stringBufferWriteString                  | ✅           | 🎯        |                               |
-| stringBufferWriteCharCode                | ✅           | 🎯        |                               |
-| stringBufferClear                        | ✅           | 🎯        |                               |
-| stringBufferLength                       | ✅           | 🎯        |                               |
-| stringBufferToString                     | ✅           | 🎯        |                               |
+| stringBufferCreate                       | ✅          | 🎯        |                               |
+| stringBufferWriteString                  | ✅          | 🎯        |                               |
+| stringBufferWriteCharCode                | ✅          | 🎯        |                               |
+| stringBufferClear                        | ✅          | 🎯        |                               |
+| stringBufferLength                       | ✅          | 🎯        |                               |
+| stringBufferToString                     | ✅          | 🎯        |                               |
 | regexpCreateOrFailWithString             |             | 🎯        | See [what Kotlin does](https://github.com/JetBrains/kotlin/tree/master/libraries/stdlib/native-wasm/src/kotlin/text/regex)          |
 | regexpIsRegexp                           |             | 🎯        |                               |
 | regexpEscape                             |             | 🎯        |                               |
@@ -117,7 +117,7 @@ __Legend__:
 | mathLog                                  |             | 🎯        |                               |
 | randomInt                                |             | 📦        |                               |
 | randomIntSecure                          |             | 📦        |                               |
-| print                                    | ✅           | 📦        | WASI 0.1 currently            |
+| print                                    |             | 📦        | Currently a stub              |
 | jsonEncodeString                         |             | 🎯        | Currently a stub              |
 | debugger                                 |             | 🛑        |                               |
 | inspect                                  |             | 🛑        |                               |
