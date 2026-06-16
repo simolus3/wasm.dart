@@ -9,7 +9,7 @@ void main(List<String> args) => build(args, (input, output) async {
           // Generating this can be automated with wasm-tools wit -j <file.wit>
           'packages': [
             {
-              'name': 'wasi:cli@0.3.0',
+              'name': 'wasi:cli@0.2.12',
               'interfaces': {'run': 0},
             },
           ],
@@ -34,11 +34,30 @@ void main(List<String> args) => build(args, (input, output) async {
               },
               'package': 0,
             },
+            {
+              'name': 'exit',
+              'functions': {
+                'exit': {
+                  'name': 'exit',
+                  'kind': 'freestanding',
+                  'params': <Object?>[
+                    {'name': 'status', 'type': 0},
+                  ],
+                },
+              },
+              'package': 0,
+            },
           ],
         },
         // These bits need to be defined manually currently, we need a binding
         // generator for those.
-        imports: [],
+        imports: [
+          ImportedComponentFunction(
+            importName: 'myExitImport',
+            interfaceIndex: 1,
+            functionName: 'exit',
+          ),
+        ],
         exports: [
           ExportedInstance(
             name: 'wasi:cli/run@0.2.12',

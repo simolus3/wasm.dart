@@ -100,8 +100,13 @@ final class ComponentBuilder implements w.Serializable {
   }
 
   InstanceTypeReference addInstanceType(InstanceType type) {
-    // TODO: Also normalize to use inner references.
-    return _addType(type, InstanceTypeReference.new);
+    if (type is InstanceTypeReference) return type;
+
+    final exports = [
+      for (final (name, functionType) in type.exports)
+        (name, addFunctionType(functionType)),
+    ];
+    return _addType(InstanceType(exports), InstanceTypeReference.new);
   }
 
   ValueTypeReference addValueType(ValueType type) {

@@ -58,7 +58,7 @@ final class ComponentCompiler {
       final transformer = ModuleTransformer.fromBytes(
         await File(dart2wasmOut).readAsBytes(),
       );
-      transformer.transform(abi.functionExports.keys.toSet());
+      transformer.transform(abi);
 
       final builder = ComponentBuilder();
       final libcDef = builder.defineModuleFromBytes(
@@ -72,7 +72,7 @@ final class ComponentCompiler {
       final app = builder.linker.coreInstantiate(
         .moduleAndArgs(appDef, {
           'libc': libc,
-          // TODO: Additional imported components.
+          'component': abi.createImportInstance(builder),
         }),
       );
 

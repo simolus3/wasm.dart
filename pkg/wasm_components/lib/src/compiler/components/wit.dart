@@ -2,14 +2,37 @@ import 'type.dart';
 
 final class WitPackage {
   final String name;
+  final String? version;
 
-  WitPackage(this.name);
+  WitPackage._(this.name, this.version);
+
+  factory WitPackage(String name) {
+    final split = name.split('@');
+    if (split.length == 1) {
+      return WitPackage._(split[0], null);
+    } else {
+      return WitPackage._(split[0], split[1]);
+    }
+  }
 }
 
 final class ResolvedInstance {
   final WitPackage package;
   final String name;
   final InstanceType type;
+
+  String get fullName {
+    final builder = StringBuffer(package.name)
+      ..write('/')
+      ..write(name);
+    if (package.version case final version?) {
+      builder
+        ..write('@')
+        ..write(version);
+    }
+
+    return builder.toString();
+  }
 
   ResolvedInstance(this.package, this.name, this.type);
 }

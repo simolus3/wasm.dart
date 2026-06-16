@@ -1,6 +1,9 @@
 import 'package:hooks/hooks.dart';
 import 'package:logging/logging.dart';
 
+import 'components/component.dart';
+import 'components/index_space.dart';
+import 'components/linker.dart';
 import 'components/type.dart';
 import 'components/wit.dart';
 
@@ -19,6 +22,28 @@ final class DartProgramAbi {
     final encoding = asset.encoding;
     final definitions = ResolvedWitDefinitions()
       ..readJson(encoding['wit'] as Map<String, Object?>);
+    final addedImports = <ResolvedInstance, ImportedComponentInstance>{};
+
+    final imports = (encoding['imports'] as List).cast<Map<String, Object?>>();
+    for (final rawImport in imports) {
+      final wasmImportName = rawImport['import'] as String;
+      final instance =
+          definitions.instances[rawImport['interfaceIndex'] as int];
+      final functionName = rawImport['functionName'] as String;
+
+      final imported = addedImports.putIfAbsent(instance, () {
+        final imported = ImportedComponentInstance(
+          instance.fullName,
+          instance.type,
+        );
+        importedInstances.add(imported);
+        return imported;
+      });
+
+      final function = ImportedInstanceFunction(imported, functionName);
+      imported.importedFunctions.add(function);
+      functionImports[wasmImportName] = function;
+    }
 
     final exports = (encoding['exports'] as List).cast<Map<String, Object?>>();
     for (final rawExport in exports) {
@@ -40,11 +65,54 @@ final class DartProgramAbi {
       exportedInstances.add(instance);
     }
   }
+
+  ModuleInstanceIndex createImportInstance(ComponentBuilder builder) {
+    // Note: Build all imports first, then all aliases, then all lowerings. This
+    // means we can use 3 sections in total instead of 3 sections per function
+    // import.
+    final instances = [
+      for (final import in importedInstances)
+        builder.importInstance(
+          import.instanceName,
+          builder.addInstanceType(import.type),
+        ),
+    ];
+
+    final functionAliases = [
+      for (final (i, instance) in importedInstances.indexed)
+        for (final function in instance.importedFunctions)
+          builder.linker.alias(
+            .componentFunction,
+            .instanceExport(instances[i], function.function),
+          ),
+    ];
+
+    final lowered = <ImportedInstanceFunction, CanonLower>{};
+    var i = 0;
+    for (final instance in importedInstances) {
+      for (final function in instance.importedFunctions) {
+        lowered[function] = builder.linker.canonLower(functionAliases[i++]);
+      }
+    }
+
+    final inlineExports = <(String, Sort, Index)>[];
+    for (final MapEntry(:key, :value) in functionImports.entries) {
+      inlineExports.add((
+        key,
+        .coreFunction,
+        lowered[value]!.createdCoreFunction,
+      ));
+    }
+
+    return builder.linker.coreInstantiate(.inlineExports(inlineExports));
+  }
 }
 
 final class ImportedComponentInstance {
   final String instanceName;
   final InstanceType type;
+
+  final List<ImportedInstanceFunction> importedFunctions = [];
 
   ImportedComponentInstance(this.instanceName, this.type);
 }
