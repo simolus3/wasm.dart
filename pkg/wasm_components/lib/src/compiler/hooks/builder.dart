@@ -5,7 +5,7 @@ import 'package:hooks_runner/hooks_runner.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 
-import '../abi.dart';
+import '../program_abi.dart';
 import 'extension.dart';
 import 'extension.dart' as hooks;
 

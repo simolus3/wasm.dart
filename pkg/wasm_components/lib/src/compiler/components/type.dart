@@ -28,11 +28,84 @@ final class ModelTypeReference<T extends ModelType> extends ModelType {
       index == other.index || other.resolvedType == resolvedType);
 }
 
-sealed class ValueType extends ModelType {}
+sealed class ValueType extends ModelType {
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg);
+}
+
+abstract class ValueTypeVisitor<Arg, Ret> {
+  const ValueTypeVisitor();
+
+  Ret defaultType(ValueType type, Arg arg);
+
+  Ret visitPrimitiveType(PrimitiveType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitStringType(StringType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitRecordType(RecordType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitVariantType(VariantType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitVariableLengthListType(VariableLengthListType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitFixedLengthListType(FixedLengthListType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitTupleType(TupleType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitEnumType(EnumType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitFlagsType(FlagsType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitOptionType(OptionType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitResultType(ResultType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitOwnType(OwnType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitBorrowType(BorrowType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitStreamType(StreamType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+
+  Ret visitFutureType(FutureType type, Arg arg) {
+    return defaultType(type, arg);
+  }
+}
 
 final class ValueTypeReference extends ModelTypeReference<ValueType>
     implements ValueType {
   ValueTypeReference(super.index, super.resolvedType);
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return resolvedType.visit(visitor, arg);
+  }
 }
 
 enum PrimitiveType implements ValueType {
@@ -52,6 +125,11 @@ enum PrimitiveType implements ValueType {
   final int typeCode;
 
   const PrimitiveType(this.typeCode);
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitPrimitiveType(this, arg);
+  }
 }
 
 /// The `string` type, which decays to a `list<char>` but has a special ABI
@@ -64,6 +142,11 @@ final class StringType implements ValueType {
 
   @override
   bool operator ==(Object other) => other is StringType;
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitStringType(this, arg);
+  }
 }
 
 final class RecordType implements ValueType {
@@ -77,6 +160,11 @@ final class RecordType implements ValueType {
 
   @override
   int get hashCode => _listEquality.hash(fields);
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitRecordType(this, arg);
+  }
 }
 
 final class VariantType implements ValueType {
@@ -90,6 +178,23 @@ final class VariantType implements ValueType {
 
   @override
   int get hashCode => _listEquality.hash(fields);
+
+  /// The width of the unsigned integer type acting as a discriminant for this
+  /// variant.
+  ///
+  /// This returns either 8, 16 or 32.
+  int get discriminantWidth {
+    return switch (fields.length.bitLength) {
+      <= 8 => 8,
+      <= 16 => 16,
+      _ => 32,
+    };
+  }
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitVariantType(this, arg);
+  }
 }
 
 typedef RecordField = RecordOrVariantField<ValueType>;
@@ -113,7 +218,7 @@ final class RecordOrVariantField<T extends ValueType?> {
 }
 
 final class VariableLengthListType implements ValueType {
-  final ModelTypeReference<ValueType> elementType;
+  final ValueType elementType;
 
   VariableLengthListType({required this.elementType});
 
@@ -123,10 +228,15 @@ final class VariableLengthListType implements ValueType {
 
   @override
   int get hashCode => elementType.hashCode;
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitVariableLengthListType(this, arg);
+  }
 }
 
 final class FixedLengthListType implements ValueType {
-  final ModelTypeReference<ValueType> elementType;
+  final ValueType elementType;
   final int length;
 
   FixedLengthListType({required this.elementType, required this.length});
@@ -139,10 +249,15 @@ final class FixedLengthListType implements ValueType {
 
   @override
   int get hashCode => Object.hash(elementType, length);
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitFixedLengthListType(this, arg);
+  }
 }
 
 final class TupleType implements ValueType {
-  final List<ModelTypeReference<ValueType>> elements;
+  final List<ValueType> elements;
 
   TupleType(this.elements);
 
@@ -152,6 +267,11 @@ final class TupleType implements ValueType {
 
   @override
   int get hashCode => _listEquality.hash(elements);
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitTupleType(this, arg);
+  }
 }
 
 final class FlagsType implements ValueType {
@@ -165,6 +285,11 @@ final class FlagsType implements ValueType {
 
   @override
   int get hashCode => _listEquality.hash(flagNames);
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitFlagsType(this, arg);
+  }
 }
 
 final class EnumType implements ValueType {
@@ -178,10 +303,15 @@ final class EnumType implements ValueType {
 
   @override
   int get hashCode => _listEquality.hash(enumNames);
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitEnumType(this, arg);
+  }
 }
 
 final class OptionType implements ValueType {
-  final ModelTypeReference<ValueType> inner;
+  final ValueType inner;
 
   OptionType(this.inner);
 
@@ -190,6 +320,11 @@ final class OptionType implements ValueType {
 
   @override
   int get hashCode => inner.hashCode;
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitOptionType(this, arg);
+  }
 }
 
 final class ResultType implements ValueType {
@@ -204,6 +339,11 @@ final class ResultType implements ValueType {
 
   @override
   int get hashCode => Object.hash(ok, error);
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitResultType(this, arg);
+  }
 }
 
 final class OwnType implements ValueType {
@@ -217,6 +357,11 @@ final class OwnType implements ValueType {
 
   @override
   int get hashCode => resource.hashCode;
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitOwnType(this, arg);
+  }
 }
 
 final class BorrowType implements ValueType {
@@ -230,18 +375,33 @@ final class BorrowType implements ValueType {
 
   @override
   int get hashCode => resource.hashCode;
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitBorrowType(this, arg);
+  }
 }
 
 final class StreamType implements ValueType {
   final ValueType element;
 
   StreamType(this.element);
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitStreamType(this, arg);
+  }
 }
 
 final class FutureType implements ValueType {
   final ValueType element;
 
   FutureType(this.element);
+
+  @override
+  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
+    return visitor.visitFutureType(this, arg);
+  }
 }
 
 final class ResourceType extends ModelType {
