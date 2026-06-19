@@ -1,0 +1,10 @@
+[package]
+name = "wit_bindgen_dart"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.102"
+heck = "0.5.0"
+wit-bindgen-core = "0.58.0"
+wit-component = "0.252.0"
