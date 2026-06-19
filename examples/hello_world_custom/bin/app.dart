@@ -10,6 +10,7 @@ final class _Run implements WasiCliRun {
 
   @override
   Result<Null, Null> run() {
+    printImport.print('Hello world!');
     return const .ok(null);
   }
 }

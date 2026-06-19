@@ -3,7 +3,7 @@ import 'dart:_wasm';
 
 import 'package:wasm_components/component.dart';
 
-@pragma('wasm:import', r'runtime.Print$print')
+@pragma('wasm:import', r'component.Print$print')
 external WasmVoid _import$Print$print(
   WasmI32 line$ptr,
   WasmI32 line$packedLength,

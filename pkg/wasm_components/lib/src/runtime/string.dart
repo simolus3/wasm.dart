@@ -22,9 +22,9 @@ final class AllocatedString {
 
     for (var i = 0; i < length; i++) {
       memory.storeInt16(
-        dartPtr,
+        dartPtr + 2 * i,
         WasmI32.int16FromInt(dartString.codeUnitAt(i)),
-        align: 2,
+        align: 1,
       );
     }
 

@@ -29,7 +29,7 @@ final class ModuleTransformer {
   void transform(DartProgramAbi abi) {
     _patchImports(abi);
     _removeExports(abi.functionExports.keys.toSet());
-    _addExportedStartFunction();
+    _runMainOnInstantiation();
   }
 
   void _patchImports(DartProgramAbi abi) {
@@ -107,39 +107,47 @@ final class ModuleTransformer {
     }
   }
 
-  void _addExportedStartFunction() {
+  void _runMainOnInstantiation() {
     final mainFunction =
         (_exports[r'$invokeMain'] as w.FunctionExport).function;
     final argsArrayType =
         (mainFunction.type.inputs[0] as w.RefType).containedDefType
             as w.ArrayType;
 
-    final emptyFunctionType = module.types.defined
-        .whereType<w.FunctionType>()
-        .firstWhere((e) => e.inputs.isEmpty && e.outputs.isEmpty);
+    final existingStart = module.start;
+    final instructionsToInvokeMain = [
+      w.I32Const(0),
+      w.ArrayNewDefault(argsArrayType),
+      w.Call(mainFunction),
+    ];
 
-    final startFunction = w.DefinedFunction(
-      module,
-      w.Instructions(
-        [],
-        {},
-        [
-          w.I32Const(0),
-          w.ArrayNewDefault(argsArrayType),
-          w.Call(mainFunction),
-          w.End(),
-        ],
-        null,
-        [],
-        [],
-      ),
-      w.FinalizableIndex(),
-      emptyFunctionType,
-      '_start',
-    );
-    startFunction.finalizableIndex.value =
-        module.functions.defined.last.index + 1;
-    module.functions.defined.add(startFunction);
-    module.exports.exported.add(w.FunctionExport('_start', startFunction));
+    if (existingStart != null) {
+      final body = (existingStart as w.DefinedFunction).body.instructions;
+      assert(body.last is w.End);
+      body.insertAll(body.length - 1, instructionsToInvokeMain);
+    } else {
+      final emptyFunctionType = module.types.defined
+          .whereType<w.FunctionType>()
+          .firstWhere((e) => e.inputs.isEmpty && e.outputs.isEmpty);
+
+      final startFunction = w.DefinedFunction(
+        module,
+        w.Instructions(
+          [],
+          {},
+          [...instructionsToInvokeMain, w.End()],
+          null,
+          [],
+          [],
+        ),
+        w.FinalizableIndex(),
+        emptyFunctionType,
+        '_start',
+      );
+      startFunction.finalizableIndex.value =
+          module.functions.defined.last.index + 1;
+      module.functions.defined.add(startFunction);
+      module.start = startFunction;
+    }
   }
 }

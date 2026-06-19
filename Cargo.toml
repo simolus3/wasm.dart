@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "examples/hello_world_custom",
     "pkg/libc_common",
     "pkg/libc_standalone",
 ]

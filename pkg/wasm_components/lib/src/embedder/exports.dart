@@ -42,6 +42,12 @@ WasmI32 stringLength(WasmExternRef? string) {
 }
 
 @pragma('wasm:export')
+WasmI32 stringCodeUnitAt(WasmExternRef? string, WasmI32 index) {
+  final wasmString = WasmStringImplementation.fromExtern(string);
+  return WasmI32.fromInt(wasmString.codeUnitAtUnchecked(index.toIntUnsigned()));
+}
+
+@pragma('wasm:export')
 WasmExternRef stringBufferCreate() {
   return WasmStringBuffer().externalize();
 }

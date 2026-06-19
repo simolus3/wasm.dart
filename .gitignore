@@ -3,3 +3,4 @@
 **/example/*.wasm
 **/example/*.wat
 /.vscode
+app.wasm

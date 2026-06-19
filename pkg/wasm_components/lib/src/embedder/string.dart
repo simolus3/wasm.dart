@@ -10,6 +10,8 @@ sealed class WasmStringImplementation {
 
   int get length;
 
+  int codeUnitAtUnchecked(int offset);
+
   static WasmStringImplementation fromExtern(WasmExternRef? ref) {
     return ref!.internalize().toObject() as WasmStringImplementation;
   }
@@ -42,6 +44,11 @@ final class Latin1String extends WasmStringImplementation {
 
   @override
   int get length => codeUnits.length;
+
+  @override
+  int codeUnitAtUnchecked(int offset) {
+    return codeUnits.readUnsigned(offset);
+  }
 }
 
 final class Utf16String extends WasmStringImplementation {
@@ -68,4 +75,9 @@ final class Utf16String extends WasmStringImplementation {
 
   @override
   int get length => codeUnits.length;
+
+  @override
+  int codeUnitAtUnchecked(int offset) {
+    return codeUnits.readUnsigned(offset);
+  }
 }
