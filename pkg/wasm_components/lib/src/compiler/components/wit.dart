@@ -92,21 +92,21 @@ final class ResolvedWitDefinitions {
     switch (type) {
       case final int index:
         return _types[index];
-      case final Map<String, Object?> type:
-        final MapEntry(:key, :value) =
-            (type['kind'] as Map<String, Object?>).entries.single;
-        switch (key) {
-          case 'result':
-            final ok = _readOptionalType((value as Map<String, Object?>)['ok']);
-            final err = _readOptionalType(value['err']);
+      case {'kind': final kind}:
+        switch (kind) {
+          case 'string':
+            return StringType();
+          case {'result': final result}:
+            final ok = _readOptionalType(
+              (result as Map<String, Object?>)['ok'],
+            );
+            final err = _readOptionalType(result['err']);
 
             return ResultType(ok: ok, error: err);
-          default:
-            throw ArgumentError('Unsupported type kind: $key');
         }
-      default:
-        throw ArgumentError('Unsupported type: $type');
     }
+
+    throw ArgumentError('Unsupported type: $type');
   }
 
   ValueType? _readOptionalType(Object? type) {

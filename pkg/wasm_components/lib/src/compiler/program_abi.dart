@@ -1,11 +1,9 @@
 import 'package:hooks/hooks.dart';
 import 'package:logging/logging.dart';
 
-import 'components/component.dart';
-import 'components/index_space.dart';
-import 'components/linker.dart';
 import 'components/type.dart';
 import 'components/wit.dart';
+import 'hooks/extension.dart';
 
 /// Information about all component imports and exports used in the Dart
 /// program being compiled.
@@ -40,7 +38,11 @@ final class DartProgramAbi {
         return imported;
       });
 
-      final function = ImportedInstanceFunction(imported, functionName);
+      final function = ImportedInstanceFunction(
+        imported,
+        functionName,
+        _readFunctionOptions(rawImport['options'] as Map<String, Object?>),
+      );
       imported.importedFunctions.add(function);
       functionImports[wasmImportName] = function;
     }
@@ -52,12 +54,17 @@ final class DartProgramAbi {
           definitions.instances[rawExport['interfaceIndex'] as int].type;
       final exportedFunctions = <ExportedInstanceFunction>[];
 
-      final functions = (rawExport['functions'] as Map<String, Object?>)
-          .cast<String, String>();
+      final functions = rawExport['functions'] as Map<String, Object?>;
       for (final MapEntry(:key, :value) in functions.entries) {
         final type = interface.exports.firstWhere((e) => e.$1 == key).$2;
-        final export = ExportedInstanceFunction(value, key, type);
-        functionExports[value] = export;
+        value as Map<String, Object?>;
+        final exportName = value['exportName'] as String;
+        final options = _readFunctionOptions(
+          value['options'] as Map<String, Object?>,
+        );
+
+        final export = ExportedInstanceFunction(exportName, key, type, options);
+        functionExports[exportName] = export;
         exportedFunctions.add(export);
       }
 
@@ -66,45 +73,17 @@ final class DartProgramAbi {
     }
   }
 
-  ModuleInstanceIndex createImportInstance(ComponentBuilder builder) {
-    // Note: Build all imports first, then all aliases, then all lowerings. This
-    // means we can use 3 sections in total instead of 3 sections per function
-    // import.
-    final instances = [
-      for (final import in importedInstances)
-        builder.importInstance(
-          import.instanceName,
-          builder.addInstanceType(import.type),
-        ),
-    ];
-
-    final functionAliases = [
-      for (final (i, instance) in importedInstances.indexed)
-        for (final function in instance.importedFunctions)
-          builder.linker.alias(
-            .componentFunction,
-            .instanceExport(instances[i], function.function),
-          ),
-    ];
-
-    final lowered = <ImportedInstanceFunction, CanonLower>{};
-    var i = 0;
-    for (final instance in importedInstances) {
-      for (final function in instance.importedFunctions) {
-        lowered[function] = builder.linker.canonLower(functionAliases[i++]);
-      }
-    }
-
-    final inlineExports = <(String, Sort, Index)>[];
-    for (final MapEntry(:key, :value) in functionImports.entries) {
-      inlineExports.add((
-        key,
-        .coreFunction,
-        lowered[value]!.createdCoreFunction,
-      ));
-    }
-
-    return builder.linker.coreInstantiate(.inlineExports(inlineExports));
+  FunctionOptions _readFunctionOptions(Map<String, Object?> options) {
+    return FunctionOptions(
+      useMemory: options['useMemory'] as bool,
+      stringEncoding: switch (options['stringEncoding'] as String?) {
+        null => null,
+        'utf8' => .utf8,
+        'utf16' => .utf16,
+        'latin1OrUtf16' => .latin1OrUtf16,
+        _ => throw ArgumentError('Unknown string encoding in $options'),
+      },
+    );
   }
 }
 
@@ -120,8 +99,9 @@ final class ImportedComponentInstance {
 final class ImportedInstanceFunction {
   final ImportedComponentInstance instance;
   final String function;
+  final FunctionOptions options;
 
-  ImportedInstanceFunction(this.instance, this.function);
+  ImportedInstanceFunction(this.instance, this.function, this.options);
 }
 
 final class ExportedComponentInstance {
@@ -135,6 +115,12 @@ final class ExportedInstanceFunction {
   final String exportCoreFunctionName;
   final String name;
   final FunctionType type;
+  final FunctionOptions options;
 
-  ExportedInstanceFunction(this.exportCoreFunctionName, this.name, this.type);
+  ExportedInstanceFunction(
+    this.exportCoreFunctionName,
+    this.name,
+    this.type,
+    this.options,
+  );
 }

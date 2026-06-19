@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'components/component.dart';
 import 'components/index_space.dart';
 import 'components/linker.dart';
+import 'dart_linker.dart';
 import 'hooks/builder.dart';
 import 'subprocess.dart';
 import 'transform.dart';
@@ -69,10 +70,11 @@ final class ComponentCompiler {
       final libc = builder.linker.coreInstantiate(.moduleAndArgs(libcDef, {}));
 
       final appDef = builder.defineModule(transformer.module);
+      final linker = DartLinker(builder, abi, libc);
       final app = builder.linker.coreInstantiate(
         .moduleAndArgs(appDef, {
           'libc': libc,
-          'component': abi.createImportInstance(builder),
+          'component': linker.createImportInstance(),
         }),
       );
 

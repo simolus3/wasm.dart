@@ -62,6 +62,19 @@ final class WasmComponentAsset {
   }
 }
 
+enum StringEncoding { utf8, utf16, latin1OrUtf16 }
+
+final class FunctionOptions {
+  final bool useMemory;
+  final StringEncoding? stringEncoding;
+
+  const FunctionOptions({this.useMemory = false, this.stringEncoding});
+
+  Map<String, Object?> toJson() {
+    return {'useMemory': useMemory, 'stringEncoding': stringEncoding?.name};
+  }
+}
+
 final class ImportedComponentFunction {
   /// The import name used in source code.
   ///
@@ -75,10 +88,13 @@ final class ImportedComponentFunction {
   /// The name of the function in the imported interface.
   final String functionName;
 
+  final FunctionOptions functionOptions;
+
   const ImportedComponentFunction({
     required this.importName,
     required this.interfaceIndex,
     required this.functionName,
+    this.functionOptions = const FunctionOptions(),
   });
 
   Map<String, Object?> toJson() {
@@ -86,6 +102,7 @@ final class ImportedComponentFunction {
       'import': importName,
       'interfaceIndex': interfaceIndex,
       'functionName': functionName,
+      'options': functionOptions.toJson(),
     };
   }
 }
@@ -109,7 +126,10 @@ final class ExportedInstance {
       'interfaceIndex': interfaceIndex,
       'functions': {
         for (final MapEntry(:key, :value) in functions.entries)
-          key: value.exportName,
+          key: {
+            'exportName': value.exportName,
+            'options': value.options.toJson(),
+          },
       },
     };
   }
@@ -120,5 +140,10 @@ final class ExportedInstanceFunction {
   /// identify this export in Dart.
   final String exportName;
 
-  const ExportedInstanceFunction({required this.exportName});
+  final FunctionOptions options;
+
+  const ExportedInstanceFunction({
+    required this.exportName,
+    this.options = const FunctionOptions(),
+  });
 }

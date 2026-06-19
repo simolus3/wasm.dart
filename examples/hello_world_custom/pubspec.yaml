@@ -1,4 +1,4 @@
-name: empty_run
+name: hello_world_custom
 publish_to: none
 resolution: workspace
 

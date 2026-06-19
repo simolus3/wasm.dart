@@ -6,6 +6,7 @@ environment:
 
 workspace:
   - examples/empty_run
+  - examples/hello_world_custom
   
   - pkg/wasm_components
 

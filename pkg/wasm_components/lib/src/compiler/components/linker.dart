@@ -1,5 +1,6 @@
 import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 
+import '../hooks/extension.dart';
 import 'core_module.dart';
 import 'index_space.dart';
 import 'type.dart';
@@ -68,7 +69,7 @@ final class CoreExportTarget extends AliasTarget {
 /// https://github.com/WebAssembly/component-model/blob/main/design/mvp/Explainer.md#canonical-definitions
 sealed class CanonicalDefinition extends LinkingInstruction {}
 
-abstract final class _CanonicalLiftOrLower extends CanonicalDefinition {
+abstract final class CanonicalLiftOrLower extends CanonicalDefinition {
   StringEncoding? stringEncoding;
   CoreMemoryIndex? memory;
   CoreFunctionIndex? realloc;
@@ -115,7 +116,7 @@ abstract final class _CanonicalLiftOrLower extends CanonicalDefinition {
 
 /// Create a core WebAssembly function from a component function by applying the
 /// ABI.
-final class CanonLower extends _CanonicalLiftOrLower {
+final class CanonLower extends CanonicalLiftOrLower {
   final ComponentFunctionIndex function;
   final CoreFunctionIndex createdCoreFunction;
 
@@ -132,7 +133,7 @@ final class CanonLower extends _CanonicalLiftOrLower {
 
 /// Create a component function from a core WebAssembly function by enriching it
 /// with an ABI function type.
-final class CanonLift extends _CanonicalLiftOrLower {
+final class CanonLift extends CanonicalLiftOrLower {
   final CoreFunctionIndex function;
   final ModelTypeReference<FunctionType> type;
   final ComponentFunctionIndex createdFunction;
@@ -148,8 +149,6 @@ final class CanonLift extends _CanonicalLiftOrLower {
     s.writeUnsigned(type.index.index);
   }
 }
-
-enum StringEncoding { utf8, utf16, latin1OrUtf16 }
 
 abstract final class CoreInstanceExpression extends LinkingInstruction {
   CoreInstanceExpression._();
