@@ -1,0 +1,20 @@
+package root:component;
+
+world root {
+  import dart:components/print@0.0.1;
+
+  export wasi:cli/run@0.2.12;
+}
+package dart:components@0.0.1 {
+  /// Component that can print stuff.
+  interface print {
+    /// Prints a message to stdout.
+    print: func(line: string);
+  }
+}
+
+package wasi:cli@0.2.12 {
+  interface run {
+    run: func() -> result;
+  }
+}

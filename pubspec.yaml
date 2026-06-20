@@ -7,8 +7,9 @@ environment:
 workspace:
   - examples/empty_run
   - examples/hello_world_custom
-  
+
   - pkg/wasm_components
+  - pkg/wasm_tools
 
 dev_dependencies:
   lints: ^6.1.0

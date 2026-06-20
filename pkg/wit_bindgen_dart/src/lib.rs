@@ -41,7 +41,7 @@ pub struct ExportResult {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn wit_bindgen_dart_gen(
-    options: GenerateDartOptions,
+    options: &GenerateDartOptions,
     result: &mut MaybeUninit<ExportResult>,
 ) {
     let (dart, abi) = match wit_bindgen_dart_internal(options) {
@@ -97,7 +97,7 @@ pub extern "C" fn wit_bindgen_dart_free(options: &ExportResult) {
     }
 }
 
-fn wit_bindgen_dart_internal(options: GenerateDartOptions) -> anyhow::Result<(String, String)> {
+fn wit_bindgen_dart_internal(options: &GenerateDartOptions) -> anyhow::Result<(String, String)> {
     let mut resolve = Resolve::default();
 
     let world = if options.main.is_null() {
