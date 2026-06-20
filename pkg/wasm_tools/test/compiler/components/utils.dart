@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:wasm_components/src/compiler/components/component.dart';
+import 'package:wasm_tools/src/compiler/components/component.dart';
 
 Future<String> componentToWat(ComponentBuilder builder) async {
   final bytes = builder.serializeToBytes();

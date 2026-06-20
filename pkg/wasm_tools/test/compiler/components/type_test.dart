@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
-import 'package:wasm_components/src/compiler/components/component.dart';
-import 'package:wasm_components/src/compiler/components/type.dart';
+import 'package:wasm_tools/src/compiler/components/component.dart';
+import 'package:wasm_tools/src/compiler/components/type.dart';
 
 import 'utils.dart';
 

@@ -8,3 +8,6 @@ environment:
 dependencies:
   hooks: ^2.0.2
   wasm_components:
+
+dev_dependencies:
+  wasm_tools:

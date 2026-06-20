@@ -6,14 +6,6 @@ import 'package:path/path.dart' as p;
 
 import 'compiler.dart';
 
-Future<void> runCli(Logger logger, List<String> args) async {
-  final runner = CommandRunner<void>(
-    'wasm_components',
-    'Tools to interop between Dart and WebAssembly components.',
-  )..addCommand(CompileCommand(logger));
-  runner.run(args);
-}
-
 final class CompileCommand extends Command<void> {
   final Logger _logger;
 

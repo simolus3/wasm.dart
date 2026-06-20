@@ -1,5 +1,5 @@
 import 'package:logging/logging.dart';
-import 'package:wasm_tools/wasm_tools.dart';
+import 'package:wasm_tools/src/wasm_tools.dart';
 
 void main(List<String> args) async {
   hierarchicalLoggingEnabled = true;

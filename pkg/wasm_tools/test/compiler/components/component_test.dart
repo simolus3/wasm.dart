@@ -1,10 +1,9 @@
 import 'package:test/test.dart';
-import 'package:wasm_components/src/compiler/components/linker.dart';
+import 'package:wasm_tools/src/compiler/components/linker.dart';
 
-import 'package:wasm_components/src/third_party/wasm_builder/wasm_builder.dart'
-    as w;
-import 'package:wasm_components/src/compiler/components/component.dart';
-import 'package:wasm_components/src/compiler/components/type.dart';
+import 'package:wasm_tools/src/third_party/wasm_builder/wasm_builder.dart' as w;
+import 'package:wasm_tools/src/compiler/components/component.dart';
+import 'package:wasm_tools/src/compiler/components/type.dart';
 
 import 'utils.dart';
 

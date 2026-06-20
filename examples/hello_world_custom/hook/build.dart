@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:hooks/hooks.dart';
-import 'package:wasm_components/hooks.dart';
+import 'package:wasm_tools/hooks.dart';
 
 void main(List<String> args) => build(args, (input, output) async {
   if (input.config.buildWasmComponent) {

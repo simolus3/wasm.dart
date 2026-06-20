@@ -1,5 +1,5 @@
 name: wasm_components
-description: Create and consume WebAssembly components with Dart.
+description: Runtime definitions to help run Dart apps as WebAssembly components.
 resolution: workspace
 environment:
   sdk: ^3.12.0
