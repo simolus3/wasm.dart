@@ -3,112 +3,117 @@ import 'package:logging/logging.dart';
 
 import 'components/type.dart';
 import 'components/wit.dart';
-import 'hooks/extension.dart';
 
 /// Information about all component imports and exports used in the Dart
 /// program being compiled.
 ///
 /// We collect this information through build hooks.
 final class DartProgramAbi {
-  final List<ImportedComponentInstance> importedInstances = [];
-  final List<ExportedComponentInstance> exportedInstances = [];
+  final Map<String, ResolvedInterface> _interfaces = {};
 
   final Map<String, ImportedInstanceFunction> functionImports = {};
   final Map<String, ExportedInstanceFunction> functionExports = {};
 
+  Iterable<ResolvedInterface> get interfaces => _interfaces.values;
+
   void includeAsset(Logger logger, EncodedAsset asset) {
     final encoding = asset.encoding;
-    final definitions = ResolvedWitDefinitions()
-      ..readJson(encoding['wit'] as Map<String, Object?>);
-    final addedImports = <ResolvedInstance, ImportedComponentInstance>{};
+    final definitions = ResolvedWitDefinitions();
+    definitions.readTypes(encoding['type_defs'] as List);
+    final interfaces = <ResolvedInterface>[];
+
+    for (final entry
+        in (encoding['interfaces'] as List).cast<Map<String, Object?>>()) {
+      final fullName = entry['full_name'] as String;
+      final functions = <(String, FunctionType)>[];
+
+      interfaces.add(
+        _interfaces.putIfAbsent(fullName, () {
+          for (final function
+              in (entry['exported_functions'] as Map<String, Object?>)
+                  .entries) {
+            final name = function.key;
+            final value = function.value as Map<String, Object?>;
+            final params = <RecordField>[
+              for (final rawParam in value['params'] as List)
+                RecordField(
+                  label: rawParam['name'] as String,
+                  type: definitions.readType(rawParam['type'] as Object),
+                ),
+            ];
+            final result = definitions.readOptionalType(value['result']);
+            final async = (value['kind'] as String).contains('async');
+
+            functions.add((
+              name,
+              FunctionType(async: async, parameters: params, result: result),
+            ));
+          }
+
+          return ResolvedInterface(fullName, InstanceType(functions));
+        }),
+      );
+    }
 
     final imports = (encoding['imports'] as List).cast<Map<String, Object?>>();
     for (final rawImport in imports) {
-      final wasmImportName = rawImport['import'] as String;
-      final instance =
-          definitions.instances[rawImport['interfaceIndex'] as int];
-      final functionName = rawImport['functionName'] as String;
+      final interface = interfaces[rawImport['interface_id'] as int];
 
-      final imported = addedImports.putIfAbsent(instance, () {
-        final imported = ImportedComponentInstance(
-          instance.fullName,
-          instance.type,
-        );
-        importedInstances.add(imported);
-        return imported;
-      });
-
-      final function = ImportedInstanceFunction(
-        imported,
-        functionName,
-        _readFunctionOptions(rawImport['options'] as Map<String, Object?>),
+      final functionName = rawImport['function_name'] as String;
+      final coreFunctionName = rawImport['core_name'] as String;
+      final options = FunctionOptions.fromJson(
+        rawImport['options'] as Map<String, Object?>,
       );
-      imported.importedFunctions.add(function);
-      functionImports[wasmImportName] = function;
+      final instanceFunction = ImportedInstanceFunction(
+        functionName,
+        coreFunctionName,
+        options,
+      );
+      interface.importedFunctions.add(instanceFunction);
+      functionImports[coreFunctionName] = instanceFunction;
     }
 
     final exports = (encoding['exports'] as List).cast<Map<String, Object?>>();
     for (final rawExport in exports) {
-      final name = rawExport['name'] as String;
-      final interface =
-          definitions.instances[rawExport['interfaceIndex'] as int].type;
-      final exportedFunctions = <ExportedInstanceFunction>[];
+      final interface = interfaces[rawExport['interface_id'] as int];
+      final functionName = rawExport['function_name'] as String;
+      final coreName = rawExport['core_export_name'] as String;
+      final options = FunctionOptions.fromJson(
+        rawExport['options'] as Map<String, Object?>,
+      );
 
-      final functions = rawExport['functions'] as Map<String, Object?>;
-      for (final MapEntry(:key, :value) in functions.entries) {
-        final type = interface.exports.firstWhere((e) => e.$1 == key).$2;
-        value as Map<String, Object?>;
-        final exportName = value['exportName'] as String;
-        final options = _readFunctionOptions(
-          value['options'] as Map<String, Object?>,
-        );
-
-        final export = ExportedInstanceFunction(exportName, key, type, options);
-        functionExports[exportName] = export;
-        exportedFunctions.add(export);
-      }
-
-      final instance = ExportedComponentInstance(name, exportedFunctions);
-      exportedInstances.add(instance);
+      final export = ExportedInstanceFunction(
+        coreName,
+        functionName,
+        interface.type.exports.singleWhere((e) => e.$1 == functionName).$2,
+        options,
+      );
+      functionExports[coreName] = export;
+      interface.exports.add(export);
     }
   }
+}
 
-  FunctionOptions _readFunctionOptions(Map<String, Object?> options) {
+final class FunctionOptions {
+  final bool usesMemory;
+  final bool usesStrings;
+
+  FunctionOptions({required this.usesMemory, required this.usesStrings});
+
+  factory FunctionOptions.fromJson(Map<String, Object?> json) {
     return FunctionOptions(
-      useMemory: options['useMemory'] as bool,
-      stringEncoding: switch (options['stringEncoding'] as String?) {
-        null => null,
-        'utf8' => .utf8,
-        'utf16' => .utf16,
-        'latin1OrUtf16' => .latin1OrUtf16,
-        _ => throw ArgumentError('Unknown string encoding in $options'),
-      },
+      usesMemory: json['use_memory'] as bool,
+      usesStrings: json['uses_strings'] as bool,
     );
   }
 }
 
-final class ImportedComponentInstance {
-  final String instanceName;
-  final InstanceType type;
-
-  final List<ImportedInstanceFunction> importedFunctions = [];
-
-  ImportedComponentInstance(this.instanceName, this.type);
-}
-
 final class ImportedInstanceFunction {
-  final ImportedComponentInstance instance;
-  final String function;
+  final String interfaceMethod;
+  final String coreImport;
   final FunctionOptions options;
 
-  ImportedInstanceFunction(this.instance, this.function, this.options);
-}
-
-final class ExportedComponentInstance {
-  final String instanceName;
-  final List<ExportedInstanceFunction> exports;
-
-  ExportedComponentInstance(this.instanceName, this.exports);
+  ImportedInstanceFunction(this.interfaceMethod, this.coreImport, this.options);
 }
 
 final class ExportedInstanceFunction {
@@ -123,4 +128,14 @@ final class ExportedInstanceFunction {
     this.type,
     this.options,
   );
+}
+
+final class ResolvedInterface {
+  final String fullName;
+  final InstanceType type;
+
+  final List<ImportedInstanceFunction> importedFunctions = [];
+  final List<ExportedInstanceFunction> exports = [];
+
+  ResolvedInterface(this.fullName, this.type);
 }

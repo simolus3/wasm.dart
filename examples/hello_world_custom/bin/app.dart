@@ -1,4 +1,4 @@
-import 'package:hello_world_custom/src/components.g.dart';
+import 'package:hello_world_custom/src/component.g.dart';
 import 'package:wasm_components/component.dart';
 
 void main() {

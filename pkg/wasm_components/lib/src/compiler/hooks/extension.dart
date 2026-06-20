@@ -41,109 +41,13 @@ final class BuildOutputWasmComponentAssetBuilder {
 
 final class WasmComponentAsset {
   /// The WIT context, as serialized by `wasm-tools component wit -j`.
-  final Map<String, Object?> wit;
-  final List<ImportedComponentFunction> imports;
-  final List<ExportedInstance> exports;
+  final Map<String, Object?> encoded;
 
-  const WasmComponentAsset({
-    required this.wit,
-    required this.imports,
-    required this.exports,
-  });
+  const WasmComponentAsset({required this.encoded});
 
   /// Encodes this into an [EncodedAsset] that can be added to
   /// [BuildOutputAssetsBuilder].
   EncodedAsset encode() {
-    return EncodedAsset(name, {
-      'wit': wit,
-      'imports': [for (final import in imports) import.toJson()],
-      'exports': [for (final export in exports) export.toJson()],
-    });
+    return EncodedAsset(name, encoded);
   }
-}
-
-enum StringEncoding { utf8, utf16, latin1OrUtf16 }
-
-final class FunctionOptions {
-  final bool useMemory;
-  final StringEncoding? stringEncoding;
-
-  const FunctionOptions({this.useMemory = false, this.stringEncoding});
-
-  Map<String, Object?> toJson() {
-    return {'useMemory': useMemory, 'stringEncoding': stringEncoding?.name};
-  }
-}
-
-final class ImportedComponentFunction {
-  /// The import name used in source code.
-  ///
-  /// We use a `@pragma('wasm:import', 'runtime.$importName')` annotation to
-  /// identify this import in Dart.
-  final String importName;
-
-  /// The imported interface, as an index in [WasmComponentAsset.wit].
-  final int interfaceIndex;
-
-  /// The name of the function in the imported interface.
-  final String functionName;
-
-  final FunctionOptions functionOptions;
-
-  const ImportedComponentFunction({
-    required this.importName,
-    required this.interfaceIndex,
-    required this.functionName,
-    this.functionOptions = const FunctionOptions(),
-  });
-
-  Map<String, Object?> toJson() {
-    return {
-      'import': importName,
-      'interfaceIndex': interfaceIndex,
-      'functionName': functionName,
-      'options': functionOptions.toJson(),
-    };
-  }
-}
-
-/// A component instance, to export via Dart.
-final class ExportedInstance {
-  /// The name of the exported instance, e.g. `wasi:cli/run@0.3.0`.
-  final String name;
-  final int interfaceIndex;
-  final Map<String, ExportedInstanceFunction> functions;
-
-  const ExportedInstance({
-    required this.name,
-    required this.interfaceIndex,
-    required this.functions,
-  });
-
-  Map<String, Object?> toJson() {
-    return {
-      'name': name,
-      'interfaceIndex': interfaceIndex,
-      'functions': {
-        for (final MapEntry(:key, :value) in functions.entries)
-          key: {
-            'exportName': value.exportName,
-            'options': value.options.toJson(),
-          },
-      },
-    };
-  }
-}
-
-final class ExportedInstanceFunction {
-  /// The name used in a `@pragma('wasm:export', $exportName)` annotation to
-  /// identify this export in Dart.
-  final String exportName;
-
-  final FunctionOptions options;
-
-  const ExportedInstanceFunction({
-    required this.exportName,
-    this.options = const FunctionOptions(),
-  });
 }

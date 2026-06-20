@@ -1,25 +1,28 @@
 use anyhow::{Result, bail};
-use std::{borrow::Cow, fmt::Write, mem, rc::Rc};
+use serde::Serialize;
+use std::{borrow::Cow, fmt::Write, rc::Rc};
 use wit_bindgen_core::{
     WorldGenerator,
     abi::{AbiVariant, LiftLower, call, guest_export_needs_post_return},
     uwrite, uwriteln,
-    wit_parser::{InterfaceId, SizeAlign, WorldKey},
+    wit_parser::{InterfaceId, Resolve, SizeAlign, WorldKey},
 };
 
 use crate::{
-    abi::{DartFunctionGenerator, ExportedFunctionMode, FunctionMode, ImportedFunctionMode},
+    abi_export::SerializableAbi,
     dart_source::{DartDefinition, DartSource},
+    functions::{DartFunctionGenerator, ExportedFunctionMode, FunctionMode, ImportedFunctionMode},
 };
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Serialize)]
 pub struct FunctionOptions {
     pub use_memory: bool,
     pub uses_strings: bool,
 }
 
+#[derive(Serialize)]
 pub struct ImportedCoreFunction {
-    pub interface: InterfaceId,
+    pub interface_id: usize,
     pub function_name: String,
     pub core_name: Rc<String>,
     pub options: FunctionOptions,
@@ -41,7 +44,9 @@ impl ExportedInstance {
     }
 }
 
+#[derive(Serialize)]
 pub struct ExportedCoreFunction {
+    pub function_name: String,
     pub core_export_name: String,
     pub options: FunctionOptions,
 }
@@ -52,6 +57,16 @@ pub struct DartWorldGenerator {
     pub main: DartSource,
     pub function_imports: Vec<ImportedCoreFunction>,
     pub instance_exports: Vec<ExportedInstance>,
+}
+
+impl DartWorldGenerator {
+    pub fn serialize_abi(&self, resolve: &Resolve) -> anyhow::Result<String> {
+        Ok(serde_json::to_string(&SerializableAbi {
+            resolve,
+            imports: &self.function_imports,
+            exports: &self.instance_exports,
+        })?)
+    }
 }
 
 impl WorldGenerator for DartWorldGenerator {
@@ -65,6 +80,7 @@ impl WorldGenerator for DartWorldGenerator {
         let class_name = self.main.define_interface(&resolve, iface);
 
         let mut def = DartDefinition::default();
+
         {
             let def = &mut def;
             let _ = writeln!(
@@ -89,9 +105,7 @@ impl WorldGenerator for DartWorldGenerator {
                     &self.size_align,
                     &mut self.main,
                     function,
-                    iface,
                     FunctionMode::Imported(ImportedFunctionMode {
-                        function_name: name.clone(),
                         core_name: &core_name,
                     }),
                 );
@@ -121,7 +135,7 @@ impl WorldGenerator for DartWorldGenerator {
                     self.main.consume_definition(import);
 
                     self.function_imports.push(ImportedCoreFunction {
-                        interface: iface,
+                        interface_id: iface.index(),
                         function_name: name.to_string(),
                         core_name: core_name.clone(),
                         options,
@@ -235,16 +249,22 @@ impl WorldGenerator for DartWorldGenerator {
         }
 
         let mut export_id = 0usize;
-        for mut export in mem::take(&mut self.instance_exports) {
+        for mut export in &mut self.instance_exports {
             let interface = &resolve.interfaces[export.interface];
 
-            for (_, function) in &interface.functions {
+            for (name, function) in &interface.functions {
                 let needs_post_return = guest_export_needs_post_return(resolve, function);
                 if needs_post_return {
                     todo!()
                 }
 
-                let _ = writeln!(def, "@pragma('wasm:export', r'component_{}')", export_id);
+                let this_export_id = export_id;
+                export_id += 1;
+                let _ = writeln!(
+                    def,
+                    "@pragma('wasm:export', r'component_{}')",
+                    this_export_id
+                );
                 let abi_variant = if function.kind.is_async() {
                     AbiVariant::GuestExportAsync
                 } else {
@@ -253,18 +273,15 @@ impl WorldGenerator for DartWorldGenerator {
                 let core_signature = resolve.wasm_signature(abi_variant, function);
                 def.write_core_signature(
                     &mut self.main,
-                    &format!("_component_{}", export_id),
+                    &format!("_component_{}", this_export_id),
                     &core_signature,
                 );
                 uwriteln!(def, "{{");
-
-                export_id += 1;
 
                 let mut generator = DartFunctionGenerator::new(
                     &self.size_align,
                     &mut self.main,
                     function,
-                    export.interface,
                     FunctionMode::Exported(ExportedFunctionMode {
                         instance: &mut export,
                     }),
@@ -279,6 +296,13 @@ impl WorldGenerator for DartWorldGenerator {
                 );
                 generator.write_cleanup();
                 let _ = write!(&mut def, "{}}}", generator.definition.take_code());
+
+                let options = generator.options;
+                export.functions.push(ExportedCoreFunction {
+                    core_export_name: format!("component_{}", this_export_id),
+                    function_name: name.clone(),
+                    options,
+                });
             }
         }
 

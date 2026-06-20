@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:dart_style/dart_style.dart';
 import 'package:logging/logging.dart';
 
 import '../failure.dart';
@@ -17,6 +18,13 @@ final class GenerateWitInteropCommand extends Command<void> {
       help: 'Input file or directory containing WIT definitions.',
       mandatory: true,
     );
+    argParser.addOption(
+      'output',
+      abbr: 'o',
+      help: 'Output file for main sources.',
+      defaultsTo: 'lib/src/component.g.dart',
+    );
+
     argParser.addOption(
       'world',
       abbr: 'w',
@@ -50,7 +58,26 @@ final class GenerateWitInteropCommand extends Command<void> {
         throw ToolFailure('Input file $input does not exist');
     }
 
-    final output = await witBindgen(inputs, results.option('world'));
-    print(output.dartCode);
+    var WitExportResult(:dartCode, :abi) = await witBindgen(
+      inputs,
+      results.option('world'),
+    );
+
+    try {
+      final formatter = DartFormatter(
+        // TODO: Read config from project?
+        languageVersion: DartFormatter.latestLanguageVersion,
+      );
+
+      dartCode = formatter.format(dartCode);
+    } on FormatterException catch (e, s) {
+      logger.warning('Could not format Dart sources', e, s);
+    }
+
+    final outputFile = File(results.option('output')!);
+    await outputFile.parent.create(recursive: true);
+    await outputFile.writeAsString(dartCode);
+
+    logger.info('Wrote outputs to ${outputFile.path}');
   }
 }

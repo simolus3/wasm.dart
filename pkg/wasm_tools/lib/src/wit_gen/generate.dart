@@ -88,11 +88,12 @@ WitExportResult _witBindgenSync(List<WitInputFile> files, String? mainWorld) {
       throw WitGenerateException(content);
     }
 
-    wit_bindgen_dart_free(result);
-    return WitExportResult(
+    final exports = WitExportResult(
       content,
       _readString(resultRef.abi, resultRef.abiLength),
     );
+    wit_bindgen_dart_free(result);
+    return exports;
   });
 }
 

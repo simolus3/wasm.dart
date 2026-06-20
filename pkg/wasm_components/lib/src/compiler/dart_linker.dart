@@ -1,4 +1,3 @@
-import 'hooks/extension.dart';
 import 'program_abi.dart';
 
 import 'components/component.dart';
@@ -16,13 +15,13 @@ final class DartLinker {
     var needsMemory = false;
 
     for (final import in abi.functionImports.values) {
-      if (import.options.useMemory) {
+      if (import.options.usesMemory) {
         needsMemory = true;
       }
     }
 
     for (final export in abi.functionExports.values) {
-      if (export.options.useMemory) {
+      if (export.options.usesMemory) {
         needsMemory = true;
       }
     }
@@ -39,11 +38,13 @@ final class DartLinker {
     // Note: Build all imports first, then all aliases, then all lowerings. This
     // means we can use 3 sections in total instead of 3 sections per function
     // import.
-    final importedInstances = abi.importedInstances;
+    final importedInstances = abi.interfaces
+        .where((e) => e.importedFunctions.isNotEmpty)
+        .toList();
     final instances = [
       for (final import in importedInstances)
         builder.importInstance(
-          import.instanceName,
+          import.fullName,
           builder.addInstanceType(import.type),
         ),
     ];
@@ -53,7 +54,7 @@ final class DartLinker {
         for (final function in instance.importedFunctions)
           builder.linker.alias(
             .componentFunction,
-            .instanceExport(instances[i], function.function),
+            .instanceExport(instances[i], function.interfaceMethod),
           ),
     ];
 
@@ -81,11 +82,9 @@ final class DartLinker {
   }
 
   void _applyOptions(FunctionOptions options, CanonicalLiftOrLower canon) {
-    if (options.useMemory) {
+    if (options.usesMemory) {
       canon.memory = _libcMemory!;
     }
-    if (options.stringEncoding case final encoding?) {
-      canon.stringEncoding = encoding;
-    }
+    if (options.usesStrings) canon.stringEncoding = .utf16;
   }
 }

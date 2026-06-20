@@ -79,7 +79,9 @@ final class ComponentCompiler {
         }),
       );
 
-      for (final export in abi.exportedInstances) {
+      for (final export in abi.interfaces) {
+        if (export.exports.isEmpty) continue;
+
         final inlineExports = <(String, Sort, Index)>[];
 
         for (final function in export.exports) {
@@ -101,7 +103,7 @@ final class ComponentCompiler {
 
         final instance = builder.linker.instance(inlineExports: inlineExports);
         builder.linker.export(
-          Export(export.instanceName, .componentInstance, instance),
+          Export(export.fullName, .componentInstance, instance),
         );
       }
 

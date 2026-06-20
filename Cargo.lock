@@ -1808,6 +1808,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "heck",
+ "serde",
+ "serde_json",
  "wit-bindgen-core",
  "wit-component",
 ]

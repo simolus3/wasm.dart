@@ -4,7 +4,7 @@ use std::{fmt::Write, mem};
 use heck::ToLowerCamelCase;
 use wit_bindgen_core::{
     abi::{Bindgen, Instruction},
-    wit_parser::{Function, InterfaceId, Resolve, SizeAlign, Type},
+    wit_parser::{Function, Resolve, SizeAlign, Type},
 };
 use wit_bindgen_core::{uwrite, uwriteln};
 
@@ -21,7 +21,6 @@ pub struct DartFunctionGenerator<'a> {
     pub definition: DartDefinition,
     block_storage: Vec<DartDefinition>,
     blocks: Vec<(String, Vec<Rc<String>>)>,
-    interface: InterfaceId,
     mode: FunctionMode<'a>,
     cleanup: String,
     next_temporary: usize,
@@ -34,7 +33,6 @@ pub enum FunctionMode<'a> {
 }
 
 pub struct ImportedFunctionMode<'a> {
-    pub function_name: String,
     pub core_name: &'a str,
 }
 
@@ -47,7 +45,6 @@ impl<'a> DartFunctionGenerator<'a> {
         size_align: &'a SizeAlign,
         dart: &'a mut DartSource,
         function: &Function,
-        interface: InterfaceId,
         mode: FunctionMode<'a>,
     ) -> Self {
         Self {
@@ -59,7 +56,6 @@ impl<'a> DartFunctionGenerator<'a> {
                 .map(|p| Rc::new(p.name.to_lower_camel_case()))
                 .collect(),
             definition: DartDefinition::default(),
-            interface,
             mode,
             block_storage: Default::default(),
             blocks: Default::default(),
@@ -229,8 +225,8 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
 
     fn return_pointer(
         &mut self,
-        size: wit_bindgen_core::wit_parser::ArchitectureSize,
-        align: wit_bindgen_core::wit_parser::Alignment,
+        _size: wit_bindgen_core::wit_parser::ArchitectureSize,
+        _align: wit_bindgen_core::wit_parser::Alignment,
     ) -> Self::Operand {
         todo!()
     }
@@ -250,7 +246,7 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
         self.size_align
     }
 
-    fn is_list_canonical(&self, resolve: &Resolve, element: &Type) -> bool {
+    fn is_list_canonical(&self, _resolve: &Resolve, _element: &Type) -> bool {
         false
     }
 }

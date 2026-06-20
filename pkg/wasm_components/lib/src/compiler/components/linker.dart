@@ -1,6 +1,5 @@
 import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 
-import '../hooks/extension.dart';
 import 'core_module.dart';
 import 'index_space.dart';
 import 'type.dart';
@@ -65,6 +64,8 @@ final class CoreExportTarget extends AliasTarget {
     s.writeName(name);
   }
 }
+
+enum StringEncoding { utf8, utf16, latin1OrUtf16 }
 
 /// https://github.com/WebAssembly/component-model/blob/main/design/mvp/Explainer.md#canonical-definitions
 sealed class CanonicalDefinition extends LinkingInstruction {}

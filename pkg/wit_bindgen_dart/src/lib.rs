@@ -7,9 +7,10 @@ use wit_bindgen_core::{
 
 use crate::bindgen::DartWorldGenerator;
 
-mod abi;
+mod abi_export;
 mod bindgen;
 mod dart_source;
+mod functions;
 
 #[repr(C)]
 pub struct GenerateDartOptions {
@@ -72,7 +73,7 @@ pub extern "C" fn wit_bindgen_dart_gen(
         output_capacity,
         abi,
         abi_len,
-        abi_capacity: abi_capacity,
+        abi_capacity,
         is_error: 0,
     });
 }
@@ -128,7 +129,10 @@ fn wit_bindgen_dart_internal(options: &GenerateDartOptions) -> anyhow::Result<(S
     let mut files = Files::default();
     generator.generate(&mut resolve, world, &mut files)?;
 
-    Ok((generator.main.to_string(), "".to_string()))
+    Ok((
+        generator.main.to_string(),
+        generator.serialize_abi(&resolve)?,
+    ))
 }
 
 #[cfg(test)]
