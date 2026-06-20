@@ -1,0 +1,67 @@
+{
+  "type_defs": [
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": null,
+          "err": null
+        }
+      },
+      "owner": null
+    }
+  ],
+  "interfaces": [
+    {
+      "full_name": "dart:components/print@0.0.1",
+      "exported_functions": {
+        "print": {
+          "name": "print",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "line",
+              "type": "string"
+            }
+          ],
+          "docs": {
+            "contents": "Prints a message to stdout."
+          }
+        }
+      }
+    },
+    {
+      "full_name": "wasi:cli/run@0.2.12",
+      "exported_functions": {
+        "run": {
+          "name": "run",
+          "kind": "freestanding",
+          "params": [],
+          "result": 0
+        }
+      }
+    }
+  ],
+  "imports": [
+    {
+      "interface_id": 0,
+      "function_name": "print",
+      "core_name": "_import0",
+      "options": {
+        "use_memory": true,
+        "uses_strings": true
+      }
+    }
+  ],
+  "exports": [
+    {
+      "interface_id": 1,
+      "function_name": "run",
+      "core_export_name": "component_0",
+      "options": {
+        "use_memory": false,
+        "uses_strings": false
+      }
+    }
+  ]
+}

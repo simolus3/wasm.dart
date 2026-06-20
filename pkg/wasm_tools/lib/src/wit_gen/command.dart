@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -77,6 +78,10 @@ final class GenerateWitInteropCommand extends Command<void> {
     final outputFile = File(results.option('output')!);
     await outputFile.parent.create(recursive: true);
     await outputFile.writeAsString(dartCode);
+
+    File(
+      'hook/wasm_abi.json',
+    ).writeAsString(JsonEncoder.withIndent('  ').convert(jsonDecode(abi)));
 
     logger.info('Wrote outputs to ${outputFile.path}');
   }
