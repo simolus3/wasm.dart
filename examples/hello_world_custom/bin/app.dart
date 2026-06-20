@@ -1,16 +1,16 @@
-import 'package:hello_world_custom/src/components.dart';
+import 'package:hello_world_custom/src/components.g.dart';
 import 'package:wasm_components/component.dart';
 
 void main() {
-  defineInstanceExport(const _Run());
+  defineInstanceExport(unnamedExport1: const _Run());
 }
 
-final class _Run implements WasiCliRun {
+final class _Run implements Run {
   const _Run();
 
   @override
-  Result<Null, Null> run() {
-    printImport.print('Hello world!');
+  Result<void, void> run() {
+    importedInstance0.print(line: 'Hello world!');
     return const .ok(null);
   }
 }

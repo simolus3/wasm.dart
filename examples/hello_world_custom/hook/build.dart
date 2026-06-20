@@ -58,7 +58,7 @@ void main(List<String> args) => build(args, (input, output) async {
         // generator for those.
         imports: [
           ImportedComponentFunction(
-            importName: r'Print$print',
+            importName: r'_import0',
             interfaceIndex: 1,
             functionName: 'print',
             functionOptions: FunctionOptions(
@@ -72,7 +72,7 @@ void main(List<String> args) => build(args, (input, output) async {
             name: 'wasi:cli/run@0.2.12',
             interfaceIndex: 0,
             functions: {
-              'run': ExportedInstanceFunction(exportName: r'cli$run'),
+              'run': ExportedInstanceFunction(exportName: r'component_0'),
             },
           ),
         ],

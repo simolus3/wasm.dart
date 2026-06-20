@@ -9,6 +9,7 @@ use wit_bindgen_core::abi::{WasmSignature, WasmType};
 use wit_bindgen_core::wit_parser::{
     Docs, Function, InterfaceId, Resolve, Type, TypeDef, TypeDefKind,
 };
+use wit_bindgen_core::{uwrite, uwriteln};
 
 #[derive(Default)]
 pub struct DartSource {
@@ -26,6 +27,10 @@ impl DartSource {
             Entry::Occupied(e) => e.get().clone(),
             Entry::Vacant(vacant) => {
                 let name = Rc::new(format!("i{}", length));
+
+                if let KnownDartUri::DartWasm = uri {
+                    uwriteln!(&mut self.header, "// ignore: import_internal_library");
+                }
 
                 self.header.push_str("import ");
                 push_dart_string_literal(&mut self.header, uri.uri_str());
@@ -69,33 +74,6 @@ impl DartSource {
         }
     }
 
-    pub fn add_core_function_import(&mut self, name: &str, signature: &WasmSignature) {
-        let mut definition = DartDefinition::default();
-        let _ = writeln!(
-            &mut definition,
-            "@pragma(\"wasm:import\", r\"component.{}\")",
-            name
-        );
-        let _ = write!(&mut definition, "extern ");
-        if signature.results.is_empty() {
-            definition.imported_identifier(self, KnownDartUri::DartWasm, "WasmVoid");
-        } else {
-            assert!(signature.results.len() == 1);
-            definition.write_core_type(self, &signature.results[0]);
-        }
-
-        let _ = write!(&mut definition, " {} (", name);
-        for (i, param) in signature.params.iter().enumerate() {
-            if i != 0 {
-                let _ = write!(&mut definition, ", ");
-            }
-            definition.write_core_type(self, param);
-        }
-        let _ = writeln!(&mut definition, ");");
-
-        self.consume_definition(definition);
-    }
-
     pub fn consume_definition(&mut self, definition: DartDefinition) {
         self.definitions.push_str(&definition.0);
     }
@@ -103,13 +81,14 @@ impl DartSource {
 
 impl Display for DartSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("// ignore_for_file: type=warning\n")?;
         f.write_str(&self.header)?;
         f.write_str("\n")?;
         f.write_str(&self.definitions)
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct DartDefinition(String);
 
 impl DartDefinition {
@@ -216,7 +195,14 @@ impl DartDefinition {
             TypeDefKind::Variant(_variant) => todo!(),
             TypeDefKind::Enum(_) => todo!(),
             TypeDefKind::Option(_) => todo!(),
-            TypeDefKind::Result(_result) => todo!(),
+            TypeDefKind::Result(result) => {
+                self.imported_identifier(dart, KnownDartUri::PkgWasmComponents, "Result");
+                self.0.push_str("<");
+                self.write_optional_dart_type(dart, resolve, result.ok.as_ref());
+                self.0.push_str(", ");
+                self.write_optional_dart_type(dart, resolve, result.err.as_ref());
+                self.0.push_str(">");
+            }
             TypeDefKind::List(element_type) | TypeDefKind::FixedLengthList(element_type, _) => {
                 self.0.push_str("List<");
                 self.write_dart_type(dart, resolve, element_type);
@@ -244,6 +230,30 @@ impl DartDefinition {
         }
     }
 
+    pub fn write_core_signature(
+        &mut self,
+        dart: &mut DartSource,
+        name: &str,
+        signature: &WasmSignature,
+    ) {
+        if signature.results.is_empty() {
+            self.imported_identifier(dart, KnownDartUri::DartWasm, "WasmVoid");
+        } else {
+            assert!(signature.results.len() == 1);
+            self.write_core_type(dart, &signature.results[0]);
+        }
+
+        let _ = write!(self, " {}(", name);
+        for (i, param) in signature.params.iter().enumerate() {
+            if i != 0 {
+                let _ = write!(self, ", ");
+            }
+            self.write_core_type(dart, param);
+            uwrite!(self, " p{i}");
+        }
+        let _ = write!(self, ")");
+    }
+
     pub fn write_core_type(&mut self, dart: &mut DartSource, core_type: &WasmType) {
         let simple_name = match core_type {
             WasmType::I32 => "WasmI32",
@@ -255,6 +265,10 @@ impl DartDefinition {
             WasmType::Length => "WasmI32",
         };
         self.imported_identifier(dart, KnownDartUri::DartWasm, simple_name);
+    }
+
+    pub fn take_code(self) -> String {
+        self.0
     }
 }
 

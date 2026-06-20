@@ -52,7 +52,7 @@ final class ModuleTransformer {
       if (import.module == 'component') {
         if (!unusedComponentImports.remove(import.name)) {
           throw CompilerFailure(
-            'Import runtime.${import.name} is not registered in ABI.',
+            'Import component.${import.name} is not registered in ABI.',
           );
         }
 
