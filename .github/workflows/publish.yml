@@ -1,0 +1,53 @@
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - 'wasm_tools-[0-9]+.[0-9]+.[0-9]+*'
+      - 'wasm_components-[0-9]+.[0-9]+.[0-9]+*'
+
+permissions: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  compile_rust:
+    uses: ./.github/workflows/compile_rust.yml
+
+  publish:
+    name: Publish to pub.dev
+    needs: [compile_rust]
+    permissions:
+      id-token: write # Required for authentication using OIDC
+    runs-on: ubuntu-latest
+    environment: 'pub.dev'
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - uses: dart-lang/setup-dart@v1 # This will request an OIDC token for pub.dev
+    - name: Download libraries
+      uses: actions/download-artifact@v8
+      with:
+        artifact-ids: ${{ needs.compile_rust.outputs.asset_id }}
+        path: pkg/wasm_tools/
+    - name: Pub get
+      run: dart pub get
+
+    - name: Publish wasm_components - dry run
+      if: "${{ startsWith(github.ref_name, 'wasm_components-') }}"
+      run: dart pub publish --dry-run
+      working-directory: pkg/wasm_components
+    - name: Publish wasm_components to pub.dev
+      if: "${{ startsWith(github.ref_name, 'wasm_components-') }}"
+      run: dart pub publish -f
+      working-directory: pkg/wasm_components
+
+    - name: Publish wasm_tools - dry run
+      if: "${{ startsWith(github.ref_name, 'wasm_tools-') }}"
+      run: dart pub publish --dry-run
+      working-directory: pkg/wasm_tools
+    - name: Publish wasm_tools to pub.dev
+      if: "${{ startsWith(github.ref_name, 'wasm_tools-') }}"
+      run: dart pub publish -f
+      working-directory: pkg/wasm_tools

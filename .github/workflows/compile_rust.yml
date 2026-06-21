@@ -169,6 +169,7 @@ jobs:
           path: pkg/wasm_tools/lib/src/wit_gen/precompiled/
 
   merge_results:
+    name: Merge results into single asset
     needs:
       - build_runtime_helpers_wasm
       - build_witgen_linux
