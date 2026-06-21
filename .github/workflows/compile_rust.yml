@@ -3,7 +3,7 @@ name: Download and compile SQLite
 on:
   workflow_call:
     outputs:
-      runtime_id:
+      asset_id:
         description: "ID of the artifact containing runtime_helpers.wasm"
         value: ${{ jobs.merge_results.outputs.libs }}
 
@@ -72,7 +72,6 @@ jobs:
           sudo apt install -y gcc-aarch64-linux-gnu gcc-riscv64-linux-gnu gcc-arm-linux-gnueabihf
       - name: Build for Linux
         if: steps.cache_build.outputs.cache-hit != 'true'
-        working-directory: pkg/wit_bindgen_dart
         run: |
           cargo build --release -p wit_bindgen_dart --target x86_64-unknown-linux-gnu
           cargo build --release -p wit_bindgen_dart --target aarch64-unknown-linux-gnu
@@ -80,7 +79,7 @@ jobs:
           cargo build --release -p wit_bindgen_dart --target riscv64gc-unknown-linux-gnu
       - name: Copy libraries
         if: steps.cache_build.outputs.cache-hit != 'true'
-        working-directory: pkg/wit_bindgen_dart
+        working-directory: pkg/wasm_tools
         run: |
           lib/src/wit_gen/precompiled
           cp ../../target/x86_64-unknown-linux-gnu/release/libwit_bindgen_dart.so lib/src/wit_gen/precompiled/libwit_bindgen_dart.linux_x64.so
@@ -115,13 +114,12 @@ jobs:
           rustup target add aarch64-apple-darwin
       - name: Build for macOS
         if: steps.cache_build.outputs.cache-hit != 'true'
-        working-directory: pkg/wit_bindgen_dart
         run: |
           cargo build --release -p wit_bindgen_dart --target x86_64-apple-darwin
           cargo build --release -p wit_bindgen_dart --target aarch64-apple-darwin
       - name: Copy libraries
         if: steps.cache_build.outputs.cache-hit != 'true'
-        working-directory: pkg/wit_bindgen_dart
+        working-directory: pkg/wasm_tools
         run: |
           mkdir lib/src/wit_gen/precompiled
           cp ../../target/x86_64-apple-darwin/release/libwit_bindgen_dart.dylib lib/src/wit_gen/precompiled/libwit_bindgen_dart.macos_x64.so
@@ -154,7 +152,6 @@ jobs:
           rustup target add aarch64-pc-windows-msvc
       - name: Build for Windows
         if: steps.cache_build.outputs.cache-hit != 'true'
-        working-directory: pkg/wit_bindgen_dart
         run: |
           cargo build --release -p wit_bindgen_dart --target x86_64-pc-windows-msvc
           cargo build --release -p wit_bindgen_dart --target aarch64-pc-windows-msvc
