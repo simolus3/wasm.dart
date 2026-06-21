@@ -100,7 +100,7 @@ jobs:
         ls assets
         ls lib/src/wit_gen/precompiled/
     - name: Install wasm-tools
-      run: zizmorcore/zizmor-action@9e1e5806d4a4822de933115878265be9aaa786d9 # v2.82.2
+      uses: taiki-e/install-action@9e1e5806d4a4822de933115878265be9aaa786d9 # v2.82.2
       with:
         tool: wasm-tools
 
