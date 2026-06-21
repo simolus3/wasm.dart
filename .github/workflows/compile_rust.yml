@@ -143,7 +143,7 @@ jobs:
         id: cache_build
         with:
           path: pkg/wit_bindgen_dart/out
-          key: bindgen-macos-${{ hashFiles('Cargo.lock', 'pkg/wit_bindgen_dart/**') }}
+          key: bindgen-windows-${{ hashFiles('Cargo.lock', 'pkg/wit_bindgen_dart/**') }}
       - name: Install rust
         if: steps.cache_build.outputs.cache-hit != 'true'
         run: |
@@ -184,7 +184,7 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          path: runtime-helpers
+          path: pkg/wasm_tools/assets/
           pattern: runtime-helpers
 
       - uses: actions/download-artifact@v8
@@ -197,7 +197,7 @@ jobs:
         uses: actions/upload-artifact@v7
         id: upload_libs
         with:
-          name: connection-pool-libs
+          name: helper-libs
           path: |
             pkg/wasm_tools/assets/runtime_helpers.wasm
             pkg/wasm_tools/lib/src/wit_gen/precompiled/

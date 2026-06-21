@@ -93,6 +93,16 @@ jobs:
       uses: actions/download-artifact@v8
       with:
         artifact-ids: ${{ needs.compile_rust.outputs.asset_id }}
+        path: pkg/wasm_tools/
+    - name: Inspect assets
+      working-directory: pkg/wasm_tools
+      run: |
+        ls assets
+        ls lib/src/wit_gen/precompiled/
+    - name: Install wasm-tools
+      run: zizmorcore/zizmor-action@9e1e5806d4a4822de933115878265be9aaa786d9 # v2.82.2
+      with:
+        tool: wasm-tools
 
     - name: Pub get
       run: dart pub get
