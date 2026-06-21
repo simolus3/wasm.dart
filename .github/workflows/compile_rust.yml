@@ -55,7 +55,7 @@ jobs:
       - uses: actions/cache@v5
         id: cache_build
         with:
-          path: pkg/wit_bindgen_dart/out
+          path: pkg/wasm_tools/lib/src/wit_gen/precompiled
           key: bindgen-linux-${{ hashFiles('Cargo.lock', 'pkg/wit_bindgen_dart/**') }}
       - name: Install rust
         if: steps.cache_build.outputs.cache-hit != 'true'
@@ -104,7 +104,7 @@ jobs:
       - uses: actions/cache@v5
         id: cache_build
         with:
-          path: pkg/wit_bindgen_dart/out
+          path: pkg/wasm_tools/lib/src/wit_gen/precompiled
           key: bindgen-macos-${{ hashFiles('Cargo.lock', 'pkg/wit_bindgen_dart/**') }}
       - name: Install rust
         if: steps.cache_build.outputs.cache-hit != 'true'
@@ -142,7 +142,7 @@ jobs:
       - uses: actions/cache@v5
         id: cache_build
         with:
-          path: pkg/wit_bindgen_dart/out
+          path: pkg/wasm_tools/lib/src/wit_gen/precompiled
           key: bindgen-windows-${{ hashFiles('Cargo.lock', 'pkg/wit_bindgen_dart/**') }}
       - name: Install rust
         if: steps.cache_build.outputs.cache-hit != 'true'
