@@ -1,0 +1,43 @@
+name: Download and compile SQLite
+
+on:
+  workflow_call:
+    outputs:
+      runtime_id:
+        description: "ID of the artifact containing runtime_helpers.wasm"
+        value: ${{ jobs.build_runtime_helpers_wasm.outputs.wasm }}
+
+permissions: {}
+
+jobs:
+  build_runtime_helpers_wasm:
+    name: Build runtime_helpers.wasm
+    runs-on: ubuntu-latest
+    outputs:
+      wasm: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/cache@v5
+        id: cache_build
+        with:
+          path: pkg/wasm_tools/assets/runtime_helpers.wasm
+          key: runtime-helpers${{ hashFiles('Cargo.lock', 'pkg/runtime_helpers/**') }}
+      - name: Install rust
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        run: rustup toolchain install nightly --component rust-src
+
+      - name: Compile runtime
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        working-directory: pkg/wasm_tools
+        run: ./tool/build_runtime_helpers.sh
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v7
+        id: upload
+        with:
+          name: runtime-helpers
+          path: pkg/wasm_tools/assets/runtime_helpers.wasm
+          if-no-files-found: error
+          retention-days: 1

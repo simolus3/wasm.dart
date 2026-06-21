@@ -1,4 +1,4 @@
-import '../lib/src/component.g.dart';
+import 'package:greeting/src/component.g.dart';
 
 void main(List<String> arguments) {
   defineInstanceExport(unnamedExport0: const _Greeting());
