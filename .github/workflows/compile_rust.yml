@@ -24,7 +24,7 @@ jobs:
         id: cache_build
         with:
           path: pkg/wasm_tools/assets/runtime_helpers.wasm
-          key: runtime-helpers${{ hashFiles('Cargo.lock', 'pkg/runtime_helpers/**') }}
+          key: runtime-helpers-${{ hashFiles('Cargo.lock', 'pkg/runtime_helpers/**') }}
       - name: Install rust
         if: steps.cache_build.outputs.cache-hit != 'true'
         run: rustup toolchain install nightly --component rust-src
@@ -42,3 +42,131 @@ jobs:
           path: pkg/wasm_tools/assets/runtime_helpers.wasm
           if-no-files-found: error
           retention-days: 1
+
+  build_witgen_linux:
+    name: Build wit_bindgen_dart for Linux
+    runs-on: ubuntu-latest
+    outputs:
+      built: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/cache@v5
+        id: cache_build
+        with:
+          path: pkg/wit_bindgen_dart/out
+          key: bindgen-linux-${{ hashFiles('Cargo.lock', 'pkg/wit_bindgen_dart/**') }}
+      - name: Install rust
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        run: |
+          rustup toolchain install
+          rustup target add x86_64-unknown-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
+          rustup target add riscv64gc-unknown-linux-gnu
+          rustup target add armv7-unknown-linux-gnueabihf
+      - name: Install cross-compiling GCC
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-aarch64-linux-gnu gcc-riscv64-linux-gnu gcc-arm-linux-gnueabihf
+      - name: Build for Linux
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        working-directory: pkg/wit_bindgen_dart
+        run: |
+          cargo build --release -p wit_bindgen_dart --target x86_64-unknown-linux-gnu
+          cargo build --release -p wit_bindgen_dart --target aarch64-unknown-linux-gnu
+          cargo build --release -p wit_bindgen_dart --target armv7-unknown-linux-gnueabihf
+          cargo build --release -p wit_bindgen_dart --target riscv64gc-unknown-linux-gnu
+      - name: Copy libraries
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        working-directory: pkg/wit_bindgen_dart
+        run: |
+          mkdir out
+          cp ../../target/x86_64-unknown-linux-gnu/release/libwit_bindgen_dart.so out/libwit_bindgen_dart.linux_x64.so
+          cp ../../target/aarch64-unknown-linux-gnu/release/libwit_bindgen_dart.so out/libwit_bindgen_dart.linux_aarch64.so
+          cp ../../target/armv7-unknown-linux-gnueabihf/release/libwit_bindgen_dart.so out/libwit_bindgen_dart.linux_arm7.so
+          cp ../../target/riscv64gc-unknown-linux-gnu/release/libwit_bindgen_dart.so out/libwit_bindgen_dart.linux_riscv.so
+      - uses: actions/upload-artifact@v7
+        with:
+          name: witgen-linux
+          retention-days: 1
+          path: pkg/wit_bindgen_dart/out
+
+  build_witgen_macos:
+    name: Build wit_bindgen_dart for macOS
+    runs-on: macos-latest
+    outputs:
+      built: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/cache@v5
+        id: cache_build
+        with:
+          path: pkg/wit_bindgen_dart/out
+          key: bindgen-macos-${{ hashFiles('Cargo.lock', 'pkg/wit_bindgen_dart/**') }}
+      - name: Install rust
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        run: |
+          rustup toolchain install
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-darwin
+      - name: Build for macOS
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        working-directory: pkg/wit_bindgen_dart
+        run: |
+          cargo build --release -p wit_bindgen_dart --target x86_64-apple-darwin
+          cargo build --release -p wit_bindgen_dart --target aarch64-apple-darwin
+      - name: Copy libraries
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        working-directory: pkg/wit_bindgen_dart
+        run: |
+          mkdir out
+          cp ../../target/x86_64-unknown-linux-gnu/release/libwit_bindgen_dart.dylib out/libwit_bindgen_dart.macos_x64.so
+          cp ../../target/aarch64-unknown-linux-gnu/release/libwit_bindgen_dart.dylib out/libwit_bindgen_dart.macos_aarch64.so
+      - uses: actions/upload-artifact@v7
+        with:
+          name: witgen-macos
+          retention-days: 1
+          path: pkg/wit_bindgen_dart/out
+
+  build_witgen_windows:
+    name: Build wit_bindgen_dart for Windows
+    runs-on: windows-latest
+    outputs:
+      built: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/cache@v5
+        id: cache_build
+        with:
+          path: pkg/wit_bindgen_dart/out
+          key: bindgen-macos-${{ hashFiles('Cargo.lock', 'pkg/wit_bindgen_dart/**') }}
+      - name: Install rust
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        run: |
+          rustup toolchain install
+          rustup target add x86_64-pc-windows-msvc
+          rustup target add aarch64-pc-windows-msvc
+      - name: Build for Windows
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        working-directory: pkg/wit_bindgen_dart
+        run: |
+          cargo build --release -p wit_bindgen_dart --target x86_64-pc-windows-msvc
+          cargo build --release -p wit_bindgen_dart --target aarch64-pc-windows-msvc
+      - name: Copy libraries
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        working-directory: pkg/wit_bindgen_dart
+        run: |
+          mkdir out
+          cp ../../target/x86_64-pc-windows-msvc/release/wit_bindgen_dart.dll out/libwit_bindgen_dart.win_x64.dll
+          cp ../../target/aarch64-pc-windows-msvc/release/wit_bindgen_dart.dll out/libwit_bindgen_dart.win_aarch64.dll
+      - uses: actions/upload-artifact@v7
+        with:
+          name: witgen-windows
+          retention-days: 1
+          path: pkg/wit_bindgen_dart/out
