@@ -143,7 +143,7 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
                 results.push(Rc::new(function.params[*nth].name.to_lower_camel_case()));
             }
             Instruction::CallWasm { name: _, sig } => {
-                let temp = self.temporary_variable();
+                let has_results = !sig.results.is_empty();
                 let core_name = match &self.mode {
                     FunctionMode::Imported(i) => i.core_name,
                     _ => {
@@ -151,21 +151,23 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
                     }
                 };
 
-                let _ = write!(self.definition, "final {} = {}(", temp, core_name);
+                if has_results {
+                    let temp = self.temporary_variable();
+                    uwrite!(self.definition, "final {} = ", temp);
+                    results.push(temp.clone());
+                }
+
+                uwrite!(self.definition, "{}(", core_name);
 
                 let operands = operands.split_off(operands.len() - sig.params.len());
                 for (i, operand) in operands.iter().enumerate() {
                     if i != 0 {
-                        let _ = write!(self.definition, ", ");
+                        uwrite!(self.definition, ", ");
                     }
 
-                    let _ = write!(self.definition, "{}", operand);
+                    uwrite!(self.definition, "{}", operand);
                 }
-                let _ = writeln!(self.definition, ");");
-
-                if !sig.results.is_empty() {
-                    todo!("handling webassembly calls with return values")
-                }
+                uwriteln!(self.definition, ");");
             }
             Instruction::CallInterface { func, async_ } => {
                 if *async_ {

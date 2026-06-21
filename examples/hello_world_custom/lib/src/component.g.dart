@@ -17,7 +17,7 @@ final class _Imported$Print implements Print {
   @override
   void print({required String line}) {
     final tmp0 = i0.AllocatedString.allocateUtf16(line);
-    final tmp1 = _import0(tmp0.ptr, tmp0.packedLength);
+    _import0(tmp0.ptr, tmp0.packedLength);
     tmp0.free();
   }
 }

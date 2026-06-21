@@ -24,6 +24,7 @@ pub struct FunctionOptions {
     pub uses_strings: bool,
     /// Only set on lifted (export) functions, a function to clean up temporary values allocated by
     /// this function.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub post_return: Option<String>,
 }
 
