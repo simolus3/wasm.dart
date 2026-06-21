@@ -65,10 +65,10 @@ class DefinedTag extends Tag implements Serializable {
 /// A tag imported from another module.
 class ImportedTag extends Tag implements Import {
   @override
-  final String module;
+  String module;
 
   @override
-  final String name;
+  String name;
 
   ImportedTag(
     super.enclosingModule,

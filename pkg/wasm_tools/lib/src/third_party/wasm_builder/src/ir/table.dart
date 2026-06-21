@@ -78,9 +78,9 @@ class DefinedTable extends Table {
 /// An imported table.
 class ImportedTable extends Table implements Import {
   @override
-  final String module;
+  String module;
   @override
-  final String name;
+  String name;
 
   ImportedTable(
     super.enclosingModule,

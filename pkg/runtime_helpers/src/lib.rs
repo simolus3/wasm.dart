@@ -13,6 +13,7 @@ RUSTFLAGS="-Zlocation-detail=none -Zfmt-debug=none -Zunstable-options -Cpanic=im
 
 extern crate alloc;
 
+pub mod math;
 pub mod memory;
 
 #[cfg(all(target_family = "wasm"))]

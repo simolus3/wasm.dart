@@ -884,6 +884,7 @@ dependencies = [
 name = "runtime_helpers"
 version = "0.1.0"
 dependencies = [
+ "libm",
  "talc",
 ]
 

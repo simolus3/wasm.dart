@@ -87,10 +87,10 @@ class DefinedGlobal extends Global implements Serializable {
 /// An imported global variable.
 class ImportedGlobal extends Global implements Import {
   @override
-  final String module;
+  String module;
 
   @override
-  final String name;
+  String name;
 
   ImportedGlobal(
     super.enclosingModule,

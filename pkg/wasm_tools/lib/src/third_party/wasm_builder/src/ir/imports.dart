@@ -37,8 +37,8 @@ class Imports {
 
 /// Any import (function, table, memory or global).
 abstract class Import implements Indexable, Serializable {
-  String get module;
+  abstract String module;
 
   @override
-  String get name;
+  abstract String name;
 }

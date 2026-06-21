@@ -99,9 +99,9 @@ class DefinedMemory extends Memory implements Serializable {
 /// An imported memory.
 class ImportedMemory extends Memory implements Import {
   @override
-  final String module;
+  String module;
   @override
-  final String name;
+  String name;
 
   ImportedMemory(
     super.enclosingModule,

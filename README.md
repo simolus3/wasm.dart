@@ -48,7 +48,7 @@ __Legend__:
 | stringLength                             | ✅          | 🎯        |                               |
 | stringEquals                             |             | 🎯        |                               |
 | stringCompare                            |             | 🎯        |                               |
-| stringCodeUnitAt                         |             | 🎯        |                               |
+| stringCodeUnitAt                         | ✅          | 🎯        |                               |
 | stringIndexOfString                      |             | 🎯        |                               |
 | stringLastIndexOfString                  |             | 🎯        |                               |
 | stringReplaceAllString                   |             | 🎯        |                               |
@@ -102,16 +102,16 @@ __Legend__:
 | regexpMatchGetGroupByName                |             | 🎯        |                               |
 | timeZoneNameForClampedSeconds            |             | 📦        |                               |
 | timeZoneOffsetInSecondsForClampedSeconds |             | 📦        |                               |
-| mathPow                                  |             | 🎯        |                               |
-| mathAtan2                                |             | 🎯        |                               |
-| mathSin                                  |             | 🎯        |                               |
-| mathCos                                  |             | 🎯        |                               |
-| mathTan                                  |             | 🎯        |                               |
-| mathAcos                                 |             | 🎯        |                               |
-| mathAsin                                 |             | 🎯        |                               |
-| mathAtan                                 |             | 🎯        |                               |
-| mathExp                                  |             | 🎯        |                               |
-| mathLog                                  |             | 🎯        |                               |
+| mathPow                                  | ✅          | 🎯        | Using `libm` in Rust.         |
+| mathAtan2                                | ✅          | 🎯        | Using `libm` in Rust.         |
+| mathSin                                  | ✅          | 🎯        | Using `libm` in Rust.         |
+| mathCos                                  | ✅          | 🎯        | Using `libm` in Rust.         |
+| mathTan                                  | ✅          | 🎯        | Using `libm` in Rust.         |
+| mathAcos                                 | ✅          | 🎯        | Using `libm` in Rust.         |
+| mathAsin                                 | ✅          | 🎯        | Using `libm` in Rust.         |
+| mathAtan                                 | ✅          | 🎯        | Using `libm` in Rust.         |
+| mathExp                                  | ✅          | 🎯        | Using `libm` in Rust.         |
+| mathLog                                  | ✅          | 🎯        | Using `libm` in Rust.         |
 | randomInt                                |             | 📦        |                               |
 | randomIntSecure                          |             | 📦        |                               |
 | print                                    |             | 📦        | Currently a stub              |

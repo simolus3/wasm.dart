@@ -15,6 +15,54 @@ index 6f24bc54681..e0034fb3f54 100644
      _value = v;
    }
  
+diff --git a/pkg/wasm_builder/lib/src/ir/function.dart b/pkg/wasm_builder/lib/src/ir/function.dart
+index 8929f111075..48486dc75d6 100644
+--- a/pkg/wasm_builder/lib/src/ir/function.dart
++++ b/pkg/wasm_builder/lib/src/ir/function.dart
+@@ -164,9 +164,9 @@ class DefinedFunction extends BaseFunction implements Serializable {
+ /// An imported function.
+ class ImportedFunction extends BaseFunction implements Import {
+   @override
+-  final String module;
++  String module;
+   @override
+-  final String name;
++  String name;
+ 
+   ImportedFunction(
+     super.enclosingModule,
+diff --git a/pkg/wasm_builder/lib/src/ir/global.dart b/pkg/wasm_builder/lib/src/ir/global.dart
+index 9af04141044..4974339b81b 100644
+--- a/pkg/wasm_builder/lib/src/ir/global.dart
++++ b/pkg/wasm_builder/lib/src/ir/global.dart
+@@ -87,10 +87,10 @@ class DefinedGlobal extends Global implements Serializable {
+ /// An imported global variable.
+ class ImportedGlobal extends Global implements Import {
+   @override
+-  final String module;
++  String module;
+ 
+   @override
+-  final String name;
++  String name;
+ 
+   ImportedGlobal(
+     super.enclosingModule,
+diff --git a/pkg/wasm_builder/lib/src/ir/imports.dart b/pkg/wasm_builder/lib/src/ir/imports.dart
+index 66af85d96de..c69d8882df4 100644
+--- a/pkg/wasm_builder/lib/src/ir/imports.dart
++++ b/pkg/wasm_builder/lib/src/ir/imports.dart
+@@ -37,8 +37,8 @@ class Imports {
+ 
+ /// Any import (function, table, memory or global).
+ abstract class Import implements Indexable, Serializable {
+-  String get module;
++  abstract String module;
+ 
+   @override
+-  String get name;
++  abstract String name;
+ }
 diff --git a/pkg/wasm_builder/lib/src/ir/instruction.dart b/pkg/wasm_builder/lib/src/ir/instruction.dart
 index 90e38acea97..7b0b832ba7d 100644
 --- a/pkg/wasm_builder/lib/src/ir/instruction.dart
@@ -37,6 +85,22 @@ index 90e38acea97..7b0b832ba7d 100644
  
    RefFunc(this.function);
  
+diff --git a/pkg/wasm_builder/lib/src/ir/memory.dart b/pkg/wasm_builder/lib/src/ir/memory.dart
+index d6b9dba8f37..0cf0cbcc3f1 100644
+--- a/pkg/wasm_builder/lib/src/ir/memory.dart
++++ b/pkg/wasm_builder/lib/src/ir/memory.dart
+@@ -99,9 +99,9 @@ class DefinedMemory extends Memory implements Serializable {
+ /// An imported memory.
+ class ImportedMemory extends Memory implements Import {
+   @override
+-  final String module;
++  String module;
+   @override
+-  final String name;
++  String name;
+ 
+   ImportedMemory(
+     super.enclosingModule,
 diff --git a/pkg/wasm_builder/lib/src/ir/module.dart b/pkg/wasm_builder/lib/src/ir/module.dart
 index 5f277ca427a..c3ab103854c 100644
 --- a/pkg/wasm_builder/lib/src/ir/module.dart
@@ -67,3 +131,36 @@ index 5f277ca427a..c3ab103854c 100644
    Tables get tables => _tables;
    Elements get elements => _elements;
    Tags get tags => _tags;
+diff --git a/pkg/wasm_builder/lib/src/ir/table.dart b/pkg/wasm_builder/lib/src/ir/table.dart
+index 5345ef37121..371e7611474 100644
+--- a/pkg/wasm_builder/lib/src/ir/table.dart
++++ b/pkg/wasm_builder/lib/src/ir/table.dart
+@@ -78,9 +78,9 @@ class DefinedTable extends Table {
+ /// An imported table.
+ class ImportedTable extends Table implements Import {
+   @override
+-  final String module;
++  String module;
+   @override
+-  final String name;
++  String name;
+ 
+   ImportedTable(
+     super.enclosingModule,
+diff --git a/pkg/wasm_builder/lib/src/ir/tags.dart b/pkg/wasm_builder/lib/src/ir/tags.dart
+index 6259c11dbe6..63705cbbd40 100644
+--- a/pkg/wasm_builder/lib/src/ir/tags.dart
++++ b/pkg/wasm_builder/lib/src/ir/tags.dart
+@@ -65,10 +65,10 @@ class DefinedTag extends Tag implements Serializable {
+ /// A tag imported from another module.
+ class ImportedTag extends Tag implements Import {
+   @override
+-  final String module;
++  String module;
+ 
+   @override
+-  final String name;
++  String name;
+ 
+   ImportedTag(
+     super.enclosingModule,

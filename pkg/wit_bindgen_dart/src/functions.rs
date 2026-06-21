@@ -295,6 +295,28 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
             | Instruction::PointerLoad { offset } => {
                 self.mem_load(operands, results, "loadInt32", offset);
             }
+            Instruction::CoreF32FromF32 => {
+                let import = self.dart.import(KnownDartUri::DartWasm);
+                let dart_double = operands.pop().unwrap();
+                results.push(Rc::new(format!(
+                    "{import}.WasmF32.fromDouble({dart_double})"
+                )));
+            }
+            Instruction::F32FromCoreF32 => {
+                let f32 = operands.pop().unwrap();
+                results.push(Rc::new(format!("{f32}.toDouble()")));
+            }
+            Instruction::CoreF64FromF64 => {
+                let import = self.dart.import(KnownDartUri::DartWasm);
+                let dart_double = operands.pop().unwrap();
+                results.push(Rc::new(format!(
+                    "{import}.WasmF64.fromDouble({dart_double})"
+                )));
+            }
+            Instruction::F64FromCoreF64 => {
+                let f64 = operands.pop().unwrap();
+                results.push(Rc::new(format!("{f64}.toDouble()")));
+            }
             _ => todo!("Instruction: {inst:?}"),
         }
     }

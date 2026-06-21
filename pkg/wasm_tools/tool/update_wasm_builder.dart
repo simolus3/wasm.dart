@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 void main(List<String> args) async {
+  // To update the path itself, run git apply $pathToPatch in your SDK checkout,
+  // make changes, then run git diff > $pathToPath
+
   if (args.length != 1) {
     print('Usage: dart tool/update_wasm_builder.dart <path to SDK checkout>');
     exit(1);
@@ -33,7 +36,7 @@ void main(List<String> args) async {
   Process.runSync('git', [
     'apply',
     '--directory',
-    'pkg/wasm_components/lib/src/third_party/wasm_builder',
+    'pkg/wasm_tools/lib/src/third_party/wasm_builder',
     '-p4', // Skip pkg/wasm_builder/lib/src from patch paths
     'assets/wasm_builder.patch',
   ]);

@@ -45,10 +45,14 @@ final class ModuleTransformer {
             patchFunctions[import] = fn;
             continue;
           }
+        } else if (_rewriteToRuntimeImports.contains(import.name)) {
+          import.module = _runtimeImportName;
+          import.name = 'dart_${import.name}';
+          continue;
         }
       }
 
-      if (import.module == 'libc') continue;
+      if (import.module == _runtimeImportName) continue;
       if (import.module == 'component') {
         if (!unusedComponentImports.remove(import.name)) {
           throw CompilerFailure(
@@ -151,3 +155,18 @@ final class ModuleTransformer {
     }
   }
 }
+
+const _runtimeImportName = 'libc';
+
+const _rewriteToRuntimeImports = {
+  'mathPow',
+  'mathAtan2',
+  'mathSin',
+  'mathCos',
+  'mathTan',
+  'mathAcos',
+  'mathAsin',
+  'mathAtan',
+  'mathExp',
+  'mathLog',
+};

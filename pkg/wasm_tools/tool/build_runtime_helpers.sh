@@ -6,3 +6,5 @@ RUSTFLAGS="-Zlocation-detail=none -Zfmt-debug=none -Zunstable-options -Cpanic=im
     -Zbuild-std-features= \
     --target wasm32-unknown-unknown \
     -p runtime_helpers
+
+cp ../../target/wasm32-unknown-unknown/release/runtime_helpers.wasm  assets/

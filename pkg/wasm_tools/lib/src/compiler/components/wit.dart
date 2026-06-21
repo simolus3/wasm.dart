@@ -15,6 +15,26 @@ final class ResolvedWitDefinitions {
         return types[index];
       case 'string':
         return StringType();
+      case 'u8':
+        return PrimitiveType.u8;
+      case 'u16':
+        return PrimitiveType.u8;
+      case 'u32':
+        return PrimitiveType.u32;
+      case 'u64':
+        return PrimitiveType.u64;
+      case 's8':
+        return PrimitiveType.s8;
+      case 's16':
+        return PrimitiveType.s8;
+      case 's32':
+        return PrimitiveType.s32;
+      case 's64':
+        return PrimitiveType.s64;
+      case 'f32':
+        return PrimitiveType.f32;
+      case 'f64':
+        return PrimitiveType.f64;
       case {'kind': final kind}:
         switch (kind) {
           case 'string':

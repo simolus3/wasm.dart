@@ -164,9 +164,9 @@ class DefinedFunction extends BaseFunction implements Serializable {
 /// An imported function.
 class ImportedFunction extends BaseFunction implements Import {
   @override
-  final String module;
+  String module;
   @override
-  final String name;
+  String name;
 
   ImportedFunction(
     super.enclosingModule,
