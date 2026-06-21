@@ -1,0 +1,10 @@
+// test.wit
+package demo:component;
+
+world root {
+  export greeting;
+}
+
+interface greeting {
+  generate-greeting: func() -> string;
+}

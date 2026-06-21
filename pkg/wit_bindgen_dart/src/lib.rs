@@ -141,10 +141,23 @@ mod test {
 
     use crate::bindgen::DartWorldGenerator;
 
-    fn print_definitions() -> anyhow::Result<()> {
+    fn print_definitions(wit: &str) -> anyhow::Result<()> {
         let mut resolve = Resolve::default();
-        let package = resolve.push_str(
-            "test.wit",
+        let package = resolve.push_str("test.wit", wit)?;
+
+        let world = resolve.select_world(&[package], Some("root"))?;
+
+        let mut generator = DartWorldGenerator::default();
+        let mut files = Files::default();
+        generator.generate(&mut resolve, world, &mut files)?;
+
+        print!("{}", generator.main);
+        Ok(())
+    }
+
+    #[test]
+    fn playground() {
+        print_definitions(
             "
 package root:component;
 
@@ -167,20 +180,25 @@ package wasi:cli@0.2.12 {
   }
 }
 ",
-        )?;
-
-        let world = resolve.select_world(&[package], Some("root"))?;
-
-        let mut generator = DartWorldGenerator::default();
-        let mut files = Files::default();
-        generator.generate(&mut resolve, world, &mut files)?;
-
-        print!("{}", generator.main);
-        Ok(())
+        )
+        .expect("Could not generate definitions")
     }
 
     #[test]
-    fn playground() {
-        print_definitions().expect("Could not generate definitions")
+    fn post_return() {
+        print_definitions(
+            "
+package demo:component;
+
+world root {
+  export greeting;
+}
+
+interface greeting {
+  generate-greeting: func() -> string;
+}
+",
+        )
+        .expect("Could not generate definitions")
     }
 }

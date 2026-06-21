@@ -1,4 +1,6 @@
-name: hello_world_custom
+name: greeting
+description: A sample command-line application.
+version: 1.0.0
 publish_to: none
 resolution: workspace
 

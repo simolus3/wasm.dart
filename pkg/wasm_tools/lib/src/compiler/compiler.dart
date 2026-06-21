@@ -89,11 +89,22 @@ final class ComponentCompiler {
             .coreFunction,
             .coreInstanceExport(app, function.exportCoreFunctionName),
           );
+          CoreFunctionIndex? corePostReturnFunction;
+          if (function.options.postReturn case final postReturn?) {
+            corePostReturnFunction = builder.linker.alias(
+              .coreFunction,
+              .coreInstanceExport(app, postReturn),
+            );
+          }
+
           final originalType = function.type;
           final lifted = builder.linker.canonLift(
             resolved,
             builder.addFunctionType(originalType),
           );
+          linker.applyOptions(function.options, lifted);
+          lifted.postReturn = corePostReturnFunction;
+
           inlineExports.add((
             function.name,
             .componentFunction,

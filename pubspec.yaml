@@ -2,10 +2,11 @@ name: _
 publish_to: none
 
 environment:
-  sdk: ^3.12.0
+  sdk: ^3.13.0-0
 
 workspace:
   - examples/hello_world_custom
+  - pkg/wasm_tools/example/greeting
 
   - pkg/wasm_components
   - pkg/wasm_tools

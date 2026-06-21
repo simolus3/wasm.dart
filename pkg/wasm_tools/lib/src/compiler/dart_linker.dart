@@ -65,7 +65,7 @@ final class DartLinker {
         final lower = lowered[function] = builder.linker.canonLower(
           functionAliases[i++],
         );
-        _applyOptions(function.options, lower);
+        applyOptions(function.options, lower);
       }
     }
 
@@ -81,7 +81,7 @@ final class DartLinker {
     return builder.linker.coreInstantiate(.inlineExports(inlineExports));
   }
 
-  void _applyOptions(FunctionOptions options, CanonicalLiftOrLower canon) {
+  void applyOptions(FunctionOptions options, CanonicalLiftOrLower canon) {
     if (options.usesMemory) {
       canon.memory = _libcMemory!;
     }

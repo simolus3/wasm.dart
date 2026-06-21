@@ -28,7 +28,7 @@ final class ModuleTransformer {
 
   void transform(DartProgramAbi abi) {
     _patchImports(abi);
-    _removeExports(abi.functionExports.keys.toSet());
+    _removeExports(abi.expectedExportedFunctions.toSet());
     _runMainOnInstantiation();
   }
 

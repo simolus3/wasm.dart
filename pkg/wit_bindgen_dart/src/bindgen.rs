@@ -3,21 +3,28 @@ use serde::Serialize;
 use std::{borrow::Cow, fmt::Write, rc::Rc};
 use wit_bindgen_core::{
     WorldGenerator,
-    abi::{AbiVariant, LiftLower, call, guest_export_needs_post_return},
+    abi::{
+        AbiVariant, LiftLower, WasmSignature, call, guest_export_needs_post_return, post_return,
+    },
     uwrite, uwriteln,
     wit_parser::{InterfaceId, Resolve, SizeAlign, WorldKey},
 };
 
 use crate::{
     abi_export::SerializableAbi,
-    dart_source::{DartDefinition, DartSource},
-    functions::{DartFunctionGenerator, ExportedFunctionMode, FunctionMode, ImportedFunctionMode},
+    dart_source::{DartDefinition, DartSource, KnownDartUri},
+    functions::{
+        DartFunctionGenerator, ExportedFunctionMode, FunctionMode, ImportedFunctionMode, PostReturn,
+    },
 };
 
 #[derive(Default, Clone, Serialize)]
 pub struct FunctionOptions {
     pub use_memory: bool,
     pub uses_strings: bool,
+    /// Only set on lifted (export) functions, a function to clean up temporary values allocated by
+    /// this function.
+    pub post_return: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -104,9 +111,9 @@ impl WorldGenerator for DartWorldGenerator {
                 let mut generator = DartFunctionGenerator::new(
                     &self.size_align,
                     &mut self.main,
-                    function,
                     FunctionMode::Imported(ImportedFunctionMode {
                         core_name: &core_name,
+                        function,
                     }),
                 );
                 call(
@@ -253,11 +260,6 @@ impl WorldGenerator for DartWorldGenerator {
             let interface = &resolve.interfaces[export.interface];
 
             for (name, function) in &interface.functions {
-                let needs_post_return = guest_export_needs_post_return(resolve, function);
-                if needs_post_return {
-                    todo!()
-                }
-
                 let this_export_id = export_id;
                 export_id += 1;
                 let _ = writeln!(
@@ -281,9 +283,9 @@ impl WorldGenerator for DartWorldGenerator {
                 let mut generator = DartFunctionGenerator::new(
                     &self.size_align,
                     &mut self.main,
-                    function,
                     FunctionMode::Exported(ExportedFunctionMode {
                         instance: &mut export,
+                        function,
                     }),
                 );
                 call(
@@ -294,10 +296,57 @@ impl WorldGenerator for DartWorldGenerator {
                     &mut generator,
                     function.kind.is_async(),
                 );
-                generator.write_cleanup();
-                let _ = write!(&mut def, "{}}}", generator.definition.take_code());
 
-                let options = generator.options;
+                uwriteln!(&mut def, "{}}}", generator.definition.take_code());
+                let mut options = generator.options;
+                let allocated_return = generator.allocated_return_value;
+
+                if guest_export_needs_post_return(resolve, function) {
+                    let mut generator = DartFunctionGenerator::new(
+                        &self.size_align,
+                        &mut self.main,
+                        FunctionMode::PostReturn(PostReturn {}),
+                    );
+                    post_return(resolve, function, &mut generator);
+                    let code = generator.definition.take_code();
+                    options.post_return = Some(format!("component_{this_export_id}_postreturn"));
+
+                    uwriteln!(
+                        def,
+                        "@pragma('wasm:export', r'component_{this_export_id}_postreturn')",
+                    );
+                    def.write_core_signature(
+                        &mut self.main,
+                        &format!("_component_{this_export_id}$postreturn",),
+                        &WasmSignature {
+                            params: core_signature.results.clone(),
+                            results: vec![],
+                            indirect_params: false,
+                            retptr: false,
+                        },
+                    );
+                    uwrite!(def, "{{\n{code}");
+                    let wasm_import = self.main.import(KnownDartUri::DartWasm);
+
+                    if let Some((size, align)) = allocated_return {
+                        assert!(core_signature.retptr);
+                        def.imported_identifier(
+                            &mut self.main,
+                            KnownDartUri::PkgWasmComponents,
+                            "dartFree",
+                        );
+                        uwriteln!(
+                            &mut def,
+                            "(p0, const {wasm_import}.WasmI32({}), const {wasm_import}.WasmI32({}));",
+                            size.size_wasm32(),
+                            align.align_wasm32(),
+                        );
+                    }
+                    uwriteln!(def, "return {wasm_import}.WasmVoid();");
+
+                    uwriteln!(def, "}}");
+                }
+
                 export.functions.push(ExportedCoreFunction {
                     core_export_name: format!("component_{}", this_export_id),
                     function_name: name.clone(),

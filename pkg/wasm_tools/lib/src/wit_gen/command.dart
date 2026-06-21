@@ -79,6 +79,10 @@ final class GenerateWitInteropCommand extends Command<void> {
     await outputFile.parent.create(recursive: true);
     await outputFile.writeAsString(dartCode);
 
+    final hookDirectory = Directory('hook');
+    if (!await hookDirectory.exists()) {
+      await hookDirectory.create();
+    }
     File(
       'hook/wasm_abi.json',
     ).writeAsString(JsonEncoder.withIndent('  ').convert(jsonDecode(abi)));

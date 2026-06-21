@@ -1,0 +1,29 @@
+{
+  "type_defs": [],
+  "interfaces": [
+    {
+      "full_name": "demo:component/greeting",
+      "exported_functions": {
+        "generate-greeting": {
+          "name": "generate-greeting",
+          "kind": "freestanding",
+          "params": [],
+          "result": "string"
+        }
+      }
+    }
+  ],
+  "imports": [],
+  "exports": [
+    {
+      "interface_id": 0,
+      "function_name": "generate-greeting",
+      "core_export_name": "component_0",
+      "options": {
+        "use_memory": true,
+        "uses_strings": true,
+        "post_return": "component_0_postreturn"
+      }
+    }
+  ]
+}

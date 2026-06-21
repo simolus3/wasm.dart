@@ -120,7 +120,7 @@ impl DartDefinition {
     ) {
         self.write_optional_dart_type(dart, resolve, function.result.as_ref());
 
-        let _ = write!(self, " {name}(");
+        let _ = write!(self, " {}(", AsLowerCamelCase(name));
         if !function.params.is_empty() {
             let _ = write!(self, "{{");
             for param in &function.params {

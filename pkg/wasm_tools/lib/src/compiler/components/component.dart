@@ -69,11 +69,10 @@ final class ComponentBuilder implements w.Serializable {
     R Function(ComponentTypeIndex, T) create,
   ) {
     return _typesToIndex.putIfAbsent(type, () {
-          final idx = ComponentTypeIndex(_types.length);
-          _types.add(type);
-          return create(idx, type);
-        })
-        as R;
+      final idx = ComponentTypeIndex(_types.length);
+      _types.add(type);
+      return create(idx, type);
+    }) as R;
   }
 
   FunctionTypeReference addFunctionType(FunctionType type) {

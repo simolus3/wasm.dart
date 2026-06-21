@@ -16,6 +16,15 @@ final class DartProgramAbi {
 
   Iterable<ResolvedInterface> get interfaces => _interfaces.values;
 
+  Iterable<String> get expectedExportedFunctions sync* {
+    for (final export in functionExports.values) {
+      yield export.exportCoreFunctionName;
+      if (export.options.postReturn case final postReturn?) {
+        yield postReturn;
+      }
+    }
+  }
+
   void includeAsset(Logger logger, EncodedAsset asset) {
     final encoding = asset.encoding;
     final definitions = ResolvedWitDefinitions();
@@ -97,13 +106,19 @@ final class DartProgramAbi {
 final class FunctionOptions {
   final bool usesMemory;
   final bool usesStrings;
+  final String? postReturn;
 
-  FunctionOptions({required this.usesMemory, required this.usesStrings});
+  FunctionOptions({
+    required this.usesMemory,
+    required this.usesStrings,
+    this.postReturn,
+  });
 
   factory FunctionOptions.fromJson(Map<String, Object?> json) {
     return FunctionOptions(
       usesMemory: json['use_memory'] as bool,
       usesStrings: json['uses_strings'] as bool,
+      postReturn: json['post_return'] as String?,
     );
   }
 }
