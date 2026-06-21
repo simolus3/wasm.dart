@@ -1,5 +1,5 @@
 import 'package:hello_world_custom/src/component.g.dart';
-import 'package:wasm_components/component.dart';
+import 'package:wasm_components/wasm_components.dart';
 
 void main() {
   defineInstanceExport(unnamedExport1: const _Run());

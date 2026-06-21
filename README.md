@@ -1,7 +1,7 @@
 # Dart WebAssembly components
 
-Tools to compile Dart programs and packages into the [WebAssembly component model](https://component-model.bytecodealliance.org/),
-allowing them to run as CLI applications, servers and more targets.
+Tools to compile Dart programs and packages to [WebAssembly components](https://component-model.bytecodealliance.org/),
+allowing them to run as CLI applications, servers and more targets with compatible runtimes.
 
 The goal is to get `wasmtime run dart_compiled_app.wasm` to work without further setup.
 
@@ -13,11 +13,16 @@ The goal is to get `wasmtime run dart_compiled_app.wasm` to work without further
 Via the experimental `--standalone` mode, Dart can compile to WebAssembly with Dart-specific, documented [host imports](https://github.com/dart-lang/sdk/blob/main/sdk/lib/_internal/wasm/standalone/embedder.dart).
 The goal of this project is to:
 
-1. Implement these host imports in WebAssembly, and link their definition into a WebAssembly module compiled by `dart2wasm` to remove the host import.
+1. Implement these host imports in WebAssembly, and link their definition into compiled Dart apps to remove the host import.
 2. Track metadata around the compilation to lift `dart2wasm` modules into WebAssembly components.
 
 Wherever reasonable, we want to write the WebAssembly implementation for step 1 in Dart. We do this by annotating methods with `@pragma('wasm:export')` and
 then use a post-compilation link step that resolves imports against these definitions of the same module.
+
+The main packages in this repository are:
+
+1. `wasm_tools`: CLI tools to generate wit bindings from Dart and to compile Dart to components.
+2. `wasm_components`: Dart runtime for the component model.
 
 ## Demo
 

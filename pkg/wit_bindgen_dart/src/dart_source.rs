@@ -284,15 +284,13 @@ pub enum KnownDartUri {
     DartWasm,
     /// `package:wasm_components/component.dart`
     PkgWasmComponents,
-    Custom(String),
 }
 
 impl KnownDartUri {
     fn uri_str(&self) -> &str {
         match self {
             KnownDartUri::DartWasm => "dart:_wasm",
-            KnownDartUri::PkgWasmComponents => "package:wasm_components/component.dart",
-            KnownDartUri::Custom(uri) => uri.as_ref(),
+            KnownDartUri::PkgWasmComponents => "package:wasm_components/wasm_components.dart",
         }
     }
 }

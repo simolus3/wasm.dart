@@ -1,8 +1,8 @@
 name: wasm_tools
 description: Tools to create WebAssembly components from Dart.
-version: 0.1.0
+version: 0.1.0-preview.0
 resolution: workspace
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/simolus3/wasm.dart/
 
 environment:
   sdk: ^3.13.0-0

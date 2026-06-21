@@ -1,7 +1,7 @@
 // ignore_for_file: type=warning
 // ignore: import_internal_library
 import r'dart:_wasm' as i0;
-import r'package:wasm_components/component.dart' as i1;
+import r'package:wasm_components/wasm_components.dart' as i1;
 
 abstract interface class Greeting {
   String generateGreeting();

@@ -1,5 +1,5 @@
 // ignore_for_file: type=warning
-import r'package:wasm_components/component.dart' as i0;
+import r'package:wasm_components/wasm_components.dart' as i0;
 // ignore: import_internal_library
 import r'dart:_wasm' as i1;
 
