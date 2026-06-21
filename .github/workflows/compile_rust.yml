@@ -7,7 +7,8 @@ on:
         description: "ID of the artifact containing runtime_helpers.wasm"
         value: ${{ jobs.build_runtime_helpers_wasm.outputs.wasm }}
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   build_runtime_helpers_wasm:
