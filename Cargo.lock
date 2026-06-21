@@ -671,18 +671,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
-name = "libc_common"
-version = "0.1.0"
-
-[[package]]
-name = "libc_standalone"
-version = "0.1.0"
-dependencies = [
- "libc_common",
- "talc",
-]
-
-[[package]]
 name = "libm"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -890,6 +878,13 @@ dependencies = [
  "log",
  "rustc-hash",
  "smallvec",
+]
+
+[[package]]
+name = "runtime_helpers"
+version = "0.1.0"
+dependencies = [
+ "talc",
 ]
 
 [[package]]

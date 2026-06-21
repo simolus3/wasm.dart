@@ -3,7 +3,8 @@
 Tools to compile Dart to standalone WebAssembly targets, including the WebAssembly component model.
 
 > [!CAUTION]
-> This functionality is highly experimental. It requires Dart 3.13 
+> This functionality is highly experimental. It requires a Dart 3.13 SDK with
+> [this patch](https://dart-review.googlesource.com/c/sdk/+/505900) applied.
 
 ## Installation
 
@@ -96,4 +97,4 @@ wasmtime -W all-proposals=y --invoke 'generate-greeting()' bin/greeting.wasm
 
 > [!NOTE]
 > Enabling Garbage Collection, Exceptions and Typed Function References is required to run Dart
-> in `wasmtime`. These flags will be enabled by default in `wasmtime` version 0.46.0.
+> in `wasmtime`. These flags will be enabled by default in `wasmtime` version 46.0.

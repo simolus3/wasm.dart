@@ -6,11 +6,14 @@ RUSTFLAGS="-Zlocation-detail=none -Zfmt-debug=none -Zunstable-options -Cpanic=im
     -Z build-std=std,panic_abort \
     -Z build-std-features= \
     --target wasm32-unknown-unknown \
-    -p libc_standalone
+    -p runtime_helpers
 */
 
 #![no_std]
-pub use libc_common::*;
+
+extern crate alloc;
+
+pub mod memory;
 
 #[cfg(all(target_family = "wasm"))]
 #[global_allocator]

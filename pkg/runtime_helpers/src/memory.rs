@@ -1,6 +1,3 @@
-#![no_std]
-extern crate alloc;
-
 use alloc::alloc::{Layout, alloc as allocate, dealloc, handle_alloc_error, realloc};
 
 #[unsafe(no_mangle)]

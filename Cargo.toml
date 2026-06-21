@@ -2,7 +2,7 @@
 
 members = [
     "examples/hello_world_custom",
-    "pkg/libc_common",
-    "pkg/libc_standalone", "pkg/wit_bindgen_dart",
+    "pkg/runtime_helpers",
+    "pkg/wit_bindgen_dart",
 ]
 resolver = "3"

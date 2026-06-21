@@ -1,12 +1,10 @@
 [package]
-name = "libc_standalone"
+name = "runtime_helpers"
 version = "0.1.0"
 edition = "2024"
 
 [lib]
-name = "dart_libc_standalone"
 crate-type = ["cdylib"]
 
 [dependencies]
-libc_common = { path = "../libc_common" }
 talc = "5.0.3"

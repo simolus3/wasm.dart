@@ -4,3 +4,4 @@
 **/example/*.wat
 /.vscode
 **/bin/*.wasm
+/pkg/wasm_tools/assets/runtime_helpers.wasm

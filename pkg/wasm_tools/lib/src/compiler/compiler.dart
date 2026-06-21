@@ -8,7 +8,6 @@ import 'components/index_space.dart';
 import 'components/linker.dart';
 import 'dart_linker.dart';
 import 'hooks/builder.dart';
-import 'subprocess.dart';
 import 'transform.dart';
 
 final class CompilerOptions {
@@ -30,14 +29,14 @@ final class ComponentCompiler {
 
     try {
       logger.fine('Invoking build hooks to infer ABI');
-      final abi = await resolveProgramAbi(
+      final resolved = await PackageConfigWithAbi.resolveProgramAbi(
         mainFile: options.input,
         logger: logger,
       );
-      if (abi == null) throw CompilerFailure('Could not resolve components');
-
-      logger.fine('Building wasi helpers');
-      await compileLibc(.standalone);
+      if (resolved == null) {
+        throw CompilerFailure('Could not resolve components');
+      }
+      final abi = resolved.abi;
 
       logger.fine('Building main application');
       var result = await (await Process.start(Platform.executable, [
@@ -64,9 +63,7 @@ final class ComponentCompiler {
 
       final builder = ComponentBuilder();
       final libcDef = builder.defineModuleFromBytes(
-        await File(
-          '../../target/wasm32-unknown-unknown/release/dart_libc_standalone.wasm',
-        ).readAsBytes(),
+        await (await resolved.resolveRuntimeHelpersFile()).readAsBytes(),
       );
       final libc = builder.linker.coreInstantiate(.moduleAndArgs(libcDef, {}));
 
