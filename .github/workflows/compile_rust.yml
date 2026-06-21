@@ -124,8 +124,8 @@ jobs:
         working-directory: pkg/wit_bindgen_dart
         run: |
           mkdir out
-          cp ../../target/x86_64-unknown-linux-gnu/release/libwit_bindgen_dart.dylib out/libwit_bindgen_dart.macos_x64.so
-          cp ../../target/aarch64-unknown-linux-gnu/release/libwit_bindgen_dart.dylib out/libwit_bindgen_dart.macos_aarch64.so
+          cp ../../target/x86_64-apple-darwin/release/libwit_bindgen_dart.dylib out/libwit_bindgen_dart.macos_x64.so
+          cp ../../target/aarch64-apple-darwin/release/libwit_bindgen_dart.dylib out/libwit_bindgen_dart.macos_aarch64.so
       - uses: actions/upload-artifact@v7
         with:
           name: witgen-macos
