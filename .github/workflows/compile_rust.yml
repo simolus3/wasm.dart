@@ -5,7 +5,7 @@ on:
     outputs:
       runtime_id:
         description: "ID of the artifact containing runtime_helpers.wasm"
-        value: ${{ jobs.build_runtime_helpers_wasm.outputs.wasm }}
+        value: ${{ jobs.merge_results.outputs.libs }}
 
 permissions:
   contents: read
@@ -82,16 +82,16 @@ jobs:
         if: steps.cache_build.outputs.cache-hit != 'true'
         working-directory: pkg/wit_bindgen_dart
         run: |
-          mkdir out
-          cp ../../target/x86_64-unknown-linux-gnu/release/libwit_bindgen_dart.so out/libwit_bindgen_dart.linux_x64.so
-          cp ../../target/aarch64-unknown-linux-gnu/release/libwit_bindgen_dart.so out/libwit_bindgen_dart.linux_aarch64.so
-          cp ../../target/armv7-unknown-linux-gnueabihf/release/libwit_bindgen_dart.so out/libwit_bindgen_dart.linux_arm7.so
-          cp ../../target/riscv64gc-unknown-linux-gnu/release/libwit_bindgen_dart.so out/libwit_bindgen_dart.linux_riscv.so
+          lib/src/wit_gen/precompiled
+          cp ../../target/x86_64-unknown-linux-gnu/release/libwit_bindgen_dart.so lib/src/wit_gen/precompiled/libwit_bindgen_dart.linux_x64.so
+          cp ../../target/aarch64-unknown-linux-gnu/release/libwit_bindgen_dart.so lib/src/wit_gen/precompiled/libwit_bindgen_dart.linux_aarch64.so
+          cp ../../target/armv7-unknown-linux-gnueabihf/release/libwit_bindgen_dart.so lib/src/wit_gen/precompiled/libwit_bindgen_dart.linux_arm7.so
+          cp ../../target/riscv64gc-unknown-linux-gnu/release/libwit_bindgen_dart.so lib/src/wit_gen/precompiled/libwit_bindgen_dart.linux_riscv.so
       - uses: actions/upload-artifact@v7
         with:
           name: witgen-linux
           retention-days: 1
-          path: pkg/wit_bindgen_dart/out
+          path: pkg/wasm_tools/lib/src/wit_gen/precompiled/
 
   build_witgen_macos:
     name: Build wit_bindgen_dart for macOS
@@ -123,14 +123,14 @@ jobs:
         if: steps.cache_build.outputs.cache-hit != 'true'
         working-directory: pkg/wit_bindgen_dart
         run: |
-          mkdir out
-          cp ../../target/x86_64-apple-darwin/release/libwit_bindgen_dart.dylib out/libwit_bindgen_dart.macos_x64.so
-          cp ../../target/aarch64-apple-darwin/release/libwit_bindgen_dart.dylib out/libwit_bindgen_dart.macos_aarch64.so
+          mkdir lib/src/wit_gen/precompiled
+          cp ../../target/x86_64-apple-darwin/release/libwit_bindgen_dart.dylib lib/src/wit_gen/precompiled/libwit_bindgen_dart.macos_x64.so
+          cp ../../target/aarch64-apple-darwin/release/libwit_bindgen_dart.dylib lib/src/wit_gen/precompiled/libwit_bindgen_dart.macos_aarch64.so
       - uses: actions/upload-artifact@v7
         with:
           name: witgen-macos
           retention-days: 1
-          path: pkg/wit_bindgen_dart/out
+          path: pkg/wasm_tools/lib/src/wit_gen/precompiled/
 
   build_witgen_windows:
     name: Build wit_bindgen_dart for Windows
@@ -160,13 +160,49 @@ jobs:
           cargo build --release -p wit_bindgen_dart --target aarch64-pc-windows-msvc
       - name: Copy libraries
         if: steps.cache_build.outputs.cache-hit != 'true'
-        working-directory: pkg/wit_bindgen_dart
+        working-directory: pkg/wasm_tools
         run: |
-          mkdir out
-          cp ../../target/x86_64-pc-windows-msvc/release/wit_bindgen_dart.dll out/libwit_bindgen_dart.win_x64.dll
-          cp ../../target/aarch64-pc-windows-msvc/release/wit_bindgen_dart.dll out/libwit_bindgen_dart.win_aarch64.dll
+          mkdir lib/src/wit_gen/precompiled
+          cp ../../target/x86_64-pc-windows-msvc/release/wit_bindgen_dart.dll lib/src/wit_gen/precompiled/libwit_bindgen_dart.win_x64.dll
+          cp ../../target/aarch64-pc-windows-msvc/release/wit_bindgen_dart.dll lib/src/wit_gen/precompiled/libwit_bindgen_dart.win_aarch64.dll
       - uses: actions/upload-artifact@v7
         with:
           name: witgen-windows
           retention-days: 1
-          path: pkg/wit_bindgen_dart/out
+          path: pkg/wasm_tools/lib/src/wit_gen/precompiled/
+
+  merge_results:
+    needs:
+      - build_runtime_helpers_wasm
+      - build_witgen_linux
+      - build_witgen_macos
+      - build_witgen_windows
+    runs-on: ubuntu-slim
+    outputs:
+      libs: ${{ steps.upload_libs.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: runtime-helpers
+          pattern: runtime-helpers
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: pkg/wasm_tools/lib/src/wit_gen/precompiled/
+          merge-multiple: true
+          pattern: witgen-*
+
+      - name: Upload runtime and CLI helper libraries
+        uses: actions/upload-artifact@v7
+        id: upload_libs
+        with:
+          name: connection-pool-libs
+          path: |
+            pkg/wasm_tools/assets/runtime_helpers.wasm
+            pkg/wasm_tools/lib/src/wit_gen/precompiled/
+          if-no-files-found: error
+          retention-days: 1
