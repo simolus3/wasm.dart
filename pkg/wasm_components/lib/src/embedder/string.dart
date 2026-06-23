@@ -12,6 +12,8 @@ sealed class WasmStringImplementation {
 
   int codeUnitAtUnchecked(int offset);
 
+  WasmStringImplementation repeat(int amount);
+
   static WasmStringImplementation fromExtern(WasmExternRef? ref) {
     return ref!.internalize().toObject() as WasmStringImplementation;
   }
@@ -49,6 +51,19 @@ final class Latin1String extends WasmStringImplementation {
   int codeUnitAtUnchecked(int offset) {
     return codeUnits.readUnsigned(offset);
   }
+
+  @override
+  WasmStringImplementation repeat(int amount) {
+    final sourceLength = codeUnits.length;
+    final array = WasmArray<WasmI8>(sourceLength * amount);
+    var offset = 0;
+    for (var copy = 0; copy < amount; copy++) {
+      array.copyTyped(offset, codeUnits, 0, sourceLength);
+      offset += sourceLength;
+    }
+
+    return Latin1String.unsafeWrap(array);
+  }
 }
 
 final class Utf16String extends WasmStringImplementation {
@@ -79,5 +94,18 @@ final class Utf16String extends WasmStringImplementation {
   @override
   int codeUnitAtUnchecked(int offset) {
     return codeUnits.readUnsigned(offset);
+  }
+
+  @override
+  WasmStringImplementation repeat(int amount) {
+    final sourceLength = codeUnits.length;
+    final array = WasmArray<WasmI16>(sourceLength * amount);
+    var offset = 0;
+    for (var copy = 0; copy < amount; copy++) {
+      array.copyTyped(offset, codeUnits, 0, sourceLength);
+      offset += sourceLength;
+    }
+
+    return Utf16String.unsafeWrap(array);
   }
 }

@@ -1,3 +1,6 @@
 {"type":"start","test":0}
 {"type":"int","value":11}
 {"type":"end","test":0}
+{"type":"start","test":1}
+{"type":"string","value":"eeeeeeeeee"}
+{"type":"end","test":1}

@@ -62,7 +62,7 @@ __Legend__:
 | stringToLowerCase                        |             | 🎯        |                               |
 | stringToUpperCase                        |             | 🎯        |                               |
 | stringConcat                             |             | 🎯        |                               |
-| stringRepeat                             |             | 🎯        |                               |
+| stringRepeat                             | ✅          | 🎯        |                               |
 | stringReplaceRange                       |             | 🎯        |                               |
 | stringToCodeUnits                        |             | 🎯        |                               |
 | monotonicClockFrequency                  |             | 📦        |                               |
