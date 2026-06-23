@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:logging/logging.dart';
+
 import '../third_party/wasm_builder/wasm_builder.dart' as w;
 import '../third_party/wasm_builder/src/builder/util.dart';
 import 'program_abi.dart';
@@ -9,15 +11,19 @@ import 'compiler.dart';
 /// imports.
 final class ModuleTransformer {
   final w.Module module;
+  final Logger logger;
 
   late final Map<String, w.Export> _exports = {
     for (final export in module.exports.exported) export.name: export,
   };
 
-  ModuleTransformer(this.module);
+  ModuleTransformer(this.module, this.logger);
 
-  factory ModuleTransformer.fromBytes(Uint8List moduleBytes) {
-    return ModuleTransformer(w.Module.deserialize(w.Deserializer(moduleBytes)));
+  factory ModuleTransformer.fromBytes(Uint8List moduleBytes, Logger logger) {
+    return ModuleTransformer(
+      w.Module.deserialize(w.Deserializer(moduleBytes)),
+      logger,
+    );
   }
 
   Uint8List serialize() {
@@ -71,7 +77,7 @@ final class ModuleTransformer {
       module.imports.all.remove(removedImport);
     }
 
-    print('Patching ${patchFunctions.length} functions');
+    logger.fine('Patching ${patchFunctions.length} functions');
     var patchedReferences = 0;
     for (final function in module.functions.defined) {
       for (final instr in function.body.instructions) {
@@ -92,7 +98,7 @@ final class ModuleTransformer {
       }
     }
 
-    print('Patched $patchedReferences references');
+    logger.fine('Patched $patchedReferences references');
     finalizeImportsAndDefinitions(
       module.functions.imported,
       module.functions.defined,

@@ -39,17 +39,31 @@ final class ComponentCompiler {
       final abi = resolved.abi;
 
       logger.fine('Building main application');
-      var result = await (await Process.start(Platform.executable, [
-        'compile',
-        'wasm',
+      final binDir = p.dirname(Platform.resolvedExecutable);
+      final sdkDir = p.dirname(binDir);
+      final dartAotRuntime = p.join(
+        binDir,
+        Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
+      );
+      final snapshot = p.join(
+        binDir,
+        'snapshots',
+        'dart2wasm_product.snapshot',
+      );
+      final librariesSpec = p.join(sdkDir, 'lib', 'libraries.json');
+
+      var result = await (await Process.start(dartAotRuntime, [
+        snapshot,
+        '--libraries-spec',
+        librariesSpec,
+        '--packages',
+        resolved.packageConfigFile,
         '--standalone',
-        '-E',
         '--enable-experimental-wasm-interop',
         '--no-minify',
         '--no-strip-wasm',
         '-O0',
         options.input.path,
-        '--output',
         dart2wasmOut,
       ], mode: .inheritStdio)).exitCode;
       if (result != 0) {
@@ -58,6 +72,7 @@ final class ComponentCompiler {
 
       final transformer = ModuleTransformer.fromBytes(
         await File(dart2wasmOut).readAsBytes(),
+        logger,
       );
       transformer.transform(abi);
 

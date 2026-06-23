@@ -12,10 +12,15 @@ import 'extension.dart';
 import 'extension.dart' as hooks;
 
 final class PackageConfigWithAbi {
+  final String packageConfigFile;
   final PackageConfig packageConfig;
   final DartProgramAbi abi;
 
-  PackageConfigWithAbi({required this.packageConfig, required this.abi});
+  PackageConfigWithAbi({
+    required this.packageConfigFile,
+    required this.packageConfig,
+    required this.abi,
+  });
 
   /// Resolves the file containing pre-compiled WebAssembly helpers used to
   /// implement component interop.
@@ -84,6 +89,10 @@ final class PackageConfigWithAbi {
       }
     }
 
-    return PackageConfigWithAbi(packageConfig: pkgConfig.config, abi: abi);
+    return PackageConfigWithAbi(
+      packageConfig: pkgConfig.config,
+      packageConfigFile: pkgConfig.file.toFilePath(),
+      abi: abi,
+    );
   }
 }
