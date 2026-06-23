@@ -1,0 +1,12 @@
+name: test_runner
+description: A sample command-line application.
+version: 1.0.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0-0
+
+dependencies:
+  hooks: ^2.0.2
+  wasm_components:
+  wasm_tools:

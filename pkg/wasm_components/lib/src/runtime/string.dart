@@ -33,3 +33,6 @@ final class AllocatedString {
 
   static const _alignment = WasmI32(2);
 }
+
+/// A `char` value in the WebAssembly component model.
+extension type const CharCode(int value) implements int {}

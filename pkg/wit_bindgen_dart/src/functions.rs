@@ -41,7 +41,6 @@ pub struct ImportedFunctionMode<'a> {
 
 pub struct ExportedFunctionMode<'a> {
     pub instance: &'a mut ExportedInstance,
-    pub function: &'a Function,
 }
 
 pub struct PostReturn {}
@@ -111,6 +110,10 @@ impl<'a> DartFunctionGenerator<'a> {
         results.push(tmp);
     }
 
+    fn dart_wasm_import(&mut self) -> Rc<String> {
+        self.dart.import(KnownDartUri::DartWasm)
+    }
+
     pub fn write_cleanup(&mut self) {
         if !self.cleanup.is_empty() {
             let cleanup = std::mem::take(&mut self.cleanup);
@@ -133,8 +136,7 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
             Instruction::GetArg { nth } => {
                 let function = match &self.mode {
                     FunctionMode::Imported(import) => import.function,
-                    FunctionMode::Exported(export) => export.function,
-                    FunctionMode::PostReturn(_) => {
+                    FunctionMode::Exported(_) | FunctionMode::PostReturn(_) => {
                         results.push(Rc::new(format!("p{nth}")));
                         return;
                     }
@@ -171,26 +173,37 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
             }
             Instruction::CallInterface { func, async_ } => {
                 if *async_ {
-                    todo!()
+                    todo!("async interface call")
                 }
-                let tmp = self.temporary_variable();
+
+                if func.result.is_some() {
+                    let tmp = self.temporary_variable();
+                    uwrite!(self.definition, "final {tmp} = ");
+                    results.push(tmp);
+                }
                 let interface = match &mut self.mode {
                     FunctionMode::Exported(i) => i,
                     _ => panic!("Cannot use CallInterface in import mode"),
                 };
 
-                let _ = write!(
+                uwrite!(
                     self.definition,
-                    "final {tmp} = {}.{}(",
+                    "{}.{}(",
                     interface.instance.field_name,
                     AsLowerCamelCase(&func.name)
                 );
-                if !func.params.is_empty() {
-                    todo!("Handling interface calls with parameters")
-                }
-                let _ = writeln!(self.definition, ");");
 
-                results.push(tmp);
+                let params = operands.split_off(operands.len() - func.params.len());
+                for (value, param) in params.into_iter().zip(func.params.iter()) {
+                    uwrite!(
+                        self.definition,
+                        "{}: {},",
+                        AsLowerCamelCase(&param.name),
+                        value
+                    );
+                }
+
+                uwriteln!(self.definition, ");");
             }
             Instruction::Return { amt, func: _ } => {
                 if *amt == 0 {
@@ -297,23 +310,111 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
             | Instruction::PointerLoad { offset } => {
                 self.mem_load(operands, results, "loadInt32", offset);
             }
+            Instruction::I32FromBool => {
+                results.push(Rc::new(format!(
+                    "{}.WasmI32.fromBool({})",
+                    self.dart_wasm_import(),
+                    operands.pop().unwrap(),
+                )));
+            }
+            Instruction::I32FromChar => {
+                results.push(Rc::new(format!(
+                    "{}.WasmI32.fromInt({})",
+                    self.dart_wasm_import(),
+                    operands.pop().unwrap(),
+                )));
+            }
+            Instruction::I64FromU64 | Instruction::I64FromS64 => {
+                results.push(Rc::new(format!(
+                    "{}.WasmI64.fromInt({})",
+                    self.dart_wasm_import(),
+                    operands.pop().unwrap(),
+                )));
+            }
+            Instruction::I32FromS8 => {
+                results.push(Rc::new(format!(
+                    "{}.WasmI32.int8FromInt({})",
+                    self.dart_wasm_import(),
+                    operands.pop().unwrap(),
+                )));
+            }
+            Instruction::I32FromU8 => {
+                results.push(Rc::new(format!(
+                    "{}.WasmI32.uint8FromInt({})",
+                    self.dart_wasm_import(),
+                    operands.pop().unwrap(),
+                )));
+            }
+            Instruction::I32FromS16 => {
+                results.push(Rc::new(format!(
+                    "{}.WasmI32.int16FromInt({})",
+                    self.dart_wasm_import(),
+                    operands.pop().unwrap(),
+                )));
+            }
+            Instruction::I32FromU16 => {
+                results.push(Rc::new(format!(
+                    "{}.WasmI32.uint16FromInt({})",
+                    self.dart_wasm_import(),
+                    operands.pop().unwrap(),
+                )));
+            }
+            Instruction::I32FromS32 => {
+                results.push(Rc::new(format!(
+                    "{}.WasmI32.fromInt({})",
+                    self.dart_wasm_import(),
+                    operands.pop().unwrap(),
+                )));
+            }
+            Instruction::I32FromU32 => {
+                results.push(Rc::new(format!(
+                    "{}.WasmI32.fromInt({})",
+                    self.dart_wasm_import(),
+                    operands.pop().unwrap(),
+                )));
+            }
             Instruction::CoreF32FromF32 => {
-                let import = self.dart.import(KnownDartUri::DartWasm);
                 let dart_double = operands.pop().unwrap();
                 results.push(Rc::new(format!(
-                    "{import}.WasmF32.fromDouble({dart_double})"
+                    "{}.WasmF32.fromDouble({dart_double})",
+                    self.dart_wasm_import()
+                )));
+            }
+            Instruction::CoreF64FromF64 => {
+                let dart_double = operands.pop().unwrap();
+                results.push(Rc::new(format!(
+                    "{}.WasmF64.fromDouble({dart_double})",
+                    self.dart.import(KnownDartUri::DartWasm)
+                )));
+            }
+            Instruction::BoolFromI32 => {
+                results.push(Rc::new(format!("{}.toBool()", operands.pop().unwrap())));
+            }
+            Instruction::CharFromI32 => {
+                let import = self.dart.import(KnownDartUri::PkgWasmComponents);
+                results.push(Rc::new(format!(
+                    "{import}.CharCode({}.toIntUnsigned())",
+                    operands.pop().unwrap()
+                )));
+            }
+            Instruction::S64FromI64 | Instruction::U64FromI64 => {
+                results.push(Rc::new(format!("{}.toInt()", operands.pop().unwrap())));
+            }
+            Instruction::S8FromI32 | Instruction::S16FromI32 | Instruction::S32FromI32 => {
+                results.push(Rc::new(format!(
+                    "{}.toIntSigned()",
+                    operands.pop().unwrap()
+                )));
+            }
+            Instruction::U8FromI32 | Instruction::U16FromI32 | Instruction::U32FromI32 => {
+                results.push(Rc::new(format!(
+                    "{}.toIntUnsigned()",
+                    operands.pop().unwrap()
                 )));
             }
             Instruction::F32FromCoreF32 => {
                 let f32 = operands.pop().unwrap();
                 results.push(Rc::new(format!("{f32}.toDouble()")));
-            }
-            Instruction::CoreF64FromF64 => {
-                let import = self.dart.import(KnownDartUri::DartWasm);
-                let dart_double = operands.pop().unwrap();
-                results.push(Rc::new(format!(
-                    "{import}.WasmF64.fromDouble({dart_double})"
-                )));
             }
             Instruction::F64FromCoreF64 => {
                 let f64 = operands.pop().unwrap();

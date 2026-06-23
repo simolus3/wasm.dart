@@ -2,6 +2,7 @@
 
 members = [
     "examples/hello_world_custom",
+    "pkg/test_runner",
     "pkg/runtime_helpers",
     "pkg/wit_bindgen_dart",
 ]

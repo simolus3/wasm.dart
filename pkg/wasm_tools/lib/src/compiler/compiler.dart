@@ -13,8 +13,13 @@ import 'transform.dart';
 final class CompilerOptions {
   final File input;
   final File output;
+  final bool hooksIncludeDevDependencies;
 
-  CompilerOptions(this.input, this.output);
+  CompilerOptions(
+    this.input,
+    this.output, {
+    this.hooksIncludeDevDependencies = false,
+  });
 }
 
 final class ComponentCompiler {
@@ -32,6 +37,7 @@ final class ComponentCompiler {
       final resolved = await PackageConfigWithAbi.resolveProgramAbi(
         mainFile: options.input,
         logger: logger,
+        includeDevDependencies: options.hooksIncludeDevDependencies,
       );
       if (resolved == null) {
         throw CompilerFailure('Could not resolve components');

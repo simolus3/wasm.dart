@@ -286,7 +286,6 @@ impl WorldGenerator for DartWorldGenerator {
                     &mut self.main,
                     FunctionMode::Exported(ExportedFunctionMode {
                         instance: &mut export,
-                        function,
                     }),
                 );
                 call(

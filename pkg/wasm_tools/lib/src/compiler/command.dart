@@ -15,6 +15,12 @@ final class CompileCommand extends Command<void> {
       abbr: 'o',
       help: 'Output file, uses input.wasm by default',
     );
+
+    argParser.addFlag(
+      'hooks-include-dev-dependencies',
+      hide: true,
+      defaultsTo: false,
+    );
   }
 
   @override
@@ -35,7 +41,16 @@ final class CompileCommand extends Command<void> {
       final path => path,
     });
 
-    final compiler = ComponentCompiler(CompilerOptions(file, output), _logger);
+    final compiler = ComponentCompiler(
+      CompilerOptions(
+        file,
+        output,
+        hooksIncludeDevDependencies: argResults.flag(
+          'hooks-include-dev-dependencies',
+        ),
+      ),
+      _logger,
+    );
     await compiler.run();
   }
 }

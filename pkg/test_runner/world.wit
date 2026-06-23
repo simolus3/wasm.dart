@@ -1,0 +1,18 @@
+package wasmdart:tests;
+
+interface result-collector {
+  record-string: func(e: string);
+  record-double: func(e: f64);
+  record-int: func(e: s64);
+}
+
+interface tested-module {
+  count-tests: func() -> u32;
+
+  invoke-test: func(number: u32);
+}
+
+world root {
+    import result-collector;
+    export tested-module;
+}

@@ -47,6 +47,7 @@ final class PackageConfigWithAbi {
   static Future<PackageConfigWithAbi?> resolveProgramAbi({
     required File mainFile,
     required Logger logger,
+    bool includeDevDependencies = false,
   }) async {
     final mainUri = mainFile.absolute.uri;
     final pkgConfig = await findPackageConfigAndUri(mainUri);
@@ -67,7 +68,7 @@ final class PackageConfigWithAbi {
         pkgConfig.config,
         pkgConfig.file,
         mainPackage.name,
-        includeDevDependencies: false,
+        includeDevDependencies: includeDevDependencies,
       ),
     );
 

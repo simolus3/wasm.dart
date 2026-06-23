@@ -1,0 +1,110 @@
+{
+  "type_defs": [],
+  "interfaces": [
+    {
+      "full_name": "wasmdart:tests/result-collector",
+      "exported_functions": {
+        "record-string": {
+          "name": "record-string",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "e",
+              "type": "string"
+            }
+          ]
+        },
+        "record-double": {
+          "name": "record-double",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "e",
+              "type": "f64"
+            }
+          ]
+        },
+        "record-int": {
+          "name": "record-int",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "e",
+              "type": "s64"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "full_name": "wasmdart:tests/tested-module",
+      "exported_functions": {
+        "count-tests": {
+          "name": "count-tests",
+          "kind": "freestanding",
+          "params": [],
+          "result": "u32"
+        },
+        "invoke-test": {
+          "name": "invoke-test",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "number",
+              "type": "u32"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "imports": [
+    {
+      "interface_id": 0,
+      "function_name": "record-string",
+      "core_name": "_import0",
+      "options": {
+        "use_memory": true,
+        "uses_strings": true
+      }
+    },
+    {
+      "interface_id": 0,
+      "function_name": "record-double",
+      "core_name": "_import1",
+      "options": {
+        "use_memory": false,
+        "uses_strings": false
+      }
+    },
+    {
+      "interface_id": 0,
+      "function_name": "record-int",
+      "core_name": "_import2",
+      "options": {
+        "use_memory": false,
+        "uses_strings": false
+      }
+    }
+  ],
+  "exports": [
+    {
+      "interface_id": 1,
+      "function_name": "count-tests",
+      "core_export_name": "component_0",
+      "options": {
+        "use_memory": false,
+        "uses_strings": false
+      }
+    },
+    {
+      "interface_id": 1,
+      "function_name": "invoke-test",
+      "core_export_name": "component_1",
+      "options": {
+        "use_memory": false,
+        "uses_strings": false
+      }
+    }
+  ]
+}
