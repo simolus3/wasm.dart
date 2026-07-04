@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 
 import '../third_party/wasm_builder/wasm_builder.dart' as w;
 import '../third_party/wasm_builder/src/builder/util.dart';
+import 'components/type.dart';
 import 'program_abi.dart';
 import 'compiler.dart';
 
@@ -12,6 +13,7 @@ import 'compiler.dart';
 final class ModuleTransformer {
   final w.Module module;
   final Logger logger;
+  final Map<w.ImportedFunction, w.BaseFunction> _patchFunctions = {};
 
   late final Map<String, w.Export> _exports = {
     for (final export in module.exports.exported) export.name: export,
@@ -39,16 +41,23 @@ final class ModuleTransformer {
   }
 
   void _patchImports(DartProgramAbi abi) {
-    final Map<w.ImportedFunction, w.DefinedFunction> patchFunctions = {};
+    const replacers = {
+      'randomInt': _RandomImports(),
+      'randomIntSecure': _RandomImports(),
+    };
+
     final unusedComponentImports = abi.functionImports.keys.toSet();
 
-    for (final import in module.imports.all) {
+    for (final import in module.imports.all.toList()) {
       if (import is w.ImportedFunction && import.module == 'dart') {
-        if (_exports[import.name] case final export?) {
+        if (replacers[import.name] case final replacer?) {
+          replacer.addTo(abi, this, import);
+          continue;
+        } else if (_exports[import.name] case final export?) {
           if (export case w.FunctionExport(
             function: final w.DefinedFunction fn,
           )) {
-            patchFunctions[import] = fn;
+            _patchFunctions[import] = fn;
             continue;
           }
         } else if (_rewriteToRuntimeImports.contains(import.name)) {
@@ -72,24 +81,24 @@ final class ModuleTransformer {
       throw 'TODO: Unknown import ${import.module}:${import.name}';
     }
 
-    for (final removedImport in patchFunctions.keys) {
+    for (final removedImport in _patchFunctions.keys) {
       module.imports.functions.remove(removedImport);
       module.imports.all.remove(removedImport);
     }
 
-    logger.fine('Patching ${patchFunctions.length} functions');
+    logger.fine('Patching ${_patchFunctions.length} functions');
     var patchedReferences = 0;
     for (final function in module.functions.defined) {
       for (final instr in function.body.instructions) {
         if (instr is w.Call) {
-          final replacement = patchFunctions[instr.function];
+          final replacement = _patchFunctions[instr.function];
           if (replacement != null) {
             instr.function = replacement;
             patchedReferences++;
           }
         }
         if (instr is w.RefFunc) {
-          final replacement = patchFunctions[instr.function];
+          final replacement = _patchFunctions[instr.function];
           if (replacement != null) {
             instr.function = replacement;
             patchedReferences++;
@@ -176,3 +185,96 @@ const _rewriteToRuntimeImports = {
   'mathExp',
   'mathLog',
 };
+
+abstract base class _ComponentImport {
+  const _ComponentImport();
+
+  void addTo(
+    DartProgramAbi abi,
+    ModuleTransformer transformer,
+    w.ImportedFunction function,
+  );
+}
+
+final class _RandomImports extends _ComponentImport {
+  const _RandomImports();
+
+  @override
+  void addTo(
+    DartProgramAbi abi,
+    ModuleTransformer transformer,
+    w.ImportedFunction function,
+  ) {
+    final isSecure = function.name == 'randomIntSecure';
+    final interface = isSecure
+        ? _lookupSecureRandom(abi)
+        : _lookupInsecureRandom(abi);
+    final methodName = isSecure ? 'get-random-u64' : 'get-insecure-random-u64';
+
+    final coreImportName = 'implicitImport_${function.name}';
+    final import = w.ImportedFunction(
+      transformer.module,
+      'component',
+      coreImportName,
+      w.FinalizableIndex(),
+      function.type,
+    );
+    transformer.module.imports
+      ..all.add(import)
+      ..functions.add(import);
+
+    final componentImport = ImportedInstanceFunction(
+      methodName,
+      coreImportName,
+      FunctionOptions(usesMemory: true, usesStrings: false),
+    );
+    abi.functionImports[coreImportName] = componentImport;
+    interface.importedFunctions.add(componentImport);
+
+    transformer._patchFunctions[function] = import;
+  }
+
+  ResolvedInterface _lookupInsecureRandom(DartProgramAbi abi) {
+    const fullName = 'wasi:random/insecure@0.3.0';
+
+    return abi.lookupOrAddInterface(fullName, () {
+      return ResolvedInterface(
+        fullName,
+        InstanceType([
+          ('get-insecure-random-bytes', _generateBytes()),
+          ('get-insecure-random-u64', _generateU64()),
+        ]),
+      );
+    });
+  }
+
+  ResolvedInterface _lookupSecureRandom(DartProgramAbi abi) {
+    const fullName = 'wasi:random/random@0.3.0';
+
+    return abi.lookupOrAddInterface(fullName, () {
+      return ResolvedInterface(
+        fullName,
+        InstanceType([
+          ('get-random-bytes', _generateBytes()),
+          ('get-random-u64', _generateU64()),
+        ]),
+      );
+    });
+  }
+
+  FunctionType _generateBytes() {
+    return FunctionType(
+      async: false,
+      parameters: [.new(label: 'max-len', type: PrimitiveType.u64)],
+      result: VariableLengthListType(elementType: PrimitiveType.u8),
+    );
+  }
+
+  FunctionType _generateU64() {
+    return FunctionType(
+      async: false,
+      parameters: [],
+      result: PrimitiveType.u64,
+    );
+  }
+}

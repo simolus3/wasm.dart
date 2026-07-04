@@ -121,9 +121,9 @@ final class ComponentBuilder implements w.Serializable {
       case VariantType():
         // TODO: Handle this case.
         throw UnimplementedError();
-      case VariableLengthListType():
-        // TODO: Handle this case.
-        throw UnimplementedError();
+      case VariableLengthListType(:final elementType):
+        final normalizedElement = addValueType(elementType);
+        return addInner(VariableLengthListType(elementType: normalizedElement));
       case FixedLengthListType():
         // TODO: Handle this case.
         throw UnimplementedError();

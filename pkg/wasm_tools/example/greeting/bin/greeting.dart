@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:greeting/src/component.g.dart';
 
 void main(List<String> arguments) {
@@ -9,6 +11,8 @@ final class _Greeting implements Greeting {
 
   @override
   String generateGreeting() {
-    return 'Hello from Dart!';
+    // Using Random() rand Random.secure() automatically imports wasi:random.
+    final random = Random().nextInt(10);
+    return "Hello from Dart. Here's a random number: $random!";
   }
 }

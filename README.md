@@ -117,7 +117,7 @@ __Legend__:
 | mathAtan                                 | ✅          | 🎯        | Using `libm` in Rust.         |
 | mathExp                                  | ✅          | 🎯        | Using `libm` in Rust.         |
 | mathLog                                  | ✅          | 🎯        | Using `libm` in Rust.         |
-| randomInt                                |             | 📦        |                               |
+| randomInt                                | ✅          | 📦        |                               |
 | randomIntSecure                          |             | 📦        |                               |
 | print                                    |             | 📦        | Currently a stub              |
 | jsonEncodeString                         |             | 🎯        | Currently a stub              |

@@ -25,6 +25,13 @@ final class DartProgramAbi {
     }
   }
 
+  ResolvedInterface lookupOrAddInterface(
+    String name,
+    ResolvedInterface Function() create,
+  ) {
+    return _interfaces.putIfAbsent(name, create);
+  }
+
   void includeAsset(Logger logger, EncodedAsset asset) {
     final encoding = asset.encoding;
     final definitions = ResolvedWitDefinitions();
@@ -37,7 +44,7 @@ final class DartProgramAbi {
       final functions = <(String, FunctionType)>[];
 
       interfaces.add(
-        _interfaces.putIfAbsent(fullName, () {
+        lookupOrAddInterface(fullName, () {
           for (final function
               in (entry['exported_functions'] as Map<String, Object?>)
                   .entries) {

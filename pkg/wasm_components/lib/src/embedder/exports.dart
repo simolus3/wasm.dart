@@ -120,3 +120,19 @@ WasmVoid wasiPrint(WasmExternRef? string) {
   printImpl(.fromExtern(string));
   return WasmVoid();
 }
+
+@pragma('wasm:export', 'randomInt')
+WasmI64 randomInt() {
+  // Note: This function is recognized by the component compiler, which will add
+  // a dependency on wasi:random/insecure to replace this function with a
+  // get-insecure-random-u64 import.
+  throw UnsupportedError('wasi:random/insecure not available');
+}
+
+@pragma('wasm:export', 'randomIntSecure')
+WasmI64 randomIntSecure() {
+  // Note: This function is recognized by the component compiler, which will add
+  // a dependency on wasi:random/insecure to replace this function with a
+  // get-random-u64 import.
+  throw UnsupportedError('wasi:random/random not available');
+}
