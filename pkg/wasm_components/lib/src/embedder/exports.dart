@@ -6,6 +6,7 @@ library;
 // ignore: import_internal_library
 import 'dart:_wasm';
 
+import 'clock.dart';
 import 'constants.dart';
 import 'number_format.dart';
 import 'stack_trace.dart';
@@ -63,7 +64,7 @@ WasmI32 stringCodeUnitAt(WasmExternRef? string, WasmI32 index) {
 }
 
 @pragma('wasm:export')
-WasmExternRef stringSubstring(
+WasmExternRef? stringSubstring(
   WasmExternRef? string,
   WasmI32 start,
   WasmI32 end,
@@ -185,4 +186,19 @@ WasmI64 randomIntSecure() {
   // a dependency on wasi:random/insecure to replace this function with a
   // get-random-u64 import.
   throw UnsupportedError('wasi:random/random not available');
+}
+
+@pragma('wasm:export', 'currentTime')
+WasmI64 currentTimeMicros() {
+  return WasmI64.fromInt(wasiTimestampInMicroseconds());
+}
+
+@pragma("wasm:import", "dart.timeZoneNameForClampedSeconds")
+WasmExternRef timeZoneNameForClampedSeconds(WasmI64 secondsSinceEpoch) {
+  throw UnsupportedError('TODO: Time zone names');
+}
+
+@pragma('wasm:export', 'timeZoneOffsetInSecondsForClampedSeconds')
+WasmI32 timeZoneOffsetInSecondsForClampedSeconds(WasmI64 secondsSinceEpoch) {
+  return const WasmI32(0);
 }

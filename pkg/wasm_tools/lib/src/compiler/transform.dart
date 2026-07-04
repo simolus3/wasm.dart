@@ -44,6 +44,7 @@ final class ModuleTransformer {
     const replacers = {
       'randomInt': _RandomImports(),
       'randomIntSecure': _RandomImports(),
+      'wasi_now': _ClockImports(),
     };
 
     final unusedComponentImports = abi.functionImports.keys.toSet();
@@ -57,6 +58,12 @@ final class ModuleTransformer {
           if (export case w.FunctionExport(
             function: final w.DefinedFunction fn,
           )) {
+            if (fn.type != import.type) {
+              throw StateError(
+                'Could not link ${import.name} due to different types.',
+              );
+            }
+
             _patchFunctions[import] = fn;
             continue;
           }
@@ -226,7 +233,7 @@ final class _RandomImports extends _ComponentImport {
     final componentImport = ImportedInstanceFunction(
       methodName,
       coreImportName,
-      FunctionOptions(usesMemory: true, usesStrings: false),
+      FunctionOptions(usesMemory: false, usesStrings: false),
     );
     abi.functionImports[coreImportName] = componentImport;
     interface.importedFunctions.add(componentImport);
@@ -276,5 +283,88 @@ final class _RandomImports extends _ComponentImport {
       parameters: [],
       result: PrimitiveType.u64,
     );
+  }
+}
+
+final class _ClockImports extends _ComponentImport {
+  const _ClockImports();
+
+  @override
+  void addTo(
+    DartProgramAbi abi,
+    ModuleTransformer transformer,
+    w.ImportedFunction function,
+  ) {
+    switch (function.name) {
+      case 'wasi_now':
+        if (!_functionUsed(transformer, 'currentTime')) {
+          _wasiNowStub(transformer, function);
+          break;
+        }
+
+        final systemClock = _lookupSystemClock(abi);
+        function.module = 'components';
+        function.name = 'implicitImport_systemClockNow';
+        final componentImport = ImportedInstanceFunction(
+          'now',
+          function.name,
+          FunctionOptions(usesMemory: false, usesStrings: false),
+        );
+        abi.functionImports[function.name] = componentImport;
+        systemClock.importedFunctions.add(componentImport);
+    }
+  }
+
+  bool _functionUsed(ModuleTransformer transformer, String name) {
+    return transformer.module.imports.functions.any(
+      (e) => e.module == 'dart' && e.name == name,
+    );
+  }
+
+  /// Replaces the `wasiNowPtr()` import with a stub to avoid dependencies.
+  void _wasiNowStub(
+    ModuleTransformer transformer,
+    w.ImportedFunction importedFunction,
+  ) {
+    final stubFunction = w.DefinedFunction(
+      transformer.module,
+      w.Instructions([], {}, [w.I32Const(0), w.End()], null, [], []),
+      w.FinalizableIndex(),
+      importedFunction.type,
+      'wasi_now',
+    );
+    transformer.module.functions.defined.add(stubFunction);
+    transformer._patchFunctions[importedFunction] = stubFunction;
+  }
+
+  ResolvedInterface _lookupSystemClock(DartProgramAbi abi) {
+    const fullName = 'wasi:clocks/system-clock@0.3.0';
+
+    return abi.lookupOrAddInterface(fullName, () {
+      return ResolvedInterface(
+        fullName,
+        InstanceType([
+          (
+            'now',
+            FunctionType(
+              async: false,
+              parameters: [],
+              result: RecordType([
+                .new(label: 'seconds', type: PrimitiveType.s64),
+                .new(label: 'nanoseconds', type: PrimitiveType.u32),
+              ]),
+            ),
+          ),
+          (
+            'get-resolution',
+            FunctionType(
+              async: false,
+              parameters: [],
+              result: PrimitiveType.u64,
+            ),
+          ),
+        ]),
+      );
+    });
   }
 }

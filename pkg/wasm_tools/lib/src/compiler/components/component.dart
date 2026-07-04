@@ -115,9 +115,12 @@ final class ComponentBuilder implements w.Serializable {
     switch (type) {
       case ValueTypeReference():
         return type;
-      case RecordType():
-        // TODO: Handle this case.
-        throw UnimplementedError();
+      case RecordType(:final fields):
+        final normalizedFields = <RecordField>[
+          for (final field in fields)
+            RecordField(label: field.label, type: addValueType(field.type)),
+        ];
+        return addInner(RecordType(normalizedFields));
       case VariantType():
         // TODO: Handle this case.
         throw UnimplementedError();
