@@ -10,13 +10,18 @@ final class DartLinker {
   final ComponentBuilder builder;
 
   CoreMemoryIndex? _libcMemory;
+  CoreFunctionIndex? _libcRealloc;
 
   DartLinker(this.builder, this.abi, this.libc) {
     var needsMemory = false;
+    var needsRealloc = false;
 
     for (final import in abi.functionImports.values) {
       if (import.options.usesMemory) {
         needsMemory = true;
+      }
+      if (import.options.needsRealloc) {
+        needsRealloc = true;
       }
     }
 
@@ -24,12 +29,22 @@ final class DartLinker {
       if (export.options.usesMemory) {
         needsMemory = true;
       }
+      if (export.options.needsRealloc) {
+        needsRealloc = true;
+      }
     }
 
     if (needsMemory) {
       _libcMemory = builder.linker.alias(
         .coreMemory,
         .coreInstanceExport(libc, 'memory'),
+      );
+    }
+
+    if (needsRealloc) {
+      _libcRealloc = builder.linker.alias(
+        .coreFunction,
+        .coreInstanceExport(libc, 'dart_realloc'),
       );
     }
   }
@@ -85,6 +100,7 @@ final class DartLinker {
     if (options.usesMemory) {
       canon.memory = _libcMemory!;
     }
+    if (options.needsRealloc) canon.realloc = _libcRealloc;
     if (options.usesStrings) canon.stringEncoding = .utf16;
   }
 }

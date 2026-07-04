@@ -97,9 +97,8 @@ final class TypesContainer {
       case TupleType():
         // TODO: Handle this case.
         throw UnimplementedError();
-      case OptionType():
-        // TODO: Handle this case.
-        throw UnimplementedError();
+      case OptionType(:final inner):
+        return addInner(OptionType(addValueType(inner)));
       case ResultType(:final ok, :final error):
         final normalizedOk = ok != null ? addValueType(ok) : null;
         final normalizedError = error != null ? addValueType(error) : null;

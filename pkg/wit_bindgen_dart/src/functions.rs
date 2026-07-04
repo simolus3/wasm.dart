@@ -127,7 +127,7 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
 
     fn emit(
         &mut self,
-        _resolve: &wit_bindgen_core::wit_parser::Resolve,
+        resolve: &wit_bindgen_core::wit_parser::Resolve,
         inst: &wit_bindgen_core::abi::Instruction<'_>,
         operands: &mut Vec<Self::Operand>,
         results: &mut Vec<Self::Operand>,
@@ -237,6 +237,47 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
                 results.push(Rc::new(format!("{}.ptr", temp)));
                 results.push(Rc::new(format!("{}.packedLength", temp)));
             }
+            Instruction::StringLift {} => {
+                self.options.use_memory = true;
+                self.options.uses_strings = true;
+
+                let length = operands.pop().unwrap();
+                let ptr = operands.pop().unwrap();
+
+                let import = self.dart.import(KnownDartUri::PkgWasmComponents);
+                results.push(Rc::new(format!(
+                    "{import}.AllocatedString.read({ptr}, {length})"
+                )));
+            }
+            Instruction::OptionLift { payload, ty: _ } => {
+                let tmp = self.temporary_variable();
+
+                let (some, some_results) = self.blocks.pop().unwrap();
+                let (none, _) = self.blocks.pop().unwrap();
+
+                let has_value = operands.pop().unwrap();
+                uwrite!(self.definition, "final ");
+                self.definition.write_dart_type(self.dart, resolve, payload);
+                uwriteln!(
+                    self.definition,
+                    " {tmp};
+if ({has_value}.toBool()) {{
+  {some}
+  {tmp} = .some({});
+}} else {{
+  {none}
+  {tmp} = .none;
+}}
+                    ",
+                    some_results[0]
+                );
+                uwriteln!(self.definition, " {tmp};");
+                uwriteln!(self.definition, "if ({has_value}.toBool()) {{");
+                uwriteln!(self.definition, "}} else {{");
+                uwriteln!(self.definition, "}}");
+
+                results.push(tmp);
+            }
             Instruction::GuestDeallocateString => {
                 let length = operands.pop().unwrap();
                 let ptr = operands.pop().unwrap();
@@ -305,11 +346,25 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
             | Instruction::PointerStore { offset } => {
                 self.mem_store(operands, "storeInt32", offset);
             }
+            Instruction::I32Store8 { offset } => self.mem_store(operands, "storeInt8", offset),
+            Instruction::I32Store16 { offset } => self.mem_store(operands, "storeInt16", offset),
             Instruction::I64Store { offset } => self.mem_store(operands, "storeInt64", offset),
             Instruction::I32Load { offset }
             | Instruction::LengthLoad { offset }
             | Instruction::PointerLoad { offset } => {
                 self.mem_load(operands, results, "loadInt32", offset);
+            }
+            Instruction::I32Load8U { offset } => {
+                self.mem_load(operands, results, "loadUint8", offset)
+            }
+            Instruction::I32Load8S { offset } => {
+                self.mem_load(operands, results, "loadInt8", offset)
+            }
+            Instruction::I32Load16U { offset } => {
+                self.mem_load(operands, results, "loadUint16", offset)
+            }
+            Instruction::I32Load16S { offset } => {
+                self.mem_load(operands, results, "loadInt16", offset)
             }
             Instruction::I64Load { offset } => {
                 self.mem_load(operands, results, "loadInt64", offset)

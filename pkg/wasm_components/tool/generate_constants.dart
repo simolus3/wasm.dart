@@ -43,6 +43,7 @@ import 'string.dart';
   );
   defineString(r'$0', '0');
   defineCharCodes('digits', '0123456789abcdefghijklmnopqrstuvwxyz');
+  defineString('unknownTimezone', 'UNKNOWN TZ');
 
   File('lib/src/embedder/constants.dart').writeAsStringSync(buffer.toString());
 }

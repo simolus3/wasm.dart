@@ -194,7 +194,12 @@ impl DartDefinition {
             TypeDefKind::Tuple(_tuple) => todo!(),
             TypeDefKind::Variant(_variant) => todo!(),
             TypeDefKind::Enum(_) => todo!(),
-            TypeDefKind::Option(_) => todo!(),
+            TypeDefKind::Option(inner) => {
+                self.imported_identifier(dart, KnownDartUri::PkgWasmComponents, "Option");
+                self.0.push_str("<");
+                self.write_dart_type(dart, resolve, inner);
+                self.0.push_str(">");
+            }
             TypeDefKind::Result(result) => {
                 self.imported_identifier(dart, KnownDartUri::PkgWasmComponents, "Result");
                 self.0.push_str("<");

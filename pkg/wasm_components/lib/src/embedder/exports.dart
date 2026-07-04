@@ -193,9 +193,11 @@ WasmI64 currentTimeMicros() {
   return WasmI64.fromInt(wasiTimestampInMicroseconds());
 }
 
-@pragma("wasm:import", "dart.timeZoneNameForClampedSeconds")
+@pragma("wasm:export", "timeZoneNameForClampedSeconds")
 WasmExternRef timeZoneNameForClampedSeconds(WasmI64 secondsSinceEpoch) {
-  throw UnsupportedError('TODO: Time zone names');
+  // We can't get the time zone name without including a tz db in our modules.
+  // Instead, we return the (time-independent) id of the time zone.
+  return wasiIanaId().externalize();
 }
 
 @pragma('wasm:export', 'timeZoneOffsetInSecondsForClampedSeconds')

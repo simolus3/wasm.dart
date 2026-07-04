@@ -45,6 +45,7 @@ final class ModuleTransformer {
       'randomInt': _RandomImports(),
       'randomIntSecure': _RandomImports(),
       'wasi_now': _ClockImports(),
+      'wasi_iana_id': _ClockImports(),
     };
 
     final unusedComponentImports = abi.functionImports.keys.toSet();
@@ -294,7 +295,7 @@ final class _ClockImports extends _ComponentImport {
     switch (function.name) {
       case 'wasi_now':
         if (!_functionUsed(transformer, 'currentTime')) {
-          _wasiNowStub(transformer, function);
+          _stub(transformer, function);
           break;
         }
 
@@ -308,6 +309,26 @@ final class _ClockImports extends _ComponentImport {
         );
         abi.functionImports[function.name] = componentImport;
         systemClock.importedFunctions.add(componentImport);
+      case 'wasi_iana_id':
+        if (!_functionUsed(transformer, 'timeZoneNameForClampedSeconds')) {
+          _stub(transformer, function);
+          break;
+        }
+
+        final timezone = _lookupTimezone(abi);
+        function.module = 'component';
+        function.name = 'implicitImport_timezoneIanaId';
+        final componentImport = ImportedInstanceFunction(
+          'iana-id',
+          function.name,
+          FunctionOptions(
+            usesMemory: true,
+            usesStrings: true,
+            needsRealloc: true,
+          ),
+        );
+        abi.functionImports[function.name] = componentImport;
+        timezone.importedFunctions.add(componentImport);
     }
   }
 
@@ -318,7 +339,7 @@ final class _ClockImports extends _ComponentImport {
   }
 
   /// Replaces the `wasiNowPtr()` import with a stub to avoid dependencies.
-  void _wasiNowStub(
+  void _stub(
     ModuleTransformer transformer,
     w.ImportedFunction importedFunction,
   ) {
@@ -352,6 +373,25 @@ final class _ClockImports extends _ComponentImport {
       instance.exportFunction(
         'get-resolution',
         FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
+      );
+
+      return ResolvedInterface(fullName, instance.build());
+    });
+  }
+
+  ResolvedInterface _lookupTimezone(DartProgramAbi abi) {
+    const fullName = 'wasi:clocks/timezone@0.3.0';
+
+    return abi.lookupOrAddInterface(fullName, () {
+      final instance = InstanceTypeBuilder();
+
+      instance.exportFunction(
+        'iana-id',
+        FunctionType(
+          async: false,
+          parameters: [],
+          result: OptionType(StringType()),
+        ),
       );
 
       return ResolvedInterface(fullName, instance.build());

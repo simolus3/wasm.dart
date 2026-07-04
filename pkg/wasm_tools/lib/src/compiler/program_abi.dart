@@ -115,11 +115,13 @@ final class DartProgramAbi {
 final class FunctionOptions {
   final bool usesMemory;
   final bool usesStrings;
+  final bool needsRealloc;
   final String? postReturn;
 
   FunctionOptions({
     required this.usesMemory,
     required this.usesStrings,
+    this.needsRealloc = false,
     this.postReturn,
   });
 
@@ -127,6 +129,7 @@ final class FunctionOptions {
     return FunctionOptions(
       usesMemory: json['use_memory'] as bool,
       usesStrings: json['uses_strings'] as bool,
+      needsRealloc: json['needs_realloc'] as bool? ?? false,
       postReturn: json['post_return'] as String?,
     );
   }

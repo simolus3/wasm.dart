@@ -105,8 +105,8 @@ __Legend__:
 | regexpMatchGetNamedGroups                |             | 🎯        |                               |
 | regexpMatchGetGroupName                  |             | 🎯        |                               |
 | regexpMatchGetGroupByName                |             | 🎯        |                               |
-| timeZoneNameForClampedSeconds            |             | 📦        |                               |
-| timeZoneOffsetInSecondsForClampedSeconds |             | 📦        |                               |
+| timeZoneNameForClampedSeconds            |             | 📦        | Unimplemented in wasmtime     |
+| timeZoneOffsetInSecondsForClampedSeconds |             | 📦        | Unimplemented in wasmtime     |
 | mathPow                                  | ✅          | 🎯        | Using `libm` in Rust.         |
 | mathAtan2                                | ✅          | 🎯        | Using `libm` in Rust.         |
 | mathSin                                  | ✅          | 🎯        | Using `libm` in Rust.         |
