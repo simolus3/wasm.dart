@@ -15,6 +15,12 @@ external WasmVoid wasiNowPtr(WasmI32 ptr);
 @pragma('wasm:import', 'dart.wasi_iana_id')
 external WasmVoid rawIanaId(WasmI32 ptr);
 
+@pragma('wasm:import', 'dart.wasi_monotonic_now')
+external WasmI64 wasiMonotonicNow();
+
+@pragma('wasm:import', 'dart.wasi_monotonic_getResolution')
+external WasmI64 wasiMonotonicGetResolution();
+
 int wasiTimestampInMicroseconds() {
   final instantPtr = libc.mallocAligned(const WasmI32(8), const WasmI32(16));
   wasiNowPtr(instantPtr);
@@ -52,4 +58,37 @@ WasmStringImplementation wasiIanaId() {
 
   // libc.dartFree(namePtr, const WasmI32(12), const WasmI32(4));
   // return result;
+}
+
+int _tickFrequency = 0;
+int _tickFactor = 1;
+
+void _initializeFrequency() {
+  if (_tickFrequency == 0) {
+    final durationNanos = wasiMonotonicGetResolution().toInt();
+    if (durationNanos <= 1000) {
+      // Native timer ticks in microseconds or faster, use MHz as a base unit.
+      _tickFrequency = 1_000_000;
+      _tickFactor = 1000;
+    } else {
+      // Native timer ticks slower than 1 MHz, report as ticks in 1 kHz.
+      _tickFrequency = 1000;
+      _tickFactor = 1_000_000;
+    }
+  }
+}
+
+// Dart only supports us returning 1 kHz or 1 MHz here. Use a frequency
+// appropriate for the runtime.
+int get dartStopwatchTickFrequency {
+  _initializeFrequency();
+  return _tickFrequency;
+}
+
+int get dartMonotonicTicks {
+  _initializeFrequency();
+
+  // Note: wasiMonotonicNow is always a number of nanoseconds, Dart wants this
+  // represented in units of ticks.
+  return wasiMonotonicNow().toInt() ~/ _tickFactor;
 }

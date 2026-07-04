@@ -99,7 +99,14 @@ WasmI32 stringLastIndexOfString(
 }
 
 @pragma('wasm:export')
-WasmExternRef stringRepeat(WasmExternRef? string, WasmI32 amount) {
+WasmExternRef? stringConcat(WasmExternRef? a, WasmExternRef? b) {
+  return WasmStringImplementation.fromExtern(
+    a,
+  ).concat(WasmStringImplementation.fromExtern(b)).externalize();
+}
+
+@pragma('wasm:export')
+WasmExternRef? stringRepeat(WasmExternRef? string, WasmI32 amount) {
   final wasmString = WasmStringImplementation.fromExtern(string);
   return wasmString.repeat(amount.toIntSigned()).externalize();
 }
@@ -203,4 +210,14 @@ WasmExternRef timeZoneNameForClampedSeconds(WasmI64 secondsSinceEpoch) {
 @pragma('wasm:export', 'timeZoneOffsetInSecondsForClampedSeconds')
 WasmI32 timeZoneOffsetInSecondsForClampedSeconds(WasmI64 secondsSinceEpoch) {
   return const WasmI32(0);
+}
+
+@pragma('wasm:export', 'monotonicClockFrequency')
+WasmI32 monotonicClockFrequency() {
+  return dartStopwatchTickFrequency.toWasmI32();
+}
+
+@pragma('wasm:export', 'monotonicClockTicks')
+WasmI64 monotonicClockTicks() {
+  return dartMonotonicTicks.toWasmI64();
 }

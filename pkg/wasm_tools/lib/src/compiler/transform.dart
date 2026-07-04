@@ -46,6 +46,8 @@ final class ModuleTransformer {
       'randomIntSecure': _RandomImports(),
       'wasi_now': _ClockImports(),
       'wasi_iana_id': _ClockImports(),
+      'wasi_monotonic_now': _ClockImports(),
+      'wasi_monotonic_getResolution': _ClockImports(),
     };
 
     final unusedComponentImports = abi.functionImports.keys.toSet();
@@ -295,7 +297,7 @@ final class _ClockImports extends _ComponentImport {
     switch (function.name) {
       case 'wasi_now':
         if (!_functionUsed(transformer, 'currentTime')) {
-          _stub(transformer, function);
+          _stubPtr(transformer, function);
           break;
         }
 
@@ -311,7 +313,7 @@ final class _ClockImports extends _ComponentImport {
         systemClock.importedFunctions.add(componentImport);
       case 'wasi_iana_id':
         if (!_functionUsed(transformer, 'timeZoneNameForClampedSeconds')) {
-          _stub(transformer, function);
+          _stubPtr(transformer, function);
           break;
         }
 
@@ -329,6 +331,37 @@ final class _ClockImports extends _ComponentImport {
         );
         abi.functionImports[function.name] = componentImport;
         timezone.importedFunctions.add(componentImport);
+      case 'wasi_monotonic_now':
+        if (!_functionUsed(transformer, 'monotonicClockTicks')) {
+          _stubReturningI64(transformer, function);
+          break;
+        }
+        final clock = _lookupMonotonicClock(abi);
+        function.module = 'component';
+        function.name = 'implicitImport_monotonicTicks';
+        final componentImport = ImportedInstanceFunction(
+          'now',
+          function.name,
+          FunctionOptions(usesMemory: false, usesStrings: false),
+        );
+        abi.functionImports[function.name] = componentImport;
+        clock.importedFunctions.add(componentImport);
+      case 'wasi_monotonic_getResolution':
+        if (!_functionUsed(transformer, 'monotonicClockFrequency') &&
+            !_functionUsed(transformer, 'monotonicClockTicks')) {
+          _stubReturningI64(transformer, function);
+          break;
+        }
+        final clock = _lookupMonotonicClock(abi);
+        function.module = 'component';
+        function.name = 'implicitImport_monotonicDuration';
+        final componentImport = ImportedInstanceFunction(
+          'get-resolution',
+          function.name,
+          FunctionOptions(usesMemory: false, usesStrings: false),
+        );
+        abi.functionImports[function.name] = componentImport;
+        clock.importedFunctions.add(componentImport);
     }
   }
 
@@ -339,7 +372,7 @@ final class _ClockImports extends _ComponentImport {
   }
 
   /// Replaces the `wasiNowPtr()` import with a stub to avoid dependencies.
-  void _stub(
+  void _stubPtr(
     ModuleTransformer transformer,
     w.ImportedFunction importedFunction,
   ) {
@@ -348,7 +381,21 @@ final class _ClockImports extends _ComponentImport {
       w.Instructions([], {}, [w.End()], null, [], []),
       w.FinalizableIndex(),
       importedFunction.type,
-      'wasi_now',
+    );
+    transformer.module.functions.defined.add(stubFunction);
+    transformer._patchFunctions[importedFunction] = stubFunction;
+  }
+
+  // Replaces `wasiMonotonicNow()` and `wasiMonotonicGetResolution` with a stub.
+  void _stubReturningI64(
+    ModuleTransformer transformer,
+    w.ImportedFunction importedFunction,
+  ) {
+    final stubFunction = w.DefinedFunction(
+      transformer.module,
+      w.Instructions([], {}, [w.I64Const(0), w.End()], null, [], []),
+      w.FinalizableIndex(),
+      importedFunction.type,
     );
     transformer.module.functions.defined.add(stubFunction);
     transformer._patchFunctions[importedFunction] = stubFunction;
@@ -392,6 +439,25 @@ final class _ClockImports extends _ComponentImport {
           parameters: [],
           result: OptionType(StringType()),
         ),
+      );
+
+      return ResolvedInterface(fullName, instance.build());
+    });
+  }
+
+  ResolvedInterface _lookupMonotonicClock(DartProgramAbi abi) {
+    const fullName = 'wasi:clocks/monotonic-clock@0.3.0';
+
+    return abi.lookupOrAddInterface(fullName, () {
+      final instance = InstanceTypeBuilder();
+
+      instance.exportFunction(
+        'now',
+        FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
+      );
+      instance.exportFunction(
+        'get-resolution',
+        FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
       );
 
       return ResolvedInterface(fullName, instance.build());

@@ -65,8 +65,8 @@ __Legend__:
 | stringRepeat                             | ✅          | 🎯        |                               |
 | stringReplaceRange                       |             | 🎯        |                               |
 | stringToCodeUnits                        |             | 🎯        |                               |
-| monotonicClockFrequency                  |             | 📦        |                               |
-| monotonicClockTicks                      |             | 📦        |                               |
+| monotonicClockFrequency                  | ✅          | 📦        |                               |
+| monotonicClockTicks                      | ✅          | 📦        |                               |
 | weakRefCreate                            |             | 🛑        |                               |
 | weakRefGet                               |             | 🛑        |                               |
 | expandoCreate                            |             | 🛑        |                               |

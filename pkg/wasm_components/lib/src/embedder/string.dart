@@ -13,6 +13,10 @@ sealed class WasmStringImplementation {
   int codeUnitAtUnchecked(int offset);
 
   WasmStringImplementation substring(WasmI32 start, WasmI32 end);
+  WasmStringImplementation concat(WasmStringImplementation other) {
+    return WasmStringImplementation._concatUtf16(this, other);
+  }
+
   WasmStringImplementation repeat(int amount);
 
   bool stringEquals(WasmStringImplementation other) {
@@ -80,6 +84,24 @@ sealed class WasmStringImplementation {
   static WasmStringImplementation fromExtern(WasmExternRef? ref) {
     return ref!.internalize().toObject() as WasmStringImplementation;
   }
+
+  static WasmStringImplementation _concatUtf16(
+    WasmStringImplementation a,
+    WasmStringImplementation b,
+  ) {
+    final aLength = a.length;
+    final bLength = b.length;
+    final array = WasmArray<WasmI16>(aLength + bLength);
+
+    for (var i = 0; i < aLength; i++) {
+      array.write(i, a.codeUnitAtUnchecked(i));
+    }
+    for (var i = 0; i < bLength; i++) {
+      array.write(aLength + i, b.codeUnitAtUnchecked(i));
+    }
+
+    return Utf16String.unsafeWrap(array);
+  }
 }
 
 final class Latin1String extends WasmStringImplementation {
@@ -118,6 +140,22 @@ final class Latin1String extends WasmStringImplementation {
   @override
   WasmStringImplementation substring(WasmI32 start, WasmI32 end) {
     return Latin1String.fromAsciiBytes(codeUnits, start, end - start);
+  }
+
+  @override
+  WasmStringImplementation concat(WasmStringImplementation other) {
+    if (other is Latin1String) {
+      final thisLength = length;
+      final otherLength = other.length;
+      final array = WasmArray<WasmI8>(thisLength + otherLength);
+
+      array.copyTyped(0, codeUnits, 0, thisLength);
+      array.copyTyped(thisLength, other.codeUnits, 0, otherLength);
+
+      return Latin1String.unsafeWrap(array);
+    } else {
+      return WasmStringImplementation._concatUtf16(this, other);
+    }
   }
 
   @override
