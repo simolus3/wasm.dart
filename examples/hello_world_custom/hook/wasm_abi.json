@@ -31,7 +31,7 @@
       }
     },
     {
-      "full_name": "wasi:cli/run@0.2.12",
+      "full_name": "wasi:cli/run@0.3.0",
       "exported_functions": {
         "run": {
           "name": "run",

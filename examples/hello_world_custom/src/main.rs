@@ -16,7 +16,7 @@ fn main() -> Result<()> {
 
     let bytes = fs::read("bin/app.wasm")?;
     let component = Component::new(&engine, bytes)?;
-    let Some(run_instance_index) = component.get_export_index(None, "wasi:cli/run@0.2.12") else {
+    let Some(run_instance_index) = component.get_export_index(None, "wasi:cli/run@0.3.0") else {
         bail!("Expected a wasi:cli/run export");
     };
     let Some(run_func_index) = component.get_export_index(Some(&run_instance_index), "run") else {

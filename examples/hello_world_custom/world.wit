@@ -3,7 +3,7 @@ package root:component;
 world root {
   import dart:components/print@0.0.1;
 
-  export wasi:cli/run@0.2.12;
+  export wasi:cli/run@0.3.0;
 }
 package dart:components@0.0.1 {
   /// Component that can print stuff.
@@ -13,7 +13,7 @@ package dart:components@0.0.1 {
   }
 }
 
-package wasi:cli@0.2.12 {
+package wasi:cli@0.3.0 {
   interface run {
     run: func() -> result;
   }

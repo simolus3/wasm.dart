@@ -2,7 +2,7 @@ The tiniest possible component model, compiled via dart2wasm and a custom compon
 
 ## Usage
 
-From this repository, run `dart run wasm_components compile bin/app.dart`.
+From this repository, run `dart run wasm_tools compile bin/app.dart`.
 Note that the compiler currently compiles a helper library written in Rust (which
 will eventually be used to allocate linear memory and to implement math builtins).
 This requires a nightly Rust toolchain with the `wasm32-unknown-unknown` target to
