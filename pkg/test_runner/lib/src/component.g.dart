@@ -7,6 +7,7 @@ abstract interface class ResultCollector {
   void recordString({required String e});
   void recordDouble({required double e});
   void recordInt({required int e});
+  void recordBool({required bool e});
 }
 
 @pragma("wasm:import", r"component._import0")
@@ -15,6 +16,8 @@ external i1.WasmVoid _import0(i1.WasmI32 p0, i1.WasmI32 p1);
 external i1.WasmVoid _import1(i1.WasmF64 p0);
 @pragma("wasm:import", r"component._import2")
 external i1.WasmVoid _import2(i1.WasmI64 p0);
+@pragma("wasm:import", r"component._import3")
+external i1.WasmVoid _import3(i1.WasmI32 p0);
 
 final class _Imported$ResultCollector implements ResultCollector {
   const _Imported$ResultCollector();
@@ -33,6 +36,11 @@ final class _Imported$ResultCollector implements ResultCollector {
   @override
   void recordInt({required int e}) {
     _import2(i1.WasmI64.fromInt(e));
+  }
+
+  @override
+  void recordBool({required bool e}) {
+    _import3(i1.WasmI32.fromBool(e));
   }
 }
 

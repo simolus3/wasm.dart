@@ -4,3 +4,9 @@
 {"type":"start","test":1}
 {"type":"string","value":"eeeeeeeeee"}
 {"type":"end","test":1}
+{"type":"start","test":2}
+{"type":"string","value":"hello world"}
+{"type":"string","value":"HELLO WORLD"}
+{"type":"bool","value":true}
+{"type":"bool","value":true}
+{"type":"end","test":2}

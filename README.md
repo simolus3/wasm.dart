@@ -59,9 +59,9 @@ __Legend__:
 | stringReplaceAllString                   |             | 🎯        |                               |
 | stringReplaceAllRegExp                   |             | 🎯        |                               |
 | stringSubstring                          | ✅          | 🎯        |                               |
-| stringToLowerCase                        |             | 🎯        |                               |
-| stringToUpperCase                        |             | 🎯        |                               |
-| stringConcat                             |             | 🎯        |                               |
+| stringToLowerCase                        | ✅          | 🎯        |                               |
+| stringToUpperCase                        | ✅          | 🎯        |                               |
+| stringConcat                             | ✅          | 🎯        |                               |
 | stringRepeat                             | ✅          | 🎯        |                               |
 | stringReplaceRange                       |             | 🎯        |                               |
 | stringToCodeUnits                        |             | 🎯        |                               |

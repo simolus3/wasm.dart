@@ -52,6 +52,10 @@ fn main() -> Result<()> {
             post_event(&TestEvent::RecordedInt { value: params.0 });
             Ok(())
         })?;
+        collector.func_wrap("record-bool", |_store, params: (bool,)| {
+            post_event(&TestEvent::RecordedBool { value: params.0 });
+            Ok(())
+        })?;
     }
 
     let instance = linker.instantiate(&mut store, &component)?;
@@ -94,4 +98,6 @@ enum TestEvent {
     RecordedDouble { value: f64 },
     #[serde(rename = "int")]
     RecordedInt { value: i64 },
+    #[serde(rename = "bool")]
+    RecordedBool { value: bool },
 }

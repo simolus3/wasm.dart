@@ -34,4 +34,9 @@ final class _PrintRunner implements BaseResultCollector {
   void recordString({required String e}) {
     _printJson(serializeRecordedString(e));
   }
+
+  @override
+  void recordBool({required bool e}) {
+    _printJson(serializeRecordedBool(e));
+  }
 }

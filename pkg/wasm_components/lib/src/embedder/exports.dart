@@ -99,6 +99,16 @@ WasmI32 stringLastIndexOfString(
 }
 
 @pragma('wasm:export')
+WasmExternRef? stringToLowerCase(WasmExternRef? string) {
+  return WasmStringImplementation.fromExtern(string).toLower().externalize();
+}
+
+@pragma('wasm:export')
+WasmExternRef? stringToUpperCase(WasmExternRef? string) {
+  return WasmStringImplementation.fromExtern(string).toUpper().externalize();
+}
+
+@pragma('wasm:export')
 WasmExternRef? stringConcat(WasmExternRef? a, WasmExternRef? b) {
   return WasmStringImplementation.fromExtern(
     a,

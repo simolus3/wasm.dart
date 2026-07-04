@@ -15,6 +15,8 @@ final class ResolvedWitDefinitions {
         return types[index];
       case 'string':
         return StringType();
+      case 'bool':
+        return PrimitiveType.bool;
       case 'u8':
         return PrimitiveType.u8;
       case 'u16':

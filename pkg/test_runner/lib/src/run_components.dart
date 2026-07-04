@@ -22,6 +22,11 @@ final class _ImportedCollector implements BaseResultCollector {
   void recordString({required String e}) {
     importedInstance0.recordString(e: e);
   }
+
+  @override
+  void recordBool({required bool e}) {
+    importedInstance0.recordBool(e: e);
+  }
 }
 
 final class _ExportTestModule implements TestedModule {

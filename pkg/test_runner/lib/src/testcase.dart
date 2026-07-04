@@ -2,6 +2,7 @@ abstract interface class BaseResultCollector {
   void recordString({required String e});
   void recordDouble({required double e});
   void recordInt({required int e});
+  void recordBool({required bool e});
 }
 
 typedef TestCase = void Function(BaseResultCollector collector);
@@ -24,4 +25,8 @@ Object serializeRecordedDouble(double e) {
 
 Object serializeRecordedInt(int e) {
   return {'type': 'int', 'value': e};
+}
+
+Object serializeRecordedBool(bool e) {
+  return {'type': 'bool', 'value': e};
 }

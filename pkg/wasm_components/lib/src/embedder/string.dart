@@ -19,7 +19,19 @@ sealed class WasmStringImplementation {
 
   WasmStringImplementation repeat(int amount);
 
+  WasmStringImplementation toUpper() {
+    return _transformCase(_CaseMapping(true));
+  }
+
+  WasmStringImplementation toLower() {
+    return _transformCase(_CaseMapping(false));
+  }
+
+  WasmStringImplementation _transformCase(_CaseMapping mapping);
+
   bool stringEquals(WasmStringImplementation other) {
+    if (identical(this, other)) return true;
+
     final thisLength = length;
     final otherLength = other.length;
 
@@ -30,7 +42,7 @@ sealed class WasmStringImplementation {
   WasmI32 compareTo(WasmStringImplementation other) {
     var aLength = length;
     var bLength = other.length;
-    for (var i = 0; i < aLength && i < bLength; i = i++) {
+    for (var i = 0; i < aLength && i < bLength; i++) {
       var charA = codeUnitAtUnchecked(i);
       var charB = other.codeUnitAtUnchecked(i);
 
@@ -170,6 +182,18 @@ final class Latin1String extends WasmStringImplementation {
 
     return Latin1String.unsafeWrap(array);
   }
+
+  @override
+  WasmStringImplementation _transformCase(_CaseMapping mapping) {
+    final length = this.length;
+    final copy = WasmArray<WasmI8>(length);
+    for (var i = 0; i < length; i++) {
+      copy.write(i, mapping.processCharCode(codeUnitAtUnchecked(i)));
+    }
+
+    if (!mapping.hadChanges) return this;
+    return Latin1String.unsafeWrap(copy);
+  }
 }
 
 final class Utf16String extends WasmStringImplementation {
@@ -219,4 +243,46 @@ final class Utf16String extends WasmStringImplementation {
 
     return Utf16String.unsafeWrap(array);
   }
+
+  @override
+  WasmStringImplementation _transformCase(_CaseMapping mapping) {
+    final length = this.length;
+    final copy = WasmArray<WasmI16>(length);
+    for (var i = 0; i < length; i++) {
+      copy.write(i, mapping.processCharCode(codeUnitAtUnchecked(i)));
+    }
+
+    if (!mapping.hadChanges) return this;
+    return Utf16String.unsafeWrap(copy);
+  }
+}
+
+final class _CaseMapping {
+  var hadChanges = false;
+  final bool toUpper;
+
+  new(this.toUpper);
+
+  int processCharCode(int original) {
+    if (toUpper) {
+      if (original >= _a && original <= _z) {
+        hadChanges = true;
+        return original - 32;
+      }
+    } else {
+      if (original >= _A && original <= _Z) {
+        hadChanges = true;
+        return original + 32;
+      }
+    }
+
+    return original;
+  }
+
+  // ignore: constant_identifier_names
+  static const _A = 0x41;
+  // ignore: constant_identifier_names
+  static const _Z = 0x5a;
+  static const _a = 0x61;
+  static const _z = 0x7a;
 }

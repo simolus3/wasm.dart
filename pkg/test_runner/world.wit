@@ -4,6 +4,7 @@ interface result-collector {
   record-string: func(e: string);
   record-double: func(e: f64);
   record-int: func(e: s64);
+  record-bool: func(e: bool);
 }
 
 interface tested-module {
