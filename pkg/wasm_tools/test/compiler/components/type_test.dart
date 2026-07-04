@@ -40,16 +40,32 @@ void main() {
         result: null,
       ),
     );
-    c.addInstanceType(InstanceType([('exit', exitFunction)]));
+    c.addInstanceType(
+      InstanceType([
+        .type(
+          'time',
+          RecordType([
+            .new(label: 'foo', type: PrimitiveType.bool),
+            .new(label: 'bar', type: PrimitiveType.s16),
+          ]),
+        ),
+        .function('exit', exitFunction),
+      ]),
+    );
 
     expect(await componentToWat(c), r'''
 (component
   (type (;0;) (result))
   (type (;1;) (func (param "status" 0)))
-  (type (;2;)
+  (type (;2;) bool)
+  (type (;3;) s16)
+  (type (;4;) (record (field "foo" 2) (field "bar" 3)))
+  (type (;5;)
     (instance
-      (alias outer 1 1 (type (;0;)))
-      (export (;0;) "exit" (func (type 0)))
+      (alias outer 1 4 (type (;0;)))
+      (alias outer 1 1 (type (;1;)))
+      (export (;2;) "time" (type (eq 0)))
+      (export (;0;) "exit" (func (type 1)))
     )
   )
 )

@@ -101,9 +101,18 @@ final class ComponentBuilder implements w.Serializable {
   InstanceTypeReference addInstanceType(InstanceType type) {
     if (type is InstanceTypeReference) return type;
 
-    final exports = [
-      for (final (name, functionType) in type.exports)
-        (name, addFunctionType(functionType)),
+    final exports = <InstanceExport>[
+      for (final InstanceExport(:name, :kind, :innerType) in type.exports)
+        switch (kind) {
+          InstanceExportKind.type => .type(
+            name,
+            addValueType(innerType as ValueType),
+          ),
+          InstanceExportKind.function => .function(
+            name,
+            addFunctionType(innerType as FunctionType),
+          ),
+        },
     ];
     return _addType(InstanceType(exports), InstanceTypeReference.new);
   }

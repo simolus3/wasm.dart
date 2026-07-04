@@ -176,27 +176,30 @@ final class TypesSection extends w.Section {
         // For each function type we're about to reference here as an export, we
         // first need to add it to the current scope via an (alias outer).
         s.writeUnsigned(2 * exports.length);
-        for (final (_, function) in exports) {
-          if (function case FunctionTypeReference(:final index)) {
-            s.writeByte(0x02); // in instancedecl production, tag alias
-            s.writeByte(0x03); // sort: type
-            s.writeByte(0x02);
-            s.writeUnsigned(1); // outer scope (main component)
-            s.writeUnsigned(index.index);
-          } else {
-            s.writeByte(0x01); // in instancedecl production, tag type
-            _writeType(function, s);
-          }
+        for (final export in exports) {
+          s.writeByte(0x02); // in instancedecl production, tag alias
+          s.writeByte(0x03); // sort: type
+          s.writeByte(0x02);
+          final ref = export.innerType as ModelTypeReference;
+          s.writeUnsigned(1); // outer scope (main component)
+          s.writeUnsigned(ref.index.index);
         }
 
-        for (final (i, (name, _)) in exports.indexed) {
+        for (final (i, export) in exports.indexed) {
           s.writeByte(0x04); // in instancedecl production, tag export
 
           // exportname'. Not sure what's up with options?
           s.writeByte(0x00);
-          s.writeName(name);
+          s.writeName(export.name);
 
-          s.writeByte(0x01); // externdesc production, tag function
+          switch (export.kind) {
+            case InstanceExportKind.type:
+              s.writeByte(0x03);
+              s.writeByte(0x00);
+            case InstanceExportKind.function:
+              s.writeByte(0x01);
+          }
+
           // Function type guaranteed to match index of function because we use
           // aliases.
           s.writeUnsigned(i);

@@ -248,8 +248,8 @@ final class _RandomImports extends _ComponentImport {
       return ResolvedInterface(
         fullName,
         InstanceType([
-          ('get-insecure-random-bytes', _generateBytes()),
-          ('get-insecure-random-u64', _generateU64()),
+          .function('get-insecure-random-bytes', _generateBytes()),
+          .function('get-insecure-random-u64', _generateU64()),
         ]),
       );
     });
@@ -262,8 +262,8 @@ final class _RandomImports extends _ComponentImport {
       return ResolvedInterface(
         fullName,
         InstanceType([
-          ('get-random-bytes', _generateBytes()),
-          ('get-random-u64', _generateU64()),
+          .function('get-random-bytes', _generateBytes()),
+          .function('get-random-u64', _generateU64()),
         ]),
       );
     });
@@ -344,7 +344,7 @@ final class _ClockImports extends _ComponentImport {
       return ResolvedInterface(
         fullName,
         InstanceType([
-          (
+          .function(
             'now',
             FunctionType(
               async: false,
@@ -355,7 +355,7 @@ final class _ClockImports extends _ComponentImport {
               ]),
             ),
           ),
-          (
+          .function(
             'get-resolution',
             FunctionType(
               async: false,

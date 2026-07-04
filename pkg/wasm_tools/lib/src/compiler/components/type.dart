@@ -449,11 +449,11 @@ final class FunctionTypeReference extends ModelTypeReference<FunctionType>
 }
 
 final class InstanceType extends ModelType {
-  /// The functions exported by this instance.
+  /// The functions and types exported by this instance.
   ///
   /// The component model also supports exporting other values, but we don't
-  /// currently support that.
-  final List<(String, FunctionType)> exports;
+  /// currently support those.
+  final List<InstanceExport> exports;
 
   InstanceType(this.exports);
 
@@ -465,10 +465,37 @@ final class InstanceType extends ModelType {
       other is InstanceType && _listEquality.equals(other.exports, exports);
 }
 
+enum InstanceExportKind { type, function }
+
+final class InstanceExport {
+  final String name;
+  final InstanceExportKind kind;
+
+  /// The exported type, or the function type for exported functions.
+  final ModelType innerType;
+
+  new function(this.name, FunctionType function)
+    : kind = .function,
+      innerType = function;
+
+  new type(this.name, ValueType this.innerType) : kind = .type;
+
+  @override
+  int get hashCode => Object.hash(name, kind, innerType);
+
+  @override
+  bool operator ==(Object other) {
+    return other is InstanceExport &&
+        other.name == name &&
+        other.kind == kind &&
+        other.innerType == innerType;
+  }
+}
+
 final class InstanceTypeReference extends ModelTypeReference<InstanceType>
     implements InstanceType {
   InstanceTypeReference(super.index, super.resolvedType);
 
   @override
-  List<(String, FunctionType)> get exports => resolvedType.exports;
+  List<InstanceExport> get exports => resolvedType.exports;
 }

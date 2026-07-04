@@ -24,7 +24,7 @@ void main() {
       FunctionType(async: false, parameters: [], result: resultType),
     );
     final wasiCliExitInstanceType = builder.addInstanceType(
-      InstanceType([('exit', exitFunctionType)]),
+      InstanceType([.function('exit', exitFunctionType)]),
     );
     final exitInstance = builder.importInstance(
       'wasi:cli/exit@0.2.12',
