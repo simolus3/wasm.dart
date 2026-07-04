@@ -118,7 +118,7 @@ final class ComponentCompiler {
           final originalType = function.type;
           final lifted = builder.linker.canonLift(
             resolved,
-            builder.addFunctionType(originalType),
+            builder.types.addFunctionType(originalType),
           );
           linker.applyOptions(function.options, lifted);
           lifted.postReturn = corePostReturnFunction;

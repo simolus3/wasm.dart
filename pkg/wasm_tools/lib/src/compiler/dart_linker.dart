@@ -45,7 +45,7 @@ final class DartLinker {
       for (final import in importedInstances)
         builder.importInstance(
           import.fullName,
-          builder.addInstanceType(import.type),
+          builder.types.addInstanceType(import.type),
         ),
     ];
 

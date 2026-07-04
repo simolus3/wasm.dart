@@ -245,13 +245,11 @@ final class _RandomImports extends _ComponentImport {
     const fullName = 'wasi:random/insecure@0.3.0';
 
     return abi.lookupOrAddInterface(fullName, () {
-      return ResolvedInterface(
-        fullName,
-        InstanceType([
-          .function('get-insecure-random-bytes', _generateBytes()),
-          .function('get-insecure-random-u64', _generateU64()),
-        ]),
-      );
+      final builder = InstanceTypeBuilder()
+        ..exportFunction('get-insecure-random-bytes', _generateBytes())
+        ..exportFunction('get-insecure-random-u64', _generateU64());
+
+      return ResolvedInterface(fullName, builder.build());
     });
   }
 
@@ -259,13 +257,11 @@ final class _RandomImports extends _ComponentImport {
     const fullName = 'wasi:random/random@0.3.0';
 
     return abi.lookupOrAddInterface(fullName, () {
-      return ResolvedInterface(
-        fullName,
-        InstanceType([
-          .function('get-random-bytes', _generateBytes()),
-          .function('get-random-u64', _generateU64()),
-        ]),
-      );
+      final builder = InstanceTypeBuilder()
+        ..exportFunction('get-random-bytes', _generateBytes())
+        ..exportFunction('get-random-u64', _generateU64());
+
+      return ResolvedInterface(fullName, builder.build());
     });
   }
 
@@ -303,7 +299,7 @@ final class _ClockImports extends _ComponentImport {
         }
 
         final systemClock = _lookupSystemClock(abi);
-        function.module = 'components';
+        function.module = 'component';
         function.name = 'implicitImport_systemClockNow';
         final componentImport = ImportedInstanceFunction(
           'now',
@@ -341,30 +337,24 @@ final class _ClockImports extends _ComponentImport {
     const fullName = 'wasi:clocks/system-clock@0.3.0';
 
     return abi.lookupOrAddInterface(fullName, () {
-      return ResolvedInterface(
-        fullName,
-        InstanceType([
-          .function(
-            'now',
-            FunctionType(
-              async: false,
-              parameters: [],
-              result: RecordType([
-                .new(label: 'seconds', type: PrimitiveType.s64),
-                .new(label: 'nanoseconds', type: PrimitiveType.u32),
-              ]),
-            ),
-          ),
-          .function(
-            'get-resolution',
-            FunctionType(
-              async: false,
-              parameters: [],
-              result: PrimitiveType.u64,
-            ),
-          ),
+      final instance = InstanceTypeBuilder();
+      final instant = instance.exportType(
+        'instant',
+        RecordType([
+          .new(label: 'seconds', type: PrimitiveType.s64),
+          .new(label: 'nanoseconds', type: PrimitiveType.u32),
         ]),
       );
+      instance.exportFunction(
+        'now',
+        FunctionType(async: false, parameters: [], result: instant),
+      );
+      instance.exportFunction(
+        'get-resolution',
+        FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
+      );
+
+      return ResolvedInterface(fullName, instance.build());
     });
   }
 }

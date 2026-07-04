@@ -41,7 +41,7 @@ final class DartProgramAbi {
     for (final entry
         in (encoding['interfaces'] as List).cast<Map<String, Object?>>()) {
       final fullName = entry['full_name'] as String;
-      final functions = <InstanceExport>[];
+      final instanceType = InstanceTypeBuilder();
 
       interfaces.add(
         lookupOrAddInterface(fullName, () {
@@ -60,15 +60,13 @@ final class DartProgramAbi {
             final result = definitions.readOptionalType(value['result']);
             final async = (value['kind'] as String).contains('async');
 
-            functions.add(
-              .function(
-                name,
-                FunctionType(async: async, parameters: params, result: result),
-              ),
+            instanceType.exportFunction(
+              name,
+              FunctionType(async: async, parameters: params, result: result),
             );
           }
 
-          return ResolvedInterface(fullName, InstanceType(functions));
+          return ResolvedInterface(fullName, instanceType.build());
         }),
       );
     }
@@ -103,10 +101,9 @@ final class DartProgramAbi {
       final export = ExportedInstanceFunction(
         coreName,
         functionName,
-        interface.type.exports
-                .singleWhere((e) => e.name == functionName)
-                .innerType
-            as FunctionType,
+        interface.type.functionExports
+            .singleWhere((e) => e.name == functionName)
+            .function,
         options,
       );
       functionExports[coreName] = export;

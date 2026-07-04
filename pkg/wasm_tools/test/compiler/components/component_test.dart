@@ -12,19 +12,23 @@ void main() {
     final builder = ComponentBuilder();
     final app = builder.defineModule(_defineModuleCallingExit0());
 
-    final resultType = builder.addValueType(ResultType());
-    final exitFunctionType = builder.addFunctionType(
+    final resultType = builder.types.addValueType(ResultType());
+    final exitFunctionType = builder.types.addFunctionType(
       FunctionType(
         async: false,
         parameters: [RecordOrVariantField(label: 'status', type: resultType)],
         result: null,
       ),
     );
-    final mainType = builder.addFunctionType(
+    final mainType = builder.types.addFunctionType(
       FunctionType(async: false, parameters: [], result: resultType),
     );
-    final wasiCliExitInstanceType = builder.addInstanceType(
-      InstanceType([.function('exit', exitFunctionType)]),
+
+    final instanceType = InstanceTypeBuilder()
+      ..exportFunction('exit', exitFunctionType);
+
+    final wasiCliExitInstanceType = builder.types.addInstanceType(
+      instanceType.build(),
     );
     final exitInstance = builder.importInstance(
       'wasi:cli/exit@0.2.12',
@@ -75,8 +79,9 @@ void main() {
   (type (;2;) (func (result 0)))
   (type (;3;)
     (instance
-      (alias outer 1 1 (type (;0;)))
-      (export (;0;) "exit" (func (type 0)))
+      (type (;0;) (result))
+      (type (;1;) (func (param "status" 0)))
+      (export (;0;) "exit" (func (type 1)))
     )
   )
   (import "wasi:cli/exit@0.2.12" (instance (;0;) (type 3)))

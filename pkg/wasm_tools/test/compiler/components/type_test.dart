@@ -7,9 +7,9 @@ import 'utils.dart';
 void main() {
   test('can write types', () async {
     final c = ComponentBuilder();
-    final bool = c.addValueType(PrimitiveType.bool);
-    final int32 = c.addValueType(PrimitiveType.s32);
-    c.addFunctionType(
+    final bool = c.types.addValueType(PrimitiveType.bool);
+    final int32 = c.types.addValueType(PrimitiveType.s32);
+    c.types.addFunctionType(
       FunctionType(
         async: false,
         parameters: [
@@ -32,40 +32,40 @@ void main() {
 
   test('can write instances', () async {
     final c = ComponentBuilder();
-    final result = c.addValueType(ResultType());
-    final exitFunction = c.addFunctionType(
-      FunctionType(
-        async: false,
-        parameters: [RecordOrVariantField(label: 'status', type: result)],
-        result: null,
-      ),
-    );
-    c.addInstanceType(
-      InstanceType([
-        .type(
-          'time',
-          RecordType([
-            .new(label: 'foo', type: PrimitiveType.bool),
-            .new(label: 'bar', type: PrimitiveType.s16),
-          ]),
-        ),
-        .function('exit', exitFunction),
+    // To make sure we either generate an alias or duplicate the type.
+    final outerType = c.types.addValueType(PrimitiveType.s8);
+
+    final builder = InstanceTypeBuilder();
+    final exportedType = builder.exportType(
+      'foo',
+      RecordType([
+        .new(label: 'a', type: PrimitiveType.bool),
+        .new(label: 'b', type: PrimitiveType.s16),
       ]),
     );
+    builder.exportFunction(
+      'return-foo',
+      FunctionType(
+        async: false,
+        parameters: [.new(label: 'a', type: outerType)],
+        result: exportedType,
+      ),
+    );
+
+    c.types.addInstanceType(builder.build());
 
     expect(await componentToWat(c), r'''
 (component
-  (type (;0;) (result))
-  (type (;1;) (func (param "status" 0)))
-  (type (;2;) bool)
-  (type (;3;) s16)
-  (type (;4;) (record (field "foo" 2) (field "bar" 3)))
-  (type (;5;)
+  (type (;0;) s8)
+  (type (;1;)
     (instance
-      (alias outer 1 4 (type (;0;)))
-      (alias outer 1 1 (type (;1;)))
-      (export (;2;) "time" (type (eq 0)))
-      (export (;0;) "exit" (func (type 1)))
+      (type (;0;) bool)
+      (type (;1;) s16)
+      (type (;2;) (record (field "a" 0) (field "b" 1)))
+      (export (;3;) "foo" (type (eq 2)))
+      (type (;4;) s8)
+      (type (;5;) (func (param "a" 4) (result 3)))
+      (export (;0;) "return-foo" (func (type 5)))
     )
   )
 )
