@@ -12,7 +12,7 @@ final class _Greeting implements Greeting {
   @override
   String generateGreeting() {
     // Using Random() rand Random.secure() automatically imports wasi:random.
-    final random = Random().nextInt(10);
+    final random = Random.secure().nextInt(10);
     return "Hello from Dart. Here's a random number: $random!";
   }
 }

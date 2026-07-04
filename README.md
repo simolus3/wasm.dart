@@ -51,14 +51,14 @@ __Legend__:
 | stringFromCharCodeArray                  |             | 🎯        |                               |
 | stringFromAsciiBytes                     | ✅          | 🎯        |                               |
 | stringLength                             | ✅          | 🎯        |                               |
-| stringEquals                             |             | 🎯        |                               |
-| stringCompare                            |             | 🎯        |                               |
+| stringEquals                             | ✅          | 🎯        |                               |
+| stringCompare                            | ✅          | 🎯        |                               |
 | stringCodeUnitAt                         | ✅          | 🎯        |                               |
-| stringIndexOfString                      |             | 🎯        |                               |
-| stringLastIndexOfString                  |             | 🎯        |                               |
+| stringIndexOfString                      | ✅          | 🎯        |                               |
+| stringLastIndexOfString                  | ✅          | 🎯        |                               |
 | stringReplaceAllString                   |             | 🎯        |                               |
 | stringReplaceAllRegExp                   |             | 🎯        |                               |
-| stringSubstring                          |             | 🎯        |                               |
+| stringSubstring                          | ✅          | 🎯        |                               |
 | stringToLowerCase                        |             | 🎯        |                               |
 | stringToUpperCase                        |             | 🎯        |                               |
 | stringConcat                             |             | 🎯        |                               |
@@ -118,7 +118,7 @@ __Legend__:
 | mathExp                                  | ✅          | 🎯        | Using `libm` in Rust.         |
 | mathLog                                  | ✅          | 🎯        | Using `libm` in Rust.         |
 | randomInt                                | ✅          | 📦        |                               |
-| randomIntSecure                          |             | 📦        |                               |
+| randomIntSecure                          | ✅          | 📦        |                               |
 | print                                    |             | 📦        | Currently a stub              |
 | jsonEncodeString                         |             | 🎯        | Currently a stub              |
 | debugger                                 |             | 🛑        |                               |

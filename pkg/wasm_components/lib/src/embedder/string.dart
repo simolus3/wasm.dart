@@ -12,7 +12,70 @@ sealed class WasmStringImplementation {
 
   int codeUnitAtUnchecked(int offset);
 
+  WasmStringImplementation substring(WasmI32 start, WasmI32 end);
   WasmStringImplementation repeat(int amount);
+
+  bool stringEquals(WasmStringImplementation other) {
+    final thisLength = length;
+    final otherLength = other.length;
+
+    if (thisLength != otherLength) return false;
+    return compareTo(other) == const WasmI32(0);
+  }
+
+  WasmI32 compareTo(WasmStringImplementation other) {
+    var aLength = length;
+    var bLength = other.length;
+    for (var i = 0; i < aLength && i < bLength; i = i++) {
+      var charA = codeUnitAtUnchecked(i);
+      var charB = other.codeUnitAtUnchecked(i);
+
+      if (charA != charB) return WasmI32.fromInt(charB - charA);
+    }
+
+    // If one string is a prefix of the other, then the shorter string is
+    // ordered before the longer string.
+    return WasmI32.fromInt(bLength - aLength);
+  }
+
+  int indexOfString(WasmStringImplementation substring, int start) {
+    // TODO: Explore more efficient string matching algorithms.
+    final substringLength = substring.length;
+    final limit = length - substringLength;
+
+    for (var i = start; i <= limit; i++) {
+      var match = true;
+      for (var j = 0; j < substringLength; j++) {
+        if (codeUnitAtUnchecked(i + j) != substring.codeUnitAtUnchecked(j)) {
+          match = false;
+          break;
+        }
+      }
+      if (match) return i;
+    }
+
+    return -1;
+  }
+
+  int lastIndexOfString(WasmStringImplementation substring, int start) {
+    final substringLength = substring.length;
+    final limit = length - substringLength;
+    if (limit < 0) return -1;
+    if (start > limit) start = limit;
+
+    for (var i = start; i >= 0; i--) {
+      var match = true;
+      for (var j = 0; j < substringLength; j++) {
+        if (codeUnitAtUnchecked(i + j) != substring.codeUnitAtUnchecked(j)) {
+          match = false;
+          break;
+        }
+      }
+      if (match) return i;
+    }
+
+    return -1;
+  }
 
   static WasmStringImplementation fromExtern(WasmExternRef? ref) {
     return ref!.internalize().toObject() as WasmStringImplementation;
@@ -50,6 +113,11 @@ final class Latin1String extends WasmStringImplementation {
   @override
   int codeUnitAtUnchecked(int offset) {
     return codeUnits.readUnsigned(offset);
+  }
+
+  @override
+  WasmStringImplementation substring(WasmI32 start, WasmI32 end) {
+    return Latin1String.fromAsciiBytes(codeUnits, start, end - start);
   }
 
   @override
@@ -94,6 +162,11 @@ final class Utf16String extends WasmStringImplementation {
   @override
   int codeUnitAtUnchecked(int offset) {
     return codeUnits.readUnsigned(offset);
+  }
+
+  @override
+  WasmStringImplementation substring(WasmI32 start, WasmI32 end) {
+    return Utf16String.fromCharCodes(codeUnits, start, end - start);
   }
 
   @override
