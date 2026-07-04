@@ -13,6 +13,8 @@ final class _Greeting implements Greeting {
   String generateGreeting() {
     // Using Random() rand Random.secure() automatically imports wasi:random.
     final random = Random.secure().nextInt(10);
-    return "Hello from Dart. Here's a random number: $random!";
+    final time = DateTime.now().microsecondsSinceEpoch;
+
+    return "Hello from Dart. Here's a random number: $random. Time: $time";
   }
 }

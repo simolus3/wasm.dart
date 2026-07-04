@@ -305,10 +305,14 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
             | Instruction::PointerStore { offset } => {
                 self.mem_store(operands, "storeInt32", offset);
             }
+            Instruction::I64Store { offset } => self.mem_store(operands, "storeInt64", offset),
             Instruction::I32Load { offset }
             | Instruction::LengthLoad { offset }
             | Instruction::PointerLoad { offset } => {
                 self.mem_load(operands, results, "loadInt32", offset);
+            }
+            Instruction::I64Load { offset } => {
+                self.mem_load(operands, results, "loadInt64", offset)
             }
             Instruction::I32FromBool => {
                 results.push(Rc::new(format!(
@@ -419,6 +423,26 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
             Instruction::F64FromCoreF64 => {
                 let f64 = operands.pop().unwrap();
                 results.push(Rc::new(format!("{f64}.toDouble()")));
+            }
+            Instruction::RecordLift {
+                record,
+                name: _,
+                ty: _,
+            } => {
+                let tmp = self.temporary_variable();
+                uwrite!(self.definition, "  final {tmp} = (");
+
+                for _ in &record.fields {
+                    let op = operands.pop().unwrap();
+                    uwrite!(self.definition, "{op}, ");
+                }
+
+                uwriteln!(self.definition, ");");
+                results.push(tmp);
+            }
+            Instruction::Flush { amt } => {
+                let operands = operands.split_off(operands.len() - *amt);
+                results.extend_from_slice(&operands);
             }
             _ => todo!("Instruction: {inst:?}"),
         }

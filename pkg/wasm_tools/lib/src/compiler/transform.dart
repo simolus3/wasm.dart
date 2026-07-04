@@ -304,7 +304,7 @@ final class _ClockImports extends _ComponentImport {
         final componentImport = ImportedInstanceFunction(
           'now',
           function.name,
-          FunctionOptions(usesMemory: false, usesStrings: false),
+          FunctionOptions(usesMemory: true, usesStrings: false),
         );
         abi.functionImports[function.name] = componentImport;
         systemClock.importedFunctions.add(componentImport);
@@ -324,7 +324,7 @@ final class _ClockImports extends _ComponentImport {
   ) {
     final stubFunction = w.DefinedFunction(
       transformer.module,
-      w.Instructions([], {}, [w.I32Const(0), w.End()], null, [], []),
+      w.Instructions([], {}, [w.End()], null, [], []),
       w.FinalizableIndex(),
       importedFunction.type,
       'wasi_now',

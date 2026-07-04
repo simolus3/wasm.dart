@@ -78,6 +78,10 @@ impl DartWorldGenerator {
 }
 
 impl WorldGenerator for DartWorldGenerator {
+    fn preprocess(&mut self, resolve: &Resolve, _world: wit_bindgen_core::wit_parser::WorldId) {
+        self.size_align.fill(resolve);
+    }
+
     fn import_interface(
         &mut self,
         resolve: &wit_bindgen_core::wit_parser::Resolve,

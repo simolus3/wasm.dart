@@ -201,4 +201,27 @@ interface greeting {
         )
         .expect("Could not generate definitions")
     }
+
+    #[test]
+    fn return_struct() {
+        print_definitions(
+            "
+package demo:component;
+
+world root {
+  import greeting;
+}
+
+interface greeting {
+  record instant {
+        seconds: s64,
+        nanoseconds: u32,
+    }
+
+ now: func() -> instant;
+}
+",
+        )
+        .expect("Could not generate definitions")
+    }
 }
