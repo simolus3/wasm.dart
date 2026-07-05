@@ -1,8 +1,10 @@
 import 'package:hooks/hooks.dart';
 import 'package:logging/logging.dart';
 
+import 'components/linker.dart';
 import 'components/type.dart';
 import 'components/wit.dart';
+import 'dart_linker.dart';
 
 /// Information about all component imports and exports used in the Dart
 /// program being compiled.
@@ -11,7 +13,7 @@ import 'components/wit.dart';
 final class DartProgramAbi {
   final Map<String, ResolvedInterface> _interfaces = {};
 
-  final Map<String, ImportedInstanceFunction> functionImports = {};
+  final Map<String, ImportedInstanceFunctionOrCanon> functionImports = {};
   final Map<String, ExportedInstanceFunction> functionExports = {};
 
   Iterable<ResolvedInterface> get interfaces => _interfaces.values;
@@ -23,6 +25,10 @@ final class DartProgramAbi {
         yield postReturn;
       }
     }
+  }
+
+  bool get hasAsyncExport {
+    return functionExports.values.any((e) => e.options.usesCallback);
   }
 
   ResolvedInterface lookupOrAddInterface(
@@ -98,16 +104,37 @@ final class DartProgramAbi {
         rawExport['options'] as Map<String, Object?>,
       );
 
+      final functionType = interface.type.functionExports
+          .singleWhere((e) => e.name == functionName)
+          .function;
+
       final export = ExportedInstanceFunction(
         coreName,
         functionName,
-        interface.type.functionExports
-            .singleWhere((e) => e.name == functionName)
-            .function,
+        functionType,
         options,
       );
       functionExports[coreName] = export;
       interface.exports.add(export);
+
+      if (options.returnImport case final returnImport?) {
+        functionImports[returnImport] = ImportedCanonPrimitive(returnImport, (
+          linker,
+        ) {
+          final taskReturn = linker.builder.linker.addCanonPrimitive((idx) {
+            final originalResultType = functionType.result;
+            ValueTypeReference? result;
+            if (originalResultType != null) {
+              result = linker.builder.types.addValueType(originalResultType);
+            }
+
+            return TaskReturn(idx, result);
+          });
+          linker.applyOptions(options, taskReturn);
+
+          return taskReturn;
+        });
+      }
     }
   }
 }
@@ -116,13 +143,17 @@ final class FunctionOptions {
   final bool usesMemory;
   final bool usesStrings;
   final bool needsRealloc;
+  final bool usesCallback;
   final String? postReturn;
+  final String? returnImport;
 
   FunctionOptions({
     required this.usesMemory,
     required this.usesStrings,
     this.needsRealloc = false,
+    this.usesCallback = false,
     this.postReturn,
+    this.returnImport,
   });
 
   factory FunctionOptions.fromJson(Map<String, Object?> json) {
@@ -130,17 +161,30 @@ final class FunctionOptions {
       usesMemory: json['use_memory'] as bool,
       usesStrings: json['uses_strings'] as bool,
       needsRealloc: json['needs_realloc'] as bool? ?? false,
+      usesCallback: json['uses_callback'] as bool? ?? false,
       postReturn: json['post_return'] as String?,
+      returnImport: json['task_return_import'] as String?,
     );
   }
 }
 
-final class ImportedInstanceFunction {
-  final String interfaceMethod;
+final class ImportedInstanceFunctionOrCanon {
   final String coreImport;
+
+  new(this.coreImport);
+}
+
+final class ImportedInstanceFunction extends ImportedInstanceFunctionOrCanon {
+  final String interfaceMethod;
   final FunctionOptions options;
 
-  ImportedInstanceFunction(this.interfaceMethod, this.coreImport, this.options);
+  new(this.interfaceMethod, super.coreImport, this.options);
+}
+
+final class ImportedCanonPrimitive extends ImportedInstanceFunctionOrCanon {
+  CanonPrimitive Function(DartLinker) resolve;
+
+  new(super.coreImport, this.resolve);
 }
 
 final class ExportedInstanceFunction {

@@ -15,6 +15,41 @@ import 'string_buffer.dart';
 import 'tmp_print.dart';
 import 'utils.dart';
 
+Never _unsupportedAsyncSchedule() {
+  throw StateError('Tried to schedule async operation, outside of async task.');
+}
+
+@pragma('wasm:export')
+WasmExternRef scheduleOnce(
+  WasmI64 delay,
+  WasmFunction<WasmVoid Function(WasmAnyRef)> callback,
+  WasmAnyRef arg,
+) {
+  _unsupportedAsyncSchedule();
+}
+
+@pragma('wasm:export')
+WasmExternRef scheduleRepeated(
+  WasmI64 interval,
+  WasmFunction<WasmVoid Function(WasmAnyRef)> callback,
+  WasmAnyRef arg,
+) {
+  _unsupportedAsyncSchedule();
+}
+
+@pragma('wasm:export')
+WasmVoid queueMicrotask(
+  WasmFunction<WasmVoid Function(WasmAnyRef)> callback,
+  WasmAnyRef arg,
+) {
+  _unsupportedAsyncSchedule();
+}
+
+@pragma('wasm:export')
+WasmVoid clearSchedule(WasmExternRef? schedule) {
+  _unsupportedAsyncSchedule();
+}
+
 @pragma('wasm:export')
 WasmExternRef stringFromAsciiBytes(
   WasmArray<WasmI8> charCodes,

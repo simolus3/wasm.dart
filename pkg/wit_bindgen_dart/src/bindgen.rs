@@ -22,10 +22,13 @@ use crate::{
 pub struct FunctionOptions {
     pub use_memory: bool,
     pub uses_strings: bool,
+    pub uses_callback: bool,
     /// Only set on lifted (export) functions, a function to clean up temporary values allocated by
     /// this function.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub post_return: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub task_return_import: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -283,13 +286,17 @@ impl WorldGenerator for DartWorldGenerator {
                     &format!("_component_{}", this_export_id),
                     &core_signature,
                 );
-                uwriteln!(def, "{{");
+                let is_async = function.kind.is_async();
+                let async_return_name = format!("_component_{}taskReturn", { this_export_id });
+                let mut async_return_params = None;
 
                 let mut generator = DartFunctionGenerator::new(
                     &self.size_align,
                     &mut self.main,
                     FunctionMode::Exported(ExportedFunctionMode {
                         instance: &mut export,
+                        async_return_name: &async_return_name,
+                        async_return_params: &mut async_return_params,
                     }),
                 );
                 call(
@@ -298,12 +305,50 @@ impl WorldGenerator for DartWorldGenerator {
                     LiftLower::LiftArgsLowerResults,
                     function,
                     &mut generator,
-                    function.kind.is_async(),
+                    is_async,
                 );
+                let body = generator.definition.take_code();
 
-                uwriteln!(&mut def, "{}}}", generator.definition.take_code());
+                if is_async {
+                    let components = generator.dart.import(KnownDartUri::PkgWasmComponents);
+
+                    uwriteln!(
+                        def,
+                        "{{
+final task = {components}.Task.spawn(
+  run: () async {{
+    {body}
+  }},
+  debugName: '{name}',
+);
+return task.finishEventLoopIteration().toWasmI32();
+}}"
+                    );
+                } else {
+                    uwriteln!(def, "{{\n{body}\n}}");
+                }
+
                 let mut options = generator.options;
                 let allocated_return = generator.allocated_return_value;
+
+                if let Some(params) = async_return_params {
+                    uwrite!(
+                        def,
+                        "@pragma('wasm:import', 'component.{}')\nexternal ",
+                        async_return_name
+                    );
+                    def.write_core_signature(
+                        &mut self.main,
+                        &async_return_name,
+                        &WasmSignature {
+                            params,
+                            results: vec![],
+                            indirect_params: false,
+                            retptr: false,
+                        },
+                    );
+                    uwrite!(def, ";")
+                }
 
                 if guest_export_needs_post_return(resolve, function) {
                     let mut generator = DartFunctionGenerator::new(
@@ -351,6 +396,7 @@ impl WorldGenerator for DartWorldGenerator {
                     uwriteln!(def, "}}");
                 }
 
+                options.uses_callback = is_async;
                 export.functions.push(ExportedCoreFunction {
                     core_export_name: format!("component_{}", this_export_id),
                     function_name: name.clone(),

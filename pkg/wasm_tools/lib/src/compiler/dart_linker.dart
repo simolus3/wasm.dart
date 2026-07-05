@@ -16,7 +16,8 @@ final class DartLinker {
     var needsMemory = false;
     var needsRealloc = false;
 
-    for (final import in abi.functionImports.values) {
+    for (final import
+        in abi.functionImports.values.whereType<ImportedInstanceFunction>()) {
       if (import.options.usesMemory) {
         needsMemory = true;
       }
@@ -73,7 +74,11 @@ final class DartLinker {
           ),
     ];
 
-    final lowered = <ImportedInstanceFunction, CanonLower>{};
+    final lowered =
+        <
+          ImportedInstanceFunctionOrCanon,
+          CanonDefinitionCreatingCoreFunction
+        >{};
     var i = 0;
     for (final instance in importedInstances) {
       for (final function in instance.importedFunctions) {
@@ -82,6 +87,11 @@ final class DartLinker {
         );
         applyOptions(function.options, lower);
       }
+    }
+
+    for (final primitive
+        in abi.functionImports.values.whereType<ImportedCanonPrimitive>()) {
+      lowered[primitive] = primitive.resolve(this);
     }
 
     final inlineExports = <(String, Sort, Index)>[];
@@ -96,7 +106,7 @@ final class DartLinker {
     return builder.linker.coreInstantiate(.inlineExports(inlineExports));
   }
 
-  void applyOptions(FunctionOptions options, CanonicalLiftOrLower canon) {
+  void applyOptions(FunctionOptions options, CanonicalHasOptions canon) {
     if (options.usesMemory) {
       canon.memory = _libcMemory!;
     }

@@ -4,7 +4,9 @@ import 'package:logging/logging.dart';
 
 import '../third_party/wasm_builder/wasm_builder.dart' as w;
 import '../third_party/wasm_builder/src/builder/util.dart';
+import 'components/linker.dart';
 import 'components/type.dart';
+import 'dart_linker.dart';
 import 'program_abi.dart';
 import 'compiler.dart';
 
@@ -36,7 +38,11 @@ final class ModuleTransformer {
 
   void transform(DartProgramAbi abi) {
     _patchImports(abi);
-    _removeExports(abi.expectedExportedFunctions.toSet());
+    final expectedExports = abi.expectedExportedFunctions.toSet();
+    if (abi.hasAsyncExport) {
+      expectedExports.add('callback');
+    }
+    _removeExports(expectedExports);
     _runMainOnInstantiation();
   }
 
@@ -79,6 +85,33 @@ final class ModuleTransformer {
 
       if (import.module == _runtimeImportName) continue;
       if (import.module == 'component') {
+        // These canon. imports are only used in pkg:wasm_components. Other
+        // packages encode them in their ABI contributed by build hooks.
+        if (import.name.startsWith('canon.')) {
+          CanonPrimitive Function(DartLinker) primitive;
+
+          switch (import.name) {
+            case 'canon.context.get_i32_0':
+              primitive = (linker) => linker.builder.linker.canonContextGet(0);
+            case 'canon.context.set_i32_0':
+              primitive = (linker) => linker.builder.linker.canonContextSet(0);
+            case 'canon.waitable-set.new':
+              primitive = (linker) =>
+                  linker.builder.linker.addCanonPrimitive(WaitableSetNew.new);
+            case 'canon.waitable-set.drop':
+              primitive = (linker) =>
+                  linker.builder.linker.addCanonPrimitive(WaitableSetDrop.new);
+            default:
+              throw UnsupportedError('Unsupported canon ${import.name}');
+          }
+
+          abi.functionImports[import.name] = ImportedCanonPrimitive(
+            import.name,
+            primitive,
+          );
+          continue;
+        }
+
         if (!unusedComponentImports.remove(import.name)) {
           throw CompilerFailure(
             'Import component.${import.name} is not registered in ABI.',

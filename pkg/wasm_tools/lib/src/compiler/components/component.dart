@@ -120,6 +120,23 @@ final class LinkingBuilder implements w.Serializable {
     return def;
   }
 
+  T addCanonPrimitive<T extends CanonPrimitive>(
+    T Function(CoreFunctionIndex index) create,
+  ) {
+    final index = _component._counters.incrementCoreFunction();
+    final def = create(index);
+    _instructions.add(def);
+    return def;
+  }
+
+  CanonContextGet canonContextGet(int i) {
+    return addCanonPrimitive((index) => CanonContextGet(index, i));
+  }
+
+  CanonContextSet canonContextSet(int i) {
+    return addCanonPrimitive((index) => CanonContextSet(index, i));
+  }
+
   ModuleInstanceIndex coreInstantiate(CoreInstanceExpression expr) {
     final index = _component._counters.incrementCoreInstance();
     _instructions.add(expr);

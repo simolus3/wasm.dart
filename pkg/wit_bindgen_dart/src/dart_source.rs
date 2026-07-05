@@ -118,7 +118,15 @@ impl DartDefinition {
         name: &str,
         function: &Function,
     ) {
+        let is_async = function.kind.is_async();
+        if is_async {
+            uwrite!(self, "Future<");
+        }
+
         self.write_optional_dart_type(dart, resolve, function.result.as_ref());
+        if is_async {
+            uwrite!(self, ">");
+        }
 
         let _ = write!(self, " {}(", AsLowerCamelCase(name));
         if !function.params.is_empty() {

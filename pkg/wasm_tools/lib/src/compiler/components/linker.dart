@@ -70,7 +70,7 @@ enum StringEncoding { utf8, utf16, latin1OrUtf16 }
 /// https://github.com/WebAssembly/component-model/blob/main/design/mvp/Explainer.md#canonical-definitions
 sealed class CanonicalDefinition extends LinkingInstruction {}
 
-abstract final class CanonicalLiftOrLower extends CanonicalDefinition {
+mixin CanonicalHasOptions {
   StringEncoding? stringEncoding;
   CoreMemoryIndex? memory;
   CoreFunctionIndex? realloc;
@@ -115,10 +115,19 @@ abstract final class CanonicalLiftOrLower extends CanonicalDefinition {
   }
 }
 
+abstract final class CanonicalLiftOrLower extends CanonicalDefinition
+    with CanonicalHasOptions {}
+
+abstract interface class CanonDefinitionCreatingCoreFunction {
+  abstract final CoreFunctionIndex createdCoreFunction;
+}
+
 /// Create a core WebAssembly function from a component function by applying the
 /// ABI.
-final class CanonLower extends CanonicalLiftOrLower {
+final class CanonLower extends CanonicalLiftOrLower
+    implements CanonDefinitionCreatingCoreFunction {
   final ComponentFunctionIndex function;
+  @override
   final CoreFunctionIndex createdCoreFunction;
 
   CanonLower(this.function, this.createdCoreFunction);
@@ -148,6 +157,78 @@ final class CanonLift extends CanonicalLiftOrLower {
     s.writeUnsigned(function.index);
     _serializeOptions(s);
     s.writeUnsigned(type.index.index);
+  }
+}
+
+sealed class CanonPrimitive extends CanonicalDefinition
+    implements CanonDefinitionCreatingCoreFunction {
+  @override
+  final CoreFunctionIndex createdCoreFunction;
+
+  new(this.createdCoreFunction);
+}
+
+final class TaskReturn extends CanonPrimitive with CanonicalHasOptions {
+  final ValueTypeReference? returnType;
+
+  new(super.createdCoreFunction, this.returnType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x09);
+    if (returnType case final returnType?) {
+      s.writeByte(0x00);
+      s.writeUnsigned(returnType.index.index);
+    } else {
+      s.writeByte(0x01);
+      s.writeByte(0x00);
+    }
+
+    _serializeOptions(s);
+  }
+}
+
+final class CanonContextGet extends CanonPrimitive {
+  final int i;
+
+  CanonContextGet(super.createdCoreFunction, this.i);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x0a);
+    s.writeByte(0x7f); // core:i32
+    s.writeUnsigned(i);
+  }
+}
+
+final class CanonContextSet extends CanonPrimitive {
+  final int i;
+
+  CanonContextSet(super.createdCoreFunction, this.i);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x0b);
+    s.writeByte(0x7f); // core:i32
+    s.writeUnsigned(i);
+  }
+}
+
+final class WaitableSetNew extends CanonPrimitive {
+  new(super.createdCoreFunction);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x1f);
+  }
+}
+
+final class WaitableSetDrop extends CanonPrimitive {
+  new(super.createdCoreFunction);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x22);
   }
 }
 

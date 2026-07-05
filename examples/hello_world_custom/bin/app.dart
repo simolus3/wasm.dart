@@ -9,7 +9,7 @@ final class _Run implements Run {
   const _Run();
 
   @override
-  Result<void, void> run() {
+  Future<Result<void, void>> run() async {
     importedInstance0.print(line: 'Hello world!');
     return const .ok(null);
   }

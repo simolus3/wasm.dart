@@ -8,10 +8,10 @@ import 'package:meta/meta.dart';
 import 'callback.dart';
 import 'waitable.dart';
 
-@pragma('wasm:import', 'canon.context.set_i32_0')
+@pragma('wasm:import', 'component.canon.context.set_i32_0')
 external WasmVoid _contextSet(WasmI32 context);
 
-@pragma('wasm:import', 'canon.context.get_i32_0')
+@pragma('wasm:import', 'component.canon.context.get_i32_0')
 external WasmI32 _contextGet();
 
 var _nextTaskId = 0;

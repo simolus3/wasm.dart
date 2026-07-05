@@ -97,6 +97,13 @@ final class ComponentCompiler {
         }),
       );
 
+      final callback = abi.hasAsyncExport
+          ? builder.linker.alias(
+              .coreFunction,
+              .coreInstanceExport(app, 'callback'),
+            )
+          : null;
+
       for (final export in abi.interfaces) {
         if (export.exports.isEmpty) continue;
 
@@ -122,6 +129,10 @@ final class ComponentCompiler {
           );
           linker.applyOptions(function.options, lifted);
           lifted.postReturn = corePostReturnFunction;
+          if (function.options.usesCallback) {
+            lifted.callback = callback!;
+            lifted.async = true;
+          }
 
           inlineExports.add((
             function.name,

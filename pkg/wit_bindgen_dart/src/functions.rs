@@ -2,6 +2,7 @@ use std::rc::Rc;
 use std::{fmt::Write, mem};
 
 use heck::{AsLowerCamelCase, ToLowerCamelCase};
+use wit_bindgen_core::abi::WasmType;
 use wit_bindgen_core::wit_parser::{Alignment, ArchitectureSize};
 use wit_bindgen_core::{
     abi::{Bindgen, Instruction},
@@ -17,7 +18,7 @@ use crate::{
 
 pub struct DartFunctionGenerator<'a> {
     size_align: &'a SizeAlign,
-    dart: &'a mut DartSource,
+    pub dart: &'a mut DartSource,
     pub definition: DartDefinition,
     block_storage: Vec<DartDefinition>,
     blocks: Vec<(String, Vec<Rc<String>>)>,
@@ -41,6 +42,8 @@ pub struct ImportedFunctionMode<'a> {
 
 pub struct ExportedFunctionMode<'a> {
     pub instance: &'a mut ExportedInstance,
+    pub async_return_name: &'a str,
+    pub async_return_params: &'a mut Option<Vec<WasmType>>,
 }
 
 pub struct PostReturn {}
@@ -172,10 +175,6 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
                 uwriteln!(self.definition, ");");
             }
             Instruction::CallInterface { func, async_ } => {
-                if *async_ {
-                    todo!("async interface call")
-                }
-
                 if func.result.is_some() {
                     let tmp = self.temporary_variable();
                     uwrite!(self.definition, "final {tmp} = ");
@@ -185,6 +184,10 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
                     FunctionMode::Exported(i) => i,
                     _ => panic!("Cannot use CallInterface in import mode"),
                 };
+
+                if *async_ {
+                    uwrite!(self.definition, "await ");
+                }
 
                 uwrite!(
                     self.definition,
@@ -494,6 +497,26 @@ if ({has_value}.toBool()) {{
 
                 uwriteln!(self.definition, ");");
                 results.push(tmp);
+            }
+            Instruction::AsyncTaskReturn { name: _, params } => {
+                let args = operands.split_off(operands.len() - params.len());
+
+                let name = match &mut self.mode {
+                    FunctionMode::Exported(exported) => {
+                        *exported.async_return_params = Some(params.iter().cloned().collect());
+                        self.options.task_return_import =
+                            Some(exported.async_return_name.to_string());
+
+                        exported.async_return_name
+                    }
+                    _ => panic!("AsyncTaskReturn only works in export mode"),
+                };
+
+                uwrite!(self.definition, "{name}(");
+                for arg in args {
+                    uwrite!(self.definition, "{arg},");
+                }
+                uwrite!(self.definition, ");");
             }
             Instruction::Flush { amt } => {
                 let operands = operands.split_off(operands.len() - *amt);

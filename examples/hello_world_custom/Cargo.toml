@@ -4,4 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+futures-lite = "2.6.1"
 wasmtime = "46.0.1"
+wasmtime-wasi = { version = "46.0.1", features = ["p3"] }

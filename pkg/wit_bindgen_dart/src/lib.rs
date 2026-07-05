@@ -185,6 +185,26 @@ package wasi:cli@0.2.12 {
     }
 
     #[test]
+    fn async_export() {
+        print_definitions(
+            "
+package root:component;
+
+world root {
+  export wasi:cli/run@0.3.0;
+}
+
+package wasi:cli@0.3.0 {
+  interface run {
+    run: async func() -> result;
+  }
+}
+",
+        )
+        .expect("Could not generate definitions")
+    }
+
+    #[test]
     fn post_return() {
         print_definitions(
             "

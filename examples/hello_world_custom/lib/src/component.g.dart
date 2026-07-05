@@ -25,7 +25,7 @@ final class _Imported$Print implements Print {
 const importedInstance0 = _Imported$Print();
 
 abstract interface class Run {
-  i0.Result<void, void> run();
+  Future<i0.Result<void, void>> run();
 }
 
 late Run _unnamedExport1;
@@ -35,13 +35,22 @@ void defineInstanceExport({required Run unnamedExport1}) {
 
 @pragma('wasm:export', r'component_0')
 i1.WasmI32 _component_0() {
-  final tmp0 = _unnamedExport1.run();
-  i1.WasmI32 tmp1;
-  switch (tmp0) {
-    case i0.OkResult(:final value):
-      tmp1 = const i1.WasmI32(0);
-    case i0.ErrorResult(:final value):
-      tmp1 = const i1.WasmI32(1);
-  }
-  return tmp1;
+  final task = i0.Task.spawn(
+    run: () async {
+      final tmp0 = await _unnamedExport1.run();
+      i1.WasmI32 tmp1;
+      switch (tmp0) {
+        case i0.OkResult(:final value):
+          tmp1 = const i1.WasmI32(0);
+        case i0.ErrorResult(:final value):
+          tmp1 = const i1.WasmI32(1);
+      }
+      _component_0taskReturn(tmp1);
+    },
+    debugName: 'run',
+  );
+  return task.finishEventLoopIteration().toWasmI32();
 }
+
+@pragma('wasm:import', 'component._component_0taskReturn')
+external i1.WasmVoid _component_0taskReturn(i1.WasmI32 p0);
