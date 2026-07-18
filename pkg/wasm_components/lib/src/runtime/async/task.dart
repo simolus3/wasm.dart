@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'package:meta/meta.dart';
 
 import 'callback.dart';
+import 'future.dart';
 import 'waitable.dart';
 
 @pragma('wasm:import', 'component.canon.context.set_i32_0')
@@ -13,6 +14,12 @@ external WasmVoid _contextSet(WasmI32 context);
 
 @pragma('wasm:import', 'component.canon.context.get_i32_0')
 external WasmI32 _contextGet();
+
+@pragma('wasm:import', 'component.canon.future.void.new')
+external WasmI64 _voidFutureNew();
+
+@pragma('wasm:import', 'component.canon.future.void.write')
+external WasmI32 _voidFutureWrite(WasmI32 future);
 
 var _nextTaskId = 0;
 final Map<int, Task> _activeTasks = {};
@@ -25,13 +32,35 @@ final class Task {
   final WaitableSet _waitable = WaitableSet();
 
   final LinkedList<_MicrotaskEntry> _microtaskQueue = LinkedList();
+
   var _isRunning = false;
+  RawFutureReadableEnd? _scheduleForMicrotask;
 
   new _(this._id, this._debugName);
 
   void _dispatchEvent(WasmI32 code, WasmI32 p1, WasmI32 p2) {
     _isRunning = true;
-    // ...
+
+    final parsedCode = EventCode.values[code.toIntUnsigned()];
+    switch (parsedCode) {
+      case EventCode.none:
+        // We'll just run the microtask queue.
+        return;
+      case EventCode.subtask:
+        throw UnimplementedError();
+      case EventCode.streamRead:
+        throw UnimplementedError();
+      case EventCode.streamWrite:
+        throw UnimplementedError();
+      case EventCode.futureRead:
+        throw UnimplementedError();
+      case EventCode.futureWrite:
+        throw UnimplementedError();
+      case EventCode.taskCancelled:
+        // We don't currently support cancellations, in the future we might want
+        // to notify listeners.
+        return;
+    }
   }
 
   /// Runs pending microtasks before yielding to the component embedder.
@@ -81,9 +110,15 @@ final class Task {
       scheduleMicrotask: (self, parent, zone, f) {
         _microtaskQueue.add(_MicrotaskEntry(zone.bindCallbackGuarded(f)));
 
-        if (!_isRunning) {
-          // TODO: Schedule this task if it's not currently running (requires
-          // futures).
+        if (!_isRunning && _scheduleForMicrotask == null) {
+          final (read, write) = extractFutureHandlesFromPackedCode(
+            _voidFutureNew().toInt(),
+          );
+          _scheduleForMicrotask = read;
+          _waitable.addWaitable(read.handle.toWasmI32());
+
+          // Immediately complete the future to wake up the task.
+          _voidFutureWrite(write.handle.toWasmI32());
         }
       },
     );
