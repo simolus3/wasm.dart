@@ -1,5 +1,6 @@
 // ignore_for_file: type=warning
 import r'package:wasm_components/wasm_components.dart' as i0;
+
 // ignore: import_internal_library
 import r'dart:_wasm' as i1;
 
@@ -35,7 +36,7 @@ void defineInstanceExport({required Run unnamedExport1}) {
 
 @pragma('wasm:export', r'component_0')
 i1.WasmI32 _component_0() {
-  final task = i0.Task.spawn(
+  final asyncExitCode = i0.Task.spawn(
     run: () async {
       final tmp0 = await _unnamedExport1.run();
       i1.WasmI32 tmp1;
@@ -49,7 +50,7 @@ i1.WasmI32 _component_0() {
     },
     debugName: 'run',
   );
-  return task.finishEventLoopIteration().toWasmI32();
+  return asyncExitCode.toWasmI32();
 }
 
 @pragma('wasm:import', 'component._component_0taskReturn')

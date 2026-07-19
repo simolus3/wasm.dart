@@ -389,9 +389,9 @@ final class BorrowType implements ValueType {
 }
 
 final class StreamType implements ValueType {
-  final ValueType element;
+  final ValueType? element;
 
-  StreamType(this.element);
+  StreamType([this.element]);
 
   @override
   Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
@@ -400,9 +400,9 @@ final class StreamType implements ValueType {
 }
 
 final class FutureType implements ValueType {
-  final ValueType element;
+  final ValueType? element;
 
-  FutureType(this.element);
+  FutureType([this.element]);
 
   @override
   Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {

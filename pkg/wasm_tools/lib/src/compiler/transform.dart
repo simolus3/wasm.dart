@@ -101,6 +101,50 @@ final class ModuleTransformer {
             case 'canon.waitable-set.drop':
               primitive = (linker) =>
                   linker.builder.linker.addCanonPrimitive(WaitableSetDrop.new);
+            case 'canon.waitable.join':
+              primitive = (linker) =>
+                  linker.builder.linker.addCanonPrimitive(WaitableJoin.new);
+            case 'canon.future<void>.new':
+              primitive = (linker) => linker.builder.linker.addCanonPrimitive(
+                (f) => FutureNew(
+                  f,
+                  linker.builder.types.addValueType(FutureType()),
+                ),
+              );
+            case 'canon.future<void>.read':
+              primitive = (linker) =>
+                  linker.builder.linker.addCanonPrimitive((f) {
+                    final read = FutureRead(
+                      f,
+                      linker.builder.types.addValueType(FutureType()),
+                    );
+                    read.async = true;
+                    return read;
+                  });
+            case 'canon.future<void>.write':
+              primitive = (linker) =>
+                  linker.builder.linker.addCanonPrimitive((f) {
+                    final read = FutureWrite(
+                      f,
+                      linker.builder.types.addValueType(FutureType()),
+                    );
+                    read.async = true;
+                    return read;
+                  });
+            case 'canon.future<void>.drop-read':
+              primitive = (linker) => linker.builder.linker.addCanonPrimitive(
+                (f) => FutureDropReadable(
+                  f,
+                  linker.builder.types.addValueType(FutureType()),
+                ),
+              );
+            case 'canon.future<void>.drop-write':
+              primitive = (linker) => linker.builder.linker.addCanonPrimitive(
+                (f) => FutureDropWritable(
+                  f,
+                  linker.builder.types.addValueType(FutureType()),
+                ),
+              );
             default:
               throw UnsupportedError('Unsupported canon ${import.name}');
           }

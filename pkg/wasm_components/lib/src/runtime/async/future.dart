@@ -1,3 +1,8 @@
+@internal
+library;
+
+import 'package:meta/meta.dart';
+
 /// The readable end of a future.
 extension type RawFutureReadableEnd(int handle) {}
 
@@ -14,3 +19,5 @@ extension type RawFutureWritableEnd(int handle) {}
 }
 
 enum CopyResult { completed, dropped, cancelled }
+
+typedef FutureEventHandler = void Function(CopyResult);

@@ -201,6 +201,68 @@ final class CanonContextGet extends CanonPrimitive {
   }
 }
 
+final class FutureNew extends CanonPrimitive {
+  final ValueTypeReference futureType;
+
+  new(super.createdCoreFunction, this.futureType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x15);
+    s.writeUnsigned(futureType.index.index);
+  }
+}
+
+final class FutureRead extends CanonPrimitive with CanonicalHasOptions {
+  final ValueTypeReference futureType;
+
+  new(super.createdCoreFunction, this.futureType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x16);
+    s.writeUnsigned(futureType.index.index);
+    _serializeOptions(s);
+  }
+}
+
+final class FutureWrite extends CanonPrimitive with CanonicalHasOptions {
+  final ValueTypeReference futureType;
+
+  new(super.createdCoreFunction, this.futureType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x17);
+    s.writeUnsigned(futureType.index.index);
+    _serializeOptions(s);
+  }
+}
+
+final class FutureDropReadable extends CanonPrimitive {
+  final ValueTypeReference futureType;
+
+  new(super.createdCoreFunction, this.futureType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x1a);
+    s.writeUnsigned(futureType.index.index);
+  }
+}
+
+final class FutureDropWritable extends CanonPrimitive {
+  final ValueTypeReference futureType;
+
+  new(super.createdCoreFunction, this.futureType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x1b);
+    s.writeUnsigned(futureType.index.index);
+  }
+}
+
 final class CanonContextSet extends CanonPrimitive {
   final int i;
 
@@ -229,6 +291,15 @@ final class WaitableSetDrop extends CanonPrimitive {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x22);
+  }
+}
+
+final class WaitableJoin extends CanonPrimitive {
+  new(super.createdCoreFunction);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x23);
   }
 }
 

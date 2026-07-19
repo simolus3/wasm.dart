@@ -315,13 +315,13 @@ impl WorldGenerator for DartWorldGenerator {
                     uwriteln!(
                         def,
                         "{{
-final task = {components}.Task.spawn(
+final asyncExitCode = {components}.Task.spawn(
   run: () async {{
     {body}
   }},
   debugName: '{name}',
 );
-return task.finishEventLoopIteration().toWasmI32();
+return asyncExitCode.toWasmI32();
 }}"
                     );
                 } else {

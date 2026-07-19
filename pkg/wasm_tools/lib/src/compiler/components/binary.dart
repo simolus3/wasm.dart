@@ -144,10 +144,10 @@ final class TypesSection extends w.Section {
         s.writeUnsigned(resource.index.index);
       case StreamType(:final element):
         s.writeByte(0x66);
-        _writeType(element, s);
+        _writeOptionalType(element, s);
       case FutureType(:final element):
         s.writeByte(0x65);
-        _writeType(element, s);
+        _writeOptionalType(element, s);
       case ResourceType(:final destructor, :final hasInt64Representation):
         s.writeByte(0x3f);
         _writeType(

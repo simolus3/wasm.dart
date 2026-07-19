@@ -15,11 +15,20 @@ external WasmVoid _contextSet(WasmI32 context);
 @pragma('wasm:import', 'component.canon.context.get_i32_0')
 external WasmI32 _contextGet();
 
-@pragma('wasm:import', 'component.canon.future.void.new')
+@pragma('wasm:import', 'component.canon.future<void>.new')
 external WasmI64 _voidFutureNew();
 
-@pragma('wasm:import', 'component.canon.future.void.write')
-external WasmI32 _voidFutureWrite(WasmI32 future);
+@pragma('wasm:import', 'component.canon.future<void>.read')
+external WasmI32 _voidFutureRead(WasmI32 future, WasmI32 buffer);
+
+@pragma('wasm:import', 'component.canon.future<void>.write')
+external WasmI32 _voidFutureWrite(WasmI32 future, WasmI32 buffer);
+
+@pragma('wasm:import', 'component.canon.future<void>.drop-read')
+external WasmVoid _voidFutureDropRead(WasmI32 future);
+
+@pragma('wasm:import', 'component.canon.future<void>.drop-write')
+external WasmVoid _voidFutureDropWrite(WasmI32 future);
 
 var _nextTaskId = 0;
 final Map<int, Task> _activeTasks = {};
@@ -32,20 +41,22 @@ final class Task {
   final WaitableSet _waitable = WaitableSet();
 
   final LinkedList<_MicrotaskEntry> _microtaskQueue = LinkedList();
+  final Map<int, FutureEventHandler> _pendingFutureWrites = {};
+  final Map<int, FutureEventHandler> _pendingFutureReads = {};
 
   var _isRunning = false;
-  RawFutureReadableEnd? _scheduleForMicrotask;
+  var _microtaskScheduled = false;
 
   new _(this._id, this._debugName);
 
-  void _dispatchEvent(WasmI32 code, WasmI32 p1, WasmI32 p2) {
+  int _dispatchEvent(WasmI32 code, WasmI32 p1, WasmI32 p2) {
     _isRunning = true;
 
     final parsedCode = EventCode.values[code.toIntUnsigned()];
     switch (parsedCode) {
       case EventCode.none:
         // We'll just run the microtask queue.
-        return;
+        break;
       case EventCode.subtask:
         throw UnimplementedError();
       case EventCode.streamRead:
@@ -53,18 +64,24 @@ final class Task {
       case EventCode.streamWrite:
         throw UnimplementedError();
       case EventCode.futureRead:
-        throw UnimplementedError();
+        final futureIndex = p1.toIntUnsigned();
+        final code = CopyResult.values[p2.toIntUnsigned()];
+        _pendingFutureReads.remove(futureIndex)!(code);
       case EventCode.futureWrite:
-        throw UnimplementedError();
+        final futureIndex = p1.toIntUnsigned();
+        final code = CopyResult.values[p2.toIntUnsigned()];
+        _pendingFutureWrites.remove(futureIndex)!(code);
       case EventCode.taskCancelled:
         // We don't currently support cancellations, in the future we might want
         // to notify listeners.
-        return;
+        break;
     }
+
+    return _finishEventLoopIteration();
   }
 
   /// Runs pending microtasks before yielding to the component embedder.
-  int finishEventLoopIteration() {
+  int _finishEventLoopIteration() {
     assert(_isRunning);
 
     while (_microtaskQueue.isNotEmpty) {
@@ -110,15 +127,26 @@ final class Task {
       scheduleMicrotask: (self, parent, zone, f) {
         _microtaskQueue.add(_MicrotaskEntry(zone.bindCallbackGuarded(f)));
 
-        if (!_isRunning && _scheduleForMicrotask == null) {
+        if (!_isRunning && !_microtaskScheduled) {
           final (read, write) = extractFutureHandlesFromPackedCode(
             _voidFutureNew().toInt(),
           );
-          _scheduleForMicrotask = read;
-          _waitable.addWaitable(read.handle.toWasmI32());
+          _microtaskScheduled = true;
+          _pendingFutureReads[read.handle] = (_) {
+            _voidFutureDropRead(read.handle.toWasmI32());
+          };
+          _pendingFutureWrites[write.handle] = (_) {
+            _voidFutureDropWrite(write.handle.toWasmI32());
+          };
+
+          final readHandle = read.handle.toWasmI32();
+          _voidFutureRead(readHandle, const WasmI32(0));
+          _waitable.addWaitable(readHandle);
 
           // Immediately complete the future to wake up the task.
-          _voidFutureWrite(write.handle.toWasmI32());
+          final writeHandle = write.handle.toWasmI32();
+          _voidFutureWrite(writeHandle, const WasmI32(0));
+          _waitable.addWaitable(writeHandle);
         }
       },
     );
@@ -129,7 +157,7 @@ final class Task {
   /// This should only be called once from exported async component functions,
   /// which is typically done by generated code.
   @internal
-  static Task spawn({String? debugName, required void Function() run}) {
+  static int spawn({String? debugName, required void Function() run}) {
     final id = _nextTaskId++;
     final task = Task._(id, debugName);
     _contextSet(id.toWasmI32());
@@ -140,7 +168,7 @@ final class Task {
       zoneSpecification: task._zoneSpecification,
       zoneValues: {_currentTaskKey: task},
     );
-    return task;
+    return task._finishEventLoopIteration();
   }
 
   static const _currentTaskKey = #_currentTask;
@@ -152,8 +180,8 @@ Task taskForCurrentThread() {
 }
 
 @internal
-void dispatchEvent(Task t, WasmI32 code, WasmI32 p1, WasmI32 p2) {
-  t._dispatchEvent(code, p1, p2);
+int dispatchEvent(Task t, WasmI32 code, WasmI32 p1, WasmI32 p2) {
+  return t._dispatchEvent(code, p1, p2);
 }
 
 final class _MicrotaskEntry extends LinkedListEntry<_MicrotaskEntry> {
