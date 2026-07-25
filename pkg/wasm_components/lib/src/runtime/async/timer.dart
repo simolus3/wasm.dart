@@ -3,20 +3,25 @@ import 'dart:async';
 import 'task.dart';
 
 final class OneShotTimer implements Timer {
-  Subtask? _monotonicClockWait;
-
   @override
   var isActive = true;
+  @override
+  var tick = 0;
 
-  OneShotTimer(Subtask wait, void Function() run) : _monotonicClockWait = wait {
-    wait.completion.then((_) => run());
+  OneShotTimer(Subtask wait, void Function() run) {
+    wait.completion.then((_) {
+      if (isActive) {
+        isActive = false;
+        tick++;
+        run();
+      }
+    });
   }
 
   @override
   void cancel() {
-    // TODO: implement cancel
+    isActive = false;
+    // Ideally we should cancel the wait subtask too, but that is not currently
+    // possible (see Subtask.cancel for details).
   }
-
-  @override
-  int get tick => _monotonicClockWait == null ? 0 : 1;
 }

@@ -276,6 +276,18 @@ final class CanonContextSet extends CanonPrimitive {
   }
 }
 
+final class CanonSubtaskCancel extends CanonPrimitive {
+  final bool async;
+
+  CanonSubtaskCancel(super.createdCoreFunction, {required this.async});
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x06);
+    s.writeByte(async ? 0x01 : 0x00);
+  }
+}
+
 final class CanonSubtaskDrop extends CanonPrimitive {
   CanonSubtaskDrop(super.createdCoreFunction);
 

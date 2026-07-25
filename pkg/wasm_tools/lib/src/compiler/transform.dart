@@ -149,6 +149,10 @@ final class ModuleTransformer {
             case 'canon.subtask.drop':
               primitive = (linker) =>
                   linker.builder.linker.addCanonPrimitive(CanonSubtaskDrop.new);
+            case 'canon.subtask.cancel':
+              primitive = (linker) => linker.builder.linker.addCanonPrimitive(
+                (f) => CanonSubtaskCancel(f, async: true),
+              );
             default:
               throw UnsupportedError('Unsupported canon ${import.name}');
           }

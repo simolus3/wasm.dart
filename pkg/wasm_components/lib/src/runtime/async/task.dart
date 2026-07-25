@@ -35,6 +35,9 @@ external WasmVoid _voidFutureDropWrite(WasmI32 future);
 @pragma('wasm:import', 'component.canon.subtask.drop')
 external WasmVoid _subtaskDrop(WasmI32 task);
 
+//@pragma('wasm:import', 'component.canon.subtask.cancel')
+//external WasmI32 _subtaskCancel(WasmI32 task);
+
 var _nextTaskId = 0;
 final Map<int, Task> _activeTasks = {};
 
@@ -68,11 +71,7 @@ final class Task {
       case EventCode.subtask:
         final task = p1.toIntUnsigned();
         final state = _SubtaskState.values[p2.toIntSigned()];
-        final isDone = _subtasks[task]!._dispatchEvent(state);
-        if (isDone) {
-          _subtaskDrop(p1);
-          _subtasks.remove(task);
-        }
+        _subtasks[task]!._dispatchEvent(state);
       case EventCode.streamRead:
         throw UnimplementedError();
       case EventCode.streamWrite:
@@ -182,14 +181,19 @@ final class Task {
       case _SubtaskState.starting:
       case _SubtaskState.started:
         _waitable.addWaitable(WasmI32.fromInt(taskIndex));
-        final task = Subtask._();
+        final task = Subtask._(taskIndex, this);
         _subtasks[taskIndex] = task;
         return task;
       case _SubtaskState.returned:
       case _SubtaskState.cancelledBeforeStarted:
       case _SubtaskState.cancelledBeforeReturned:
-        return ._alreadyCompleted(state);
+        return ._alreadyCompleted(state, this);
     }
+  }
+
+  void _removeSubtask(int index) {
+    _subtaskDrop(index.toWasmI32());
+    _subtasks.remove(index);
   }
 
   /// Configures a new task.
@@ -243,29 +247,40 @@ enum _SubtaskState {
 /// Subtasks are created when an async component function calls another async
 /// function from another component.
 final class Subtask {
+  final int _index;
   _SubtaskState _state = .starting;
 
   final Completer<void>? _completer;
+  final Task _task;
+  var _cancellationRequested = false;
 
-  Subtask._() : _completer = Completer();
+  Subtask._(this._index, this._task)
+    : assert(_index > 0),
+      _completer = Completer();
 
-  Subtask._alreadyCompleted(this._state) : _completer = null;
+  Subtask._alreadyCompleted(this._state, this._task)
+    : _index = 0,
+      _completer = null;
 
-  bool _dispatchEvent(_SubtaskState state) {
+  void _dispatchEvent(_SubtaskState state) {
     _state = state;
 
     switch (state) {
       case _SubtaskState.starting:
       case _SubtaskState.started:
-        return false;
+        return;
       case _SubtaskState.returned:
+        _removeSelf();
         _completer?.complete();
-        return true;
       case _SubtaskState.cancelledBeforeStarted:
       case _SubtaskState.cancelledBeforeReturned:
-        // TODO: Add cancellation exception to return _completer?
-        throw UnimplementedError();
+        _removeSelf();
+        _completer?.completeError(const SubtaskCancelledException._());
     }
+  }
+
+  void _removeSelf() {
+    _task._removeSubtask(_index);
   }
 
   Future<void> get completion {
@@ -273,6 +288,37 @@ final class Subtask {
 
     assert(_state == .returned, 'Must be immediately-returned subtask');
     return Future.value();
+  }
+
+  void cancel() {
+    if (_cancellationRequested || _index == 0) return;
+    // TODO: Because we add subtasks to the waitable set immediately after
+    // creating them, cancelling requires the "🚝: enabling more canonical ABI
+    // options on more async-related builtins" feature to make
+    // subtask.cancel async. Until that is stabilized, we can't cancel subtasks.
+    // After adding that, also fix timers to cancel properly.
+
+    //    const blockedCode = 0xffff_ffff;
+
+    _cancellationRequested = true;
+    // final newState = _subtaskCancel(_index.toWasmI32()).toIntUnsigned();
+    // if (newState == blockedCode) {
+    //   // We're already waiting on the task, we'll be notified asynchronously
+    //   // about state updates.
+    // } else {
+    //   _dispatchEvent(_SubtaskState.values[newState]);
+    // }
+  }
+}
+
+/// An exception thrown from [Subtask.completion] when the subtask was cancelled
+/// and has acknowledged its cancellation.
+final class SubtaskCancelledException implements Exception {
+  const SubtaskCancelledException._();
+
+  @override
+  String toString() {
+    return 'Subtask cancelled';
   }
 }
 
