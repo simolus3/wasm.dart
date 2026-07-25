@@ -35,11 +35,27 @@ fn main() -> Result<()> {
     let instance = linker.instantiate(&mut store, &component)?;
     let func = instance.get_func(&mut store, run_func_index).unwrap();
 
-    let mut results = [Val::Result(Ok(None))];
-    block_on(func.call_async(&mut store, &[], &mut results))?;
+    let future = store.run_concurrent(async |accessor| -> wasmtime::Result<()> {
+        let first = async {
+            let mut results = [Val::Result(Ok(None))];
+            func.call_concurrent(accessor, &[], &mut results)
+                .await
+                .expect("first call failed");
+            println!("First invocation result: {results:?}");
+        };
 
-    println!("Invocation result: {results:?}");
-    Ok(())
+        let second = async {
+            let mut results = [Val::Result(Ok(None))];
+            func.call_concurrent(accessor, &[], &mut results)
+                .await
+                .expect("second call failed");
+            println!("Second invocation result: {results:?}");
+        };
+
+        futures_lite::future::or(first, second).await;
+        Ok(())
+    });
+    block_on(future)?
 }
 
 #[derive(Default)]
