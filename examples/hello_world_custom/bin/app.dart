@@ -15,6 +15,8 @@ final class _Run implements Run {
   @override
   Future<Result<void, void>> run() async {
     if (_previous case final previous?) {
+      importedInstance0.print(line: 'Second run, delaying for one second');
+      await Future<void>.delayed(const Duration(seconds: 1));
       importedInstance0.print(line: 'Completing previous');
       previous.complete();
       return const .ok(null);

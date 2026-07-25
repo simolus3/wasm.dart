@@ -5,8 +5,10 @@ import 'dart:collection';
 
 import 'package:meta/meta.dart';
 
+import '../../embedder/clock.dart';
 import 'callback.dart';
 import 'future.dart';
+import 'timer.dart';
 import 'waitable.dart';
 
 @pragma('wasm:import', 'component.canon.context.set_i32_0')
@@ -30,6 +32,9 @@ external WasmVoid _voidFutureDropRead(WasmI32 future);
 @pragma('wasm:import', 'component.canon.future<void>.drop-write')
 external WasmVoid _voidFutureDropWrite(WasmI32 future);
 
+@pragma('wasm:import', 'component.canon.subtask.drop')
+external WasmVoid _subtaskDrop(WasmI32 task);
+
 var _nextTaskId = 0;
 final Map<int, Task> _activeTasks = {};
 
@@ -41,13 +46,16 @@ final class Task {
   final WaitableSet _waitable = WaitableSet();
 
   final LinkedList<_MicrotaskEntry> _microtaskQueue = LinkedList();
+  final Map<int, Subtask> _subtasks = {};
   final Map<int, FutureEventHandler> _pendingFutureWrites = {};
   final Map<int, FutureEventHandler> _pendingFutureReads = {};
 
   var _isRunning = false;
   var _microtaskScheduled = false;
 
-  new _(this._id, this._debugName);
+  new _(this._id, this._debugName) {
+    _activeTasks[_id] = this;
+  }
 
   int _dispatchEvent(WasmI32 code, WasmI32 p1, WasmI32 p2) {
     _isRunning = true;
@@ -58,7 +66,13 @@ final class Task {
         // We'll just run the microtask queue.
         break;
       case EventCode.subtask:
-        throw UnimplementedError();
+        final task = p1.toIntUnsigned();
+        final state = _SubtaskState.values[p2.toIntSigned()];
+        final isDone = _subtasks[task]!._dispatchEvent(state);
+        if (isDone) {
+          _subtaskDrop(p1);
+          _subtasks.remove(task);
+        }
       case EventCode.streamRead:
         throw UnimplementedError();
       case EventCode.streamWrite:
@@ -124,6 +138,12 @@ final class Task {
         _verifyCurrent();
         return parent.runBinary(zone, f, arg1, arg2);
       },
+      createTimer: (self, parent, zone, duration, f) {
+        final inNanos = (duration.inMicroseconds * 1000).toWasmI64();
+        final subtask = _trackSubtask(wasiMonotonicWaitFor(inNanos));
+
+        return OneShotTimer(subtask, self.bindCallbackGuarded(f));
+      },
       scheduleMicrotask: (self, parent, zone, f) {
         _microtaskQueue.add(_MicrotaskEntry(zone.bindCallbackGuarded(f)));
 
@@ -150,6 +170,26 @@ final class Task {
         }
       },
     );
+  }
+
+  Subtask _trackSubtask(WasmI32 createCode) {
+    assert(_isRunning);
+    final asInt = createCode.toIntUnsigned();
+    final state = _SubtaskState.values[asInt & 0x0f];
+    final taskIndex = asInt >>> 4;
+
+    switch (state) {
+      case _SubtaskState.starting:
+      case _SubtaskState.started:
+        _waitable.addWaitable(WasmI32.fromInt(taskIndex));
+        final task = Subtask._();
+        _subtasks[taskIndex] = task;
+        return task;
+      case _SubtaskState.returned:
+      case _SubtaskState.cancelledBeforeStarted:
+      case _SubtaskState.cancelledBeforeReturned:
+        return ._alreadyCompleted(state);
+    }
   }
 
   /// Configures a new task.
@@ -188,4 +228,54 @@ final class _MicrotaskEntry extends LinkedListEntry<_MicrotaskEntry> {
   final void Function() entry;
 
   _MicrotaskEntry(this.entry);
+}
+
+enum _SubtaskState {
+  starting,
+  started,
+  returned,
+  cancelledBeforeStarted,
+  cancelledBeforeReturned,
+}
+
+/// A component-model subtask.
+///
+/// Subtasks are created when an async component function calls another async
+/// function from another component.
+final class Subtask {
+  _SubtaskState _state = .starting;
+
+  final Completer<void>? _completer;
+
+  Subtask._() : _completer = Completer();
+
+  Subtask._alreadyCompleted(this._state) : _completer = null;
+
+  bool _dispatchEvent(_SubtaskState state) {
+    _state = state;
+
+    switch (state) {
+      case _SubtaskState.starting:
+      case _SubtaskState.started:
+        return false;
+      case _SubtaskState.returned:
+        _completer?.complete();
+        return true;
+      case _SubtaskState.cancelledBeforeStarted:
+      case _SubtaskState.cancelledBeforeReturned:
+        // TODO: Add cancellation exception to return _completer?
+        throw UnimplementedError();
+    }
+  }
+
+  Future<void> get completion {
+    if (_completer case final completer?) return completer.future;
+
+    assert(_state == .returned, 'Must be immediately-returned subtask');
+    return Future.value();
+  }
+}
+
+Subtask createSubtask(WasmI32 subtaskReturnCode) {
+  return taskForCurrentThread()._trackSubtask(subtaskReturnCode);
 }

@@ -1,17 +1,17 @@
 use std::fs;
 
-use futures_lite::future::block_on;
 use wasmtime::{
     Result, Store, bail,
     component::{Component, Linker, Val},
 };
 use wasmtime_wasi::{ResourceTable, WasiCtx, WasiCtxView, WasiView};
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let engine = wasmtime::Engine::default();
     let mut store = Store::new(&engine, DemoState::default());
 
-    let bytes = fs::read("bin/app.wasm")?;
+    let bytes = fs::read("/home/simon/src/wasm.dart/examples/hello_world_custom/bin/app.wasm")?;
     let component = Component::new(&engine, bytes)?;
     let Some(run_instance_index) = component.get_export_index(None, "wasi:cli/run@0.3.0") else {
         bail!("Expected a wasi:cli/run export");
@@ -32,30 +32,31 @@ fn main() -> Result<()> {
         })?;
     }
 
-    let instance = linker.instantiate(&mut store, &component)?;
+    let instance = linker.instantiate_async(&mut store, &component).await?;
     let func = instance.get_func(&mut store, run_func_index).unwrap();
 
-    let future = store.run_concurrent(async |accessor| -> wasmtime::Result<()> {
-        let first = async {
-            let mut results = [Val::Result(Ok(None))];
-            func.call_concurrent(accessor, &[], &mut results)
-                .await
-                .expect("first call failed");
-            println!("First invocation result: {results:?}");
-        };
+    store
+        .run_concurrent(async |accessor| -> wasmtime::Result<()> {
+            let first = async {
+                let mut results = [Val::Result(Ok(None))];
+                func.call_concurrent(accessor, &[], &mut results)
+                    .await
+                    .expect("first call failed");
+                println!("First invocation result: {results:?}");
+            };
 
-        let second = async {
-            let mut results = [Val::Result(Ok(None))];
-            func.call_concurrent(accessor, &[], &mut results)
-                .await
-                .expect("second call failed");
-            println!("Second invocation result: {results:?}");
-        };
+            let second = async {
+                let mut results = [Val::Result(Ok(None))];
+                func.call_concurrent(accessor, &[], &mut results)
+                    .await
+                    .expect("second call failed");
+                println!("Second invocation result: {results:?}");
+            };
 
-        futures_lite::future::or(first, second).await;
-        Ok(())
-    });
-    block_on(future)?
+            let (_, _) = tokio::join!(first, second);
+            Ok(())
+        })
+        .await?
 }
 
 #[derive(Default)]

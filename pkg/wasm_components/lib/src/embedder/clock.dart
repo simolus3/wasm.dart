@@ -21,6 +21,9 @@ external WasmI64 wasiMonotonicNow();
 @pragma('wasm:import', 'dart.wasi_monotonic_getResolution')
 external WasmI64 wasiMonotonicGetResolution();
 
+@pragma('wasm:import', 'dart.wasi_monotonic_waitFor')
+external WasmI32 wasiMonotonicWaitFor(WasmI64 durationInNanos);
+
 int wasiTimestampInMicroseconds() {
   final instantPtr = libc.mallocAligned(const WasmI32(8), const WasmI32(16));
   wasiNowPtr(instantPtr);

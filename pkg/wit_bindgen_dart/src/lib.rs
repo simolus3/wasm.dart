@@ -205,6 +205,31 @@ package wasi:cli@0.3.0 {
     }
 
     #[test]
+    fn async_import() {
+        print_definitions(
+            "
+package root:component;
+
+world root {
+  import wasi:clocks/monotonic-clock@0.3.0;
+}
+
+package wasi:clocks@0.3.0 {
+  interface types {
+    type duration = u64;
+  }
+
+  interface monotonic-clock {
+    use types.{duration};
+    wait-for: async func(how-long: duration);
+  }
+}
+",
+        )
+        .expect("Could not generate definitions");
+    }
+
+    #[test]
     fn post_return() {
         print_definitions(
             "

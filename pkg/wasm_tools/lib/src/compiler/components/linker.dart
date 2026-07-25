@@ -276,6 +276,15 @@ final class CanonContextSet extends CanonPrimitive {
   }
 }
 
+final class CanonSubtaskDrop extends CanonPrimitive {
+  CanonSubtaskDrop(super.createdCoreFunction);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x0d);
+  }
+}
+
 final class WaitableSetNew extends CanonPrimitive {
   new(super.createdCoreFunction);
 

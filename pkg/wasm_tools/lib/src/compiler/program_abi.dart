@@ -146,6 +146,7 @@ final class FunctionOptions {
   final bool usesCallback;
   final String? postReturn;
   final String? returnImport;
+  final bool async;
 
   FunctionOptions({
     required this.usesMemory,
@@ -154,6 +155,7 @@ final class FunctionOptions {
     this.usesCallback = false,
     this.postReturn,
     this.returnImport,
+    this.async = false,
   });
 
   factory FunctionOptions.fromJson(Map<String, Object?> json) {
@@ -164,6 +166,7 @@ final class FunctionOptions {
       usesCallback: json['uses_callback'] as bool? ?? false,
       postReturn: json['post_return'] as String?,
       returnImport: json['task_return_import'] as String?,
+      async: json['async'] as bool? ?? false,
     );
   }
 }

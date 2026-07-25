@@ -54,6 +54,7 @@ final class ModuleTransformer {
       'wasi_iana_id': _ClockImports(),
       'wasi_monotonic_now': _ClockImports(),
       'wasi_monotonic_getResolution': _ClockImports(),
+      'wasi_monotonic_waitFor': _ClockImports(),
     };
 
     final unusedComponentImports = abi.functionImports.keys.toSet();
@@ -145,6 +146,9 @@ final class ModuleTransformer {
                   linker.builder.types.addValueType(FutureType()),
                 ),
               );
+            case 'canon.subtask.drop':
+              primitive = (linker) =>
+                  linker.builder.linker.addCanonPrimitive(CanonSubtaskDrop.new);
             default:
               throw UnsupportedError('Unsupported canon ${import.name}');
           }
@@ -439,6 +443,17 @@ final class _ClockImports extends _ComponentImport {
         );
         abi.functionImports[function.name] = componentImport;
         clock.importedFunctions.add(componentImport);
+      case 'wasi_monotonic_waitFor':
+        final clock = _lookupMonotonicClock(abi);
+        function.module = 'component';
+        function.name = 'implicitImport_monotonicWaitFor';
+        final componentImport = ImportedInstanceFunction(
+          'wait-for',
+          function.name,
+          FunctionOptions(usesMemory: false, usesStrings: false, async: true),
+        );
+        abi.functionImports[function.name] = componentImport;
+        clock.importedFunctions.add(componentImport);
     }
   }
 
@@ -535,6 +550,14 @@ final class _ClockImports extends _ComponentImport {
       instance.exportFunction(
         'get-resolution',
         FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
+      );
+      instance.exportFunction(
+        'wait-for',
+        FunctionType(
+          async: true,
+          parameters: [.new(label: 'how-long', type: PrimitiveType.u64)],
+          result: null,
+        ),
       );
 
       return ResolvedInterface(fullName, instance.build());

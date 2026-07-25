@@ -509,7 +509,9 @@ if ({has_value}.toBool()) {{
 
                         exported.async_return_name
                     }
-                    _ => panic!("AsyncTaskReturn only works in export mode"),
+                    _ => {
+                        return;
+                    }
                 };
 
                 uwrite!(self.definition, "{name}(");
