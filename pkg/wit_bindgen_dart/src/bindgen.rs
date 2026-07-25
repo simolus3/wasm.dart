@@ -120,6 +120,10 @@ impl WorldGenerator for DartWorldGenerator {
 
                 uwriteln!(def, "@override");
                 def.write_function_signature(&mut self.main, resolve, name, function);
+                if function.kind.is_async() {
+                    uwrite!(def, "async");
+                }
+
                 let _ = writeln!(def, "{{");
                 let mut generator = DartFunctionGenerator::new(
                     &self.size_align,

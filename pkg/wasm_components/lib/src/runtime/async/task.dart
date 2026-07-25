@@ -322,6 +322,9 @@ final class SubtaskCancelledException implements Exception {
   }
 }
 
+/// Creates a subtask from a return code of an async import.
+///
+/// This function is only meant to be called by witgen-generated code.
 Subtask createSubtask(WasmI32 subtaskReturnCode) {
   return taskForCurrentThread()._trackSubtask(subtaskReturnCode);
 }

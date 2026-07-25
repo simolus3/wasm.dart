@@ -149,12 +149,17 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
             }
             Instruction::CallWasm { name: _, sig } => {
                 let has_results = !sig.results.is_empty();
-                let core_name = match &self.mode {
-                    FunctionMode::Imported(i) => i.core_name,
+                let (core_name, is_async) = match &self.mode {
+                    FunctionMode::Imported(i) => (i.core_name, i.function.kind.is_async()),
                     _ => {
                         panic!("Can't generate call instruction in export mode")
                     }
                 };
+
+                if is_async {
+                    let import = self.dart.import(KnownDartUri::PkgWasmComponents);
+                    uwrite!(self.definition, "await {import}.createSubtask(")
+                }
 
                 if has_results {
                     let temp = self.temporary_variable();
@@ -172,7 +177,12 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
 
                     uwrite!(self.definition, "{}", operand);
                 }
-                uwriteln!(self.definition, ");");
+                uwrite!(self.definition, ")");
+                if is_async {
+                    uwrite!(self.definition, ").completion")
+                }
+
+                uwriteln!(self.definition, ";");
             }
             Instruction::CallInterface { func, async_ } => {
                 if func.result.is_some() {
