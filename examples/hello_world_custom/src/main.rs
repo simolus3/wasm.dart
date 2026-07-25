@@ -2,19 +2,13 @@ use std::fs;
 
 use futures_lite::future::block_on;
 use wasmtime::{
-    Config, Result, Store, bail,
+    Result, Store, bail,
     component::{Component, Linker, Val},
 };
 use wasmtime_wasi::{ResourceTable, WasiCtx, WasiCtxView, WasiView};
 
 fn main() -> Result<()> {
-    let mut config = Config::default();
-    config.wasm_gc(true);
-    config.wasm_function_references(true);
-    config.wasm_exceptions(true);
-    config.wasm_component_model_async(true);
-
-    let engine = wasmtime::Engine::new(&config)?;
+    let engine = wasmtime::Engine::default();
     let mut store = Store::new(&engine, DemoState::default());
 
     let bytes = fs::read("bin/app.wasm")?;

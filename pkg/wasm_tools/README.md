@@ -92,9 +92,5 @@ dart run wasm_tools compile bin/greeting.dart
 This generates a `bin/greeting.wasm`, a WebAssembly component, which can be run with wasmtime:
 
 ```shell
-wasmtime -W all-proposals=y --invoke 'generate-greeting()' bin/greeting.wasm
+wasmtime --invoke 'generate-greeting()' bin/greeting.wasm
 ```
-
-> [!NOTE]
-> Enabling Garbage Collection, Exceptions and Typed Function References is required to run Dart
-> in `wasmtime`. These flags will be enabled by default in `wasmtime` version 46.0.

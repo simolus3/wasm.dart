@@ -5,5 +5,5 @@ edition = "2024"
 
 [dependencies]
 futures-lite = "2.6.1"
-wasmtime = "46.0.1"
-wasmtime-wasi = { version = "46.0.1", features = ["p3"] }
+wasmtime = "47.0.2"
+wasmtime-wasi = { version = "47.0.2", features = ["p3"] }
