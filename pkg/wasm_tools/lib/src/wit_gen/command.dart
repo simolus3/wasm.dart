@@ -83,9 +83,8 @@ final class GenerateWitInteropCommand extends Command<void> {
     if (!await hookDirectory.exists()) {
       await hookDirectory.create();
     }
-    File(
-      'hook/wasm_abi.json',
-    ).writeAsString(JsonEncoder.withIndent('  ').convert(jsonDecode(abi)));
+    File('hook/wasm_abi.json')
+        .writeAsString(JsonEncoder.withIndent('  ').convert(jsonDecode(abi)));
 
     logger.info('Wrote outputs to ${outputFile.path}');
   }

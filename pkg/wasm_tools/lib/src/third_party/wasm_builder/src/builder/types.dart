@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart';
+
 import '../ir/ir.dart' as ir;
 import 'builder.dart';
 

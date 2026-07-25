@@ -32,9 +32,8 @@ Future<void> main(List<String> args) {
         );
       }
 
-      File.fromUri(
-        precompiled.resolve(assetName),
-      ).copySync(outputPath.toFilePath());
+      File.fromUri(precompiled.resolve(assetName))
+          .copySync(outputPath.toFilePath());
 
       output.assets.code.add(
         CodeAsset(

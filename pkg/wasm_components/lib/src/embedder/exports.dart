@@ -79,17 +79,15 @@ WasmI32 stringLength(WasmExternRef? string) {
 @pragma('wasm:export')
 WasmI32 stringEquals(WasmExternRef? a, WasmExternRef? b) {
   return WasmI32.fromBool(
-    WasmStringImplementation.fromExtern(
-      a,
-    ).stringEquals(WasmStringImplementation.fromExtern(b)),
+    WasmStringImplementation.fromExtern(a)
+        .stringEquals(WasmStringImplementation.fromExtern(b)),
   );
 }
 
 @pragma('wasm:export')
 WasmI32 stringCompare(WasmExternRef? a, WasmExternRef? b) {
-  return WasmStringImplementation.fromExtern(
-    a,
-  ).compareTo(WasmStringImplementation.fromExtern(b));
+  return WasmStringImplementation.fromExtern(a)
+      .compareTo(WasmStringImplementation.fromExtern(b));
 }
 
 @pragma('wasm:export')
@@ -104,9 +102,9 @@ WasmExternRef? stringSubstring(
   WasmI32 start,
   WasmI32 end,
 ) {
-  return WasmStringImplementation.fromExtern(
-    string,
-  ).substring(start, end).externalize();
+  return WasmStringImplementation.fromExtern(string)
+      .substring(start, end)
+      .externalize();
 }
 
 @pragma('wasm:export')
@@ -145,9 +143,9 @@ WasmExternRef? stringToUpperCase(WasmExternRef? string) {
 
 @pragma('wasm:export')
 WasmExternRef? stringConcat(WasmExternRef? a, WasmExternRef? b) {
-  return WasmStringImplementation.fromExtern(
-    a,
-  ).concat(WasmStringImplementation.fromExtern(b)).externalize();
+  return WasmStringImplementation.fromExtern(a)
+      .concat(WasmStringImplementation.fromExtern(b))
+      .externalize();
 }
 
 @pragma('wasm:export')

@@ -46,9 +46,8 @@ void main() async {
         throw 'Could not run test runner: ${output.exitCode}: ${output.stdout} ${output.stderr}';
       }
 
-      final golden = await File(
-        p.setExtension(file.path, '.golden.txt'),
-      ).readAsString();
+      final golden = await File(p.setExtension(file.path, '.golden.txt'))
+          .readAsString();
       expect(output.stdout, golden);
     });
   }
