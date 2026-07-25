@@ -205,23 +205,18 @@ package wasi:cli@0.3.0 {
     }
 
     #[test]
-    fn async_import() {
+    fn streams() {
         print_definitions(
             "
 package root:component;
 
 world root {
-  import wasi:clocks/monotonic-clock@0.3.0;
+  import wasi:cli/stdin@0.3.0;
 }
 
-package wasi:clocks@0.3.0 {
-  interface types {
-    type duration = u64;
-  }
-
-  interface monotonic-clock {
-    use types.{duration};
-    wait-for: async func(how-long: duration);
+package wasi:cli@0.3.0 {
+  interface stdin {
+    write-via-stream: func(data: stream<u8>);
   }
 }
 ",

@@ -8,7 +8,7 @@ import 'waitable.dart';
 
 @pragma('wasm:export')
 WasmI32 callback(WasmI32 eventCode, WasmI32 p1, WasmI32 p2) {
-  final task = taskForCurrentThread();
+  final task = Task.forCurrentThread();
   return task.dispatchEvent(eventCode, p1, p2).toWasmI32();
 }
 

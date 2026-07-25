@@ -32,3 +32,5 @@ enum EventCode {
   futureWrite,
   taskCancelled,
 }
+
+const blockedCode = 0xffff_ffff;

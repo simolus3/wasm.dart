@@ -3,11 +3,10 @@ import 'dart:async';
 import 'dart:_wasm';
 import 'dart:collection';
 
-import 'package:meta/meta.dart';
-
 import '../../embedder/clock.dart';
 import 'callback.dart';
 import 'future.dart';
+import 'stream_sink.dart';
 import 'subtask.dart';
 import 'timer.dart';
 import 'waitable.dart';
@@ -53,6 +52,7 @@ final class Task {
   final Map<int, SubtaskImpl> _subtasks = {};
   final Map<int, FutureEventHandler> _pendingFutureWrites = {};
   final Map<int, FutureEventHandler> _pendingFutureReads = {};
+  final Map<int, StreamSinkState<void>> writeStreams = {};
 
   var _isRunning = false;
   var _microtaskScheduled = false;
@@ -65,26 +65,24 @@ final class Task {
     _isRunning = true;
 
     final parsedCode = EventCode.values[code.toIntUnsigned()];
+    final index = p1.toIntUnsigned();
     switch (parsedCode) {
       case EventCode.none:
         // We'll just run the microtask queue.
         break;
       case EventCode.subtask:
-        final task = p1.toIntUnsigned();
-        final state = SubtaskState.values[p2.toIntSigned()];
-        _subtasks[task]!.dispatchEvent(state);
+        final state = SubtaskState.values[p2.toIntUnsigned()];
+        _subtasks[index]!.dispatchEvent(state);
       case EventCode.streamRead:
         throw UnimplementedError();
       case EventCode.streamWrite:
-        throw UnimplementedError();
+        writeStreams[index]!.dispatchEvent(p2.toIntUnsigned());
       case EventCode.futureRead:
-        final futureIndex = p1.toIntUnsigned();
         final code = CopyResult.values[p2.toIntUnsigned()];
-        _pendingFutureReads.remove(futureIndex)!(code);
+        _pendingFutureReads.remove(index)!(code);
       case EventCode.futureWrite:
-        final futureIndex = p1.toIntUnsigned();
         final code = CopyResult.values[p2.toIntUnsigned()];
-        _pendingFutureWrites.remove(futureIndex)!(code);
+        _pendingFutureWrites.remove(index)!(code);
       case EventCode.taskCancelled:
         // We don't currently support cancellations, in the future we might want
         // to notify listeners.
@@ -198,6 +196,26 @@ final class Task {
   }
 
   static const _currentTaskKey = #_currentTask;
+
+  static Task forCurrentThread() {
+    final task = _activeTasks[_contextGet().toIntUnsigned()]!;
+    assert(
+      !task._isRunning,
+      'Task.forCurrentThread should only be called in async entrypoints',
+    );
+    return task;
+  }
+
+  static Task forCurrentZone() {
+    final task = Zone.current[_currentTaskKey] as Task;
+    assert(task._isRunning);
+    assert(() {
+      task._verifyCurrent();
+      return true;
+    }());
+
+    return task;
+  }
 }
 
 /// Configures a new task.
@@ -216,11 +234,6 @@ int spawnTask({String? debugName, required void Function() run}) {
     zoneValues: {Task._currentTaskKey: task},
   );
   return task._finishEventLoopIteration();
-}
-
-@internal
-Task taskForCurrentThread() {
-  return _activeTasks[_contextGet().toIntUnsigned()]!;
 }
 
 final class _MicrotaskEntry extends LinkedListEntry<_MicrotaskEntry> {

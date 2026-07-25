@@ -114,5 +114,5 @@ final class SubtaskCancelledException implements Exception {
 ///
 /// This function is only meant to be called by witgen-generated code.
 Subtask createSubtask(WasmI32 subtaskReturnCode) {
-  return taskForCurrentThread().trackSubtask(subtaskReturnCode);
+  return Task.forCurrentZone().trackSubtask(subtaskReturnCode);
 }
