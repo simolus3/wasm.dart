@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 import '../../embedder/clock.dart';
 import 'callback.dart';
 import 'future.dart';
+import 'subtask.dart';
 import 'timer.dart';
 import 'waitable.dart';
 
@@ -49,7 +50,7 @@ final class Task {
   final WaitableSet _waitable = WaitableSet();
 
   final LinkedList<_MicrotaskEntry> _microtaskQueue = LinkedList();
-  final Map<int, Subtask> _subtasks = {};
+  final Map<int, SubtaskImpl> _subtasks = {};
   final Map<int, FutureEventHandler> _pendingFutureWrites = {};
   final Map<int, FutureEventHandler> _pendingFutureReads = {};
 
@@ -60,7 +61,7 @@ final class Task {
     _activeTasks[_id] = this;
   }
 
-  int _dispatchEvent(WasmI32 code, WasmI32 p1, WasmI32 p2) {
+  int dispatchEvent(WasmI32 code, WasmI32 p1, WasmI32 p2) {
     _isRunning = true;
 
     final parsedCode = EventCode.values[code.toIntUnsigned()];
@@ -70,8 +71,8 @@ final class Task {
         break;
       case EventCode.subtask:
         final task = p1.toIntUnsigned();
-        final state = _SubtaskState.values[p2.toIntSigned()];
-        _subtasks[task]!._dispatchEvent(state);
+        final state = SubtaskState.values[p2.toIntSigned()];
+        _subtasks[task]!.dispatchEvent(state);
       case EventCode.streamRead:
         throw UnimplementedError();
       case EventCode.streamWrite:
@@ -139,7 +140,7 @@ final class Task {
       },
       createTimer: (self, parent, zone, duration, f) {
         final inNanos = (duration.inMicroseconds * 1000).toWasmI64();
-        final subtask = _trackSubtask(wasiMonotonicWaitFor(inNanos));
+        final subtask = trackSubtask(wasiMonotonicWaitFor(inNanos));
 
         return OneShotTimer(subtask, self.bindCallbackGuarded(f));
       },
@@ -171,51 +172,50 @@ final class Task {
     );
   }
 
-  Subtask _trackSubtask(WasmI32 createCode) {
+  SubtaskImpl trackSubtask(WasmI32 createCode) {
     assert(_isRunning);
     final asInt = createCode.toIntUnsigned();
-    final state = _SubtaskState.values[asInt & 0x0f];
+    final state = SubtaskState.values[asInt & 0x0f];
     final taskIndex = asInt >>> 4;
 
     switch (state) {
-      case _SubtaskState.starting:
-      case _SubtaskState.started:
+      case SubtaskState.starting:
+      case SubtaskState.started:
         _waitable.addWaitable(WasmI32.fromInt(taskIndex));
-        final task = Subtask._(taskIndex, this);
+        final task = SubtaskImpl(taskIndex, this);
         _subtasks[taskIndex] = task;
         return task;
-      case _SubtaskState.returned:
-      case _SubtaskState.cancelledBeforeStarted:
-      case _SubtaskState.cancelledBeforeReturned:
-        return ._alreadyCompleted(state, this);
+      case SubtaskState.returned:
+      case SubtaskState.cancelledBeforeStarted:
+      case SubtaskState.cancelledBeforeReturned:
+        return .alreadyCompleted(state, this);
     }
   }
 
-  void _removeSubtask(int index) {
+  void removeSubtask(int index) {
     _subtaskDrop(index.toWasmI32());
     _subtasks.remove(index);
   }
 
-  /// Configures a new task.
-  ///
-  /// This should only be called once from exported async component functions,
-  /// which is typically done by generated code.
-  @internal
-  static int spawn({String? debugName, required void Function() run}) {
-    final id = _nextTaskId++;
-    final task = Task._(id, debugName);
-    _contextSet(id.toWasmI32());
-
-    task._isRunning = true;
-    runZoned(
-      run,
-      zoneSpecification: task._zoneSpecification,
-      zoneValues: {_currentTaskKey: task},
-    );
-    return task._finishEventLoopIteration();
-  }
-
   static const _currentTaskKey = #_currentTask;
+}
+
+/// Configures a new task.
+///
+/// This should only be called once from exported async component functions,
+/// which is typically done by generated code.
+int spawnTask({String? debugName, required void Function() run}) {
+  final id = _nextTaskId++;
+  final task = Task._(id, debugName);
+  _contextSet(id.toWasmI32());
+
+  task._isRunning = true;
+  runZoned(
+    run,
+    zoneSpecification: task._zoneSpecification,
+    zoneValues: {Task._currentTaskKey: task},
+  );
+  return task._finishEventLoopIteration();
 }
 
 @internal
@@ -223,108 +223,8 @@ Task taskForCurrentThread() {
   return _activeTasks[_contextGet().toIntUnsigned()]!;
 }
 
-@internal
-int dispatchEvent(Task t, WasmI32 code, WasmI32 p1, WasmI32 p2) {
-  return t._dispatchEvent(code, p1, p2);
-}
-
 final class _MicrotaskEntry extends LinkedListEntry<_MicrotaskEntry> {
   final void Function() entry;
 
   _MicrotaskEntry(this.entry);
-}
-
-enum _SubtaskState {
-  starting,
-  started,
-  returned,
-  cancelledBeforeStarted,
-  cancelledBeforeReturned,
-}
-
-/// A component-model subtask.
-///
-/// Subtasks are created when an async component function calls another async
-/// function from another component.
-final class Subtask {
-  final int _index;
-  _SubtaskState _state = .starting;
-
-  final Completer<void>? _completer;
-  final Task _task;
-  var _cancellationRequested = false;
-
-  Subtask._(this._index, this._task)
-    : assert(_index > 0),
-      _completer = Completer();
-
-  Subtask._alreadyCompleted(this._state, this._task)
-    : _index = 0,
-      _completer = null;
-
-  void _dispatchEvent(_SubtaskState state) {
-    _state = state;
-
-    switch (state) {
-      case _SubtaskState.starting:
-      case _SubtaskState.started:
-        return;
-      case _SubtaskState.returned:
-        _removeSelf();
-        _completer?.complete();
-      case _SubtaskState.cancelledBeforeStarted:
-      case _SubtaskState.cancelledBeforeReturned:
-        _removeSelf();
-        _completer?.completeError(const SubtaskCancelledException._());
-    }
-  }
-
-  void _removeSelf() {
-    _task._removeSubtask(_index);
-  }
-
-  Future<void> get completion {
-    if (_completer case final completer?) return completer.future;
-
-    assert(_state == .returned, 'Must be immediately-returned subtask');
-    return Future.value();
-  }
-
-  void cancel() {
-    if (_cancellationRequested || _index == 0) return;
-    // TODO: Because we add subtasks to the waitable set immediately after
-    // creating them, cancelling requires the "🚝: enabling more canonical ABI
-    // options on more async-related builtins" feature to make
-    // subtask.cancel async. Until that is stabilized, we can't cancel subtasks.
-    // After adding that, also fix timers to cancel properly.
-
-    //    const blockedCode = 0xffff_ffff;
-
-    _cancellationRequested = true;
-    // final newState = _subtaskCancel(_index.toWasmI32()).toIntUnsigned();
-    // if (newState == blockedCode) {
-    //   // We're already waiting on the task, we'll be notified asynchronously
-    //   // about state updates.
-    // } else {
-    //   _dispatchEvent(_SubtaskState.values[newState]);
-    // }
-  }
-}
-
-/// An exception thrown from [Subtask.completion] when the subtask was cancelled
-/// and has acknowledged its cancellation.
-final class SubtaskCancelledException implements Exception {
-  const SubtaskCancelledException._();
-
-  @override
-  String toString() {
-    return 'Subtask cancelled';
-  }
-}
-
-/// Creates a subtask from a return code of an async import.
-///
-/// This function is only meant to be called by witgen-generated code.
-Subtask createSubtask(WasmI32 subtaskReturnCode) {
-  return taskForCurrentThread()._trackSubtask(subtaskReturnCode);
 }

@@ -36,7 +36,7 @@ void defineInstanceExport({required Run unnamedExport1}) {
 
 @pragma('wasm:export', r'component_0')
 i1.WasmI32 _component_0() {
-  final asyncExitCode = i0.Task.spawn(
+  final asyncExitCode = i0.spawnTask(
     run: () async {
       final tmp0 = await _unnamedExport1.run();
       i1.WasmI32 tmp1;

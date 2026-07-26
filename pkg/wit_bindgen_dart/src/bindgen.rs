@@ -324,7 +324,7 @@ impl WorldGenerator for DartWorldGenerator {
                     uwriteln!(
                         def,
                         "{{
-final asyncExitCode = {components}.Task.spawn(
+final asyncExitCode = {components}.spawnTask(
   run: () async {{
     {body}
   }},

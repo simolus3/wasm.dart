@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'task.dart';
+import 'subtask.dart';
 
 final class OneShotTimer implements Timer {
   @override

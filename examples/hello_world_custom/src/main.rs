@@ -11,7 +11,7 @@ async fn main() -> Result<()> {
     let engine = wasmtime::Engine::default();
     let mut store = Store::new(&engine, DemoState::default());
 
-    let bytes = fs::read("/home/simon/src/wasm.dart/examples/hello_world_custom/bin/app.wasm")?;
+    let bytes = fs::read("bin/app.wasm")?;
     let component = Component::new(&engine, bytes)?;
     let Some(run_instance_index) = component.get_export_index(None, "wasi:cli/run@0.3.0") else {
         bail!("Expected a wasi:cli/run export");
