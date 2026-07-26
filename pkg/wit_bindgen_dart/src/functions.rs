@@ -293,6 +293,53 @@ if ({has_value}.toBool()) {{
 
                 results.push(tmp);
             }
+            Instruction::ResultLift { result: _, ty } => {
+                let tmp = self.temporary_variable();
+                let (ok, ok_results) = self.blocks.pop().unwrap();
+                let (err, err_results) = self.blocks.pop().unwrap();
+                let is_err = operands.pop().unwrap();
+
+                uwrite!(self.definition, "final ");
+                self.definition
+                    .write_dart_type(self.dart, resolve, &Type::Id(*ty));
+                uwriteln!(
+                    self.definition,
+                    " {tmp};
+if ({is_err}.toBool()) {{
+  {ok}
+  {tmp} = .ok({})
+}} else {{
+  {err}
+  {tmp} = .error({})
+}}
+",
+                    match ok_results.get(0) {
+                        None => "null",
+                        Some(e) => e,
+                    },
+                    match err_results.get(0) {
+                        None => "null",
+                        Some(e) => e,
+                    },
+                );
+                results.push(tmp);
+            }
+            Instruction::FutureLift { payload: _, ty } => {
+                let tmp = self.temporary_variable();
+                let future = operands.pop().unwrap();
+                uwrite!(self.definition, "final {tmp} = ");
+                self.definition.imported_identifier(
+                    self.dart,
+                    KnownDartUri::PkgWasmComponents,
+                    "readFuture",
+                );
+                let vtable = self.dart.stream_future_vtables.get(ty).unwrap().clone();
+                uwriteln!(
+                    self.definition,
+                    "(const {vtable}(), {future}.toIntUnsigned());"
+                );
+                results.push(tmp);
+            }
             Instruction::GuestDeallocateString => {
                 let length = operands.pop().unwrap();
                 let ptr = operands.pop().unwrap();

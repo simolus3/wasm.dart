@@ -123,4 +123,21 @@ pub enum SerializableCanonDefinition {
     StreamDropWritable {
         stream_type: usize,
     },
+    FutureNew {
+        future_type: usize,
+    },
+    FutureRead {
+        future_type: usize,
+        options: FunctionOptions,
+    },
+    FutureWrite {
+        future_type: usize,
+        options: FunctionOptions,
+    },
+    FutureDropReadable {
+        future_type: usize,
+    },
+    FutureDropWritable {
+        future_type: usize,
+    },
 }

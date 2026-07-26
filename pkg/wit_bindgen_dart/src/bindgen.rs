@@ -5,7 +5,7 @@ use wit_bindgen_core::{
     WorldGenerator,
     abi::{
         AbiVariant, LiftLower, WasmSignature, call, guest_export_needs_post_return,
-        lower_to_memory, post_return,
+        lift_from_memory, lower_to_memory, post_return,
     },
     uwrite, uwriteln,
     wit_parser::{InterfaceId, Resolve, SizeAlign, Type, TypeDefKind, TypeId, WorldKey},
@@ -225,6 +225,171 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
         self.main.stream_future_vtables.insert(id, vtable_name);
     }
 
+    fn define_future_vtable(&mut self, resolve: &Resolve, id: TypeId, inner_type: Option<Type>) {
+        let rt_import = self.main.import(KnownDartUri::PkgWasmComponents);
+
+        let Some(inner_type) = inner_type else {
+            self.main
+                .stream_future_vtables
+                .insert(id, Rc::new(format!("{rt_import}.FutureVtable.voidVtable")));
+            return;
+        };
+
+        let id_str = format!("{}", id.index());
+        let vtable_name = Rc::new(format!("_Vtable{}", id_str));
+        let mut definition = DartDefinition::default();
+        let wasm_import = self.main.import(KnownDartUri::DartWasm);
+
+        uwrite!(
+            &mut definition,
+            "
+@pragma('wasm:import', 'component.future{id_str}.new')
+external {wasm_import}.WasmI64 _futureNew{id_str}();
+@pragma('wasm:import', 'component.future{id_str}.write')
+external {wasm_import}.WasmI32 _futureWrite{id_str}({wasm_import}.WasmI32 future, {wasm_import}.WasmI32 ptr);
+@pragma('wasm:import', 'component.future{id_str}.read')
+external {wasm_import}.WasmI32 _futureRead{id_str}({wasm_import}.WasmI32 future, {wasm_import}.WasmI32 ptr);
+@pragma('wasm:import', 'component.future{id_str}.drop-readable')
+external {wasm_import}.WasmVoid _futureDropReadable{id_str}({wasm_import}.WasmI32 future);
+@pragma('wasm:import', 'component.future{id_str}.drop-writable')
+external {wasm_import}.WasmVoid _futureDropWritable{id_str}({wasm_import}.WasmI32 future);
+
+final class {vtable_name} implements {rt_import}.FutureVtable<"
+        );
+        self.canon_imports.push(ImportedCanonDefinition {
+            core_name: Rc::new(format!("future{id_str}.new")),
+            canon: SerializableCanonDefinition::FutureNew {
+                future_type: id.index(),
+            },
+        });
+        let mut read_write_options = FunctionOptions::default();
+        read_write_options.is_async = true;
+        read_write_options.use_memory = true;
+
+        self.canon_imports.push(ImportedCanonDefinition {
+            core_name: Rc::new(format!("future{id_str}.write")),
+            canon: SerializableCanonDefinition::FutureWrite {
+                future_type: id.index(),
+                options: read_write_options.clone(),
+            },
+        });
+        self.canon_imports.push(ImportedCanonDefinition {
+            core_name: Rc::new(format!("future{id_str}.read")),
+            canon: SerializableCanonDefinition::FutureRead {
+                future_type: id.index(),
+                options: read_write_options.clone(),
+            },
+        });
+        self.canon_imports.push(ImportedCanonDefinition {
+            core_name: Rc::new(format!("stream{id_str}.drop-readable")),
+            canon: SerializableCanonDefinition::FutureDropReadable {
+                future_type: id.index(),
+            },
+        });
+        self.canon_imports.push(ImportedCanonDefinition {
+            core_name: Rc::new(format!("stream{id_str}.drop-writable")),
+            canon: SerializableCanonDefinition::FutureDropWritable {
+                future_type: id.index(),
+            },
+        });
+
+        definition.write_dart_type(&mut self.main, resolve, &inner_type);
+
+        let size = self.size_align.size(&inner_type).size_wasm32();
+        let align = self.size_align.align(&inner_type).align_wasm32();
+
+        uwrite!(
+                &mut definition,
+                "> {{
+  const {vtable_name}();
+
+  @override
+  int newFuture() => _futureNew{id_str}().toInt();
+
+  @override
+  int read(int future, int buffer) {{
+    return _futureRead{id_str}({wasm_import}.WasmI32.fromInt(future), {wasm_import}.WasmI32.fromInt(buffer)).toIntUnsigned();
+  }}
+
+  @override
+  int write(int future, int buffer) {{
+    return _futureWrite{id_str}({wasm_import}.WasmI32.fromInt(future), {wasm_import}.WasmI32.fromInt(buffer)).toIntUnsigned();
+  }}
+
+  @override
+  void dropRead(int future) {{
+    _futureDropReadable{id_str}({wasm_import}.WasmI32.fromInt(future));
+  }}
+
+  @override
+  void dropWrite(int future) {{
+    _futureDropWritable{id_str}({wasm_import}.WasmI32.fromInt(future));
+  }}
+
+  @override
+  int allocateBuffer(int size) {{
+    return {rt_import}.mallocAligned(const {wasm_import}.WasmI32({align}), const {wasm_import}.WasmI32({size})).toIntUnsigned();
+  }}
+
+  @override
+  void freeBuffer(int address, {{required bool containsValue}}) {{
+    {rt_import}.dartFree(address.toWasmI32(), const {wasm_import}.WasmI32({size}), const {wasm_import}.WasmI32({align}));
+  }}
+
+  @override
+  void store(int address, "
+            );
+        definition.write_dart_type(&mut self.main, resolve, &inner_type);
+        uwriteln!(
+            &mut definition,
+            " value) {{
+    final wasmAddress = {wasm_import}.WasmI32.fromInt(address);
+"
+        );
+        let mut generator =
+            DartFunctionGenerator::new(&self.size_align, &mut self.main, FunctionMode::Standalone);
+        lower_to_memory(
+            resolve,
+            &mut generator,
+            Rc::new("wasmAddress".to_string()),
+            Rc::new("element".to_string()),
+            &inner_type,
+        );
+        uwriteln!(
+            &mut definition,
+            "{}
+  }}
+
+  @override
+  ",
+            generator.definition.take_code()
+        );
+        definition.write_dart_type(&mut self.main, resolve, &inner_type);
+        uwriteln!(
+            &mut definition,
+            "load(int address) {{
+    final wasmAddress = {wasm_import}.WasmI32.fromInt(address);
+"
+        );
+        let mut generator =
+            DartFunctionGenerator::new(&self.size_align, &mut self.main, FunctionMode::Standalone);
+
+        let lifted = lift_from_memory(
+            resolve,
+            &mut generator,
+            Rc::new("wasmAddress".to_string()),
+            &inner_type,
+        );
+        uwriteln!(
+            &mut definition,
+            "{}\n    return {lifted};\n  }}\n}}",
+            generator.definition.take_code()
+        );
+
+        self.main.consume_definition(definition);
+        self.main.stream_future_vtables.insert(id, vtable_name);
+    }
+
     fn generate_stream_or_future_vtables(&mut self, resolve: &Resolve, iface: InterfaceId) {
         let interface = &resolve.interfaces[iface];
 
@@ -240,7 +405,10 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
                         TypeDefKind::Stream(inner) => {
                             self.define_stream_vtable(resolve, stream_or_future, inner)
                         }
-                        _ => todo!("futures"),
+                        TypeDefKind::Future(inner) => {
+                            self.define_future_vtable(resolve, stream_or_future, inner)
+                        }
+                        _ => panic!("Neither a stream nor future"),
                     }
                 }
             }

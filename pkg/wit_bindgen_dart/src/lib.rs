@@ -216,7 +216,7 @@ world root {
 
 package wasi:cli@0.3.0 {
   interface stdin {
-    write-via-stream: func(data: stream<u8>);
+    write-via-stream: func(data: stream<u8>) -> future<result>;
   }
 }
 ",
