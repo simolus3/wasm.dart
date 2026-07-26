@@ -5,7 +5,8 @@ use serde::{
 use wit_bindgen_core::wit_parser::{Function, IndexMap, Interface, Resolve};
 
 use crate::bindgen::{
-    ExportedCoreFunction, ExportedInstance, ImportedCanonDefinition, ImportedCoreFunction,
+    ExportedCoreFunction, ExportedInstance, FunctionOptions, ImportedCanonDefinition,
+    ImportedCoreFunction,
 };
 
 pub struct SerializableAbi<'a> {
@@ -99,11 +100,27 @@ struct SerializableExportedInstanceFunction<'a> {
 
 #[derive(Serialize)]
 pub enum SerializableCanonDefinition {
-    StreamNew { stream_type: usize },
-    StreamRead { stream_type: usize },
-    StreamWrite { stream_type: usize },
-    StreamCancelRead { stream_type: usize },
-    StreamCancelWrite { stream_type: usize },
-    StreamDropReadable { stream_type: usize },
-    StreamDropWritable { stream_type: usize },
+    StreamNew {
+        stream_type: usize,
+    },
+    StreamRead {
+        stream_type: usize,
+        options: FunctionOptions,
+    },
+    StreamWrite {
+        stream_type: usize,
+        options: FunctionOptions,
+    },
+    StreamCancelRead {
+        stream_type: usize,
+    },
+    StreamCancelWrite {
+        stream_type: usize,
+    },
+    StreamDropReadable {
+        stream_type: usize,
+    },
+    StreamDropWritable {
+        stream_type: usize,
+    },
 }

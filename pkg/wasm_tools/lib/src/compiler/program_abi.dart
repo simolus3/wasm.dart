@@ -95,6 +95,47 @@ final class DartProgramAbi {
       functionImports[coreFunctionName] = instanceFunction;
     }
 
+    final canons = (encoding['canons'] as List).cast<Map<String, Object?>>();
+    for (final canon in canons) {
+      final coreName = canon['core_name'] as String;
+      final definition = canon['canon'] as Map<String, Object?>;
+      functionImports[coreName] = ImportedCanonPrimitive(coreName, (linker) {
+        final MapEntry(key: type, :value as Map<String, Object?>) =
+            definition.entries.single;
+
+        switch (type) {
+          case 'StreamNew':
+            final type = linker.builder.types.addValueType(
+              definitions.types[value['stream_type'] as int],
+            );
+            return linker.builder.linker.addCanonPrimitive(
+              (f) => StreamNew(f, type),
+            );
+          case 'StreamWrite':
+            final type = linker.builder.types.addValueType(
+              definitions.types[value['stream_type'] as int],
+            );
+            final options = FunctionOptions.fromJson(
+              value['options'] as Map<String, Object?>,
+            );
+            return linker.builder.linker.addCanonPrimitive((f) {
+              final write = StreamWrite(f, type);
+              linker.applyOptions(options, write);
+              return write;
+            });
+          case 'StreamDropWritable':
+            final type = linker.builder.types.addValueType(
+              definitions.types[value['stream_type'] as int],
+            );
+            return linker.builder.linker.addCanonPrimitive(
+              (f) => StreamDropWritable(f, type),
+            );
+          default:
+            throw UnsupportedError('Unsupported canon primitive $type');
+        }
+      });
+    }
+
     final exports = (encoding['exports'] as List).cast<Map<String, Object?>>();
     for (final rawExport in exports) {
       final interface = interfaces[rawExport['interface_id'] as int];

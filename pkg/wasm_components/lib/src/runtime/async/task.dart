@@ -45,8 +45,11 @@ final class Task {
   final int _id;
   final String? _debugName;
 
+  /// The root zone for this task, created when it was originally created.
+  late Zone _rootZone;
+
   /// A set of async subtasks that this is waiting on.
-  final WaitableSet _waitable = WaitableSet();
+  final WaitableSet waitable = WaitableSet();
 
   final LinkedList<_MicrotaskEntry> _microtaskQueue = LinkedList();
   final Map<int, SubtaskImpl> _subtasks = {};
@@ -62,6 +65,13 @@ final class Task {
   }
 
   int dispatchEvent(WasmI32 code, WasmI32 p1, WasmI32 p2) {
+    // This is called outside of a task zone by a global event entrypoint.
+    assert(Zone.current == Zone.root);
+    return _rootZone.run(() => _dispatchEvent(code, p1, p2));
+  }
+
+  int _dispatchEvent(WasmI32 code, WasmI32 p1, WasmI32 p2) {
+    assert(Zone.current == _rootZone);
     _isRunning = true;
 
     final parsedCode = EventCode.values[code.toIntUnsigned()];
@@ -102,7 +112,7 @@ final class Task {
     }
 
     _isRunning = false;
-    return CallbackCode.wait.packResult(_waitable);
+    return CallbackCode.wait.packResult(waitable);
   }
 
   /// Assert that the current thread is supposed to run this particular task.
@@ -140,7 +150,7 @@ final class Task {
         final inNanos = (duration.inMicroseconds * 1000).toWasmI64();
         final subtask = trackSubtask(wasiMonotonicWaitFor(inNanos));
 
-        return OneShotTimer(subtask, self.bindCallbackGuarded(f));
+        return OneShotTimer(subtask, zone.bindCallbackGuarded(f));
       },
       scheduleMicrotask: (self, parent, zone, f) {
         _microtaskQueue.add(_MicrotaskEntry(zone.bindCallbackGuarded(f)));
@@ -159,12 +169,12 @@ final class Task {
 
           final readHandle = read.handle.toWasmI32();
           _voidFutureRead(readHandle, const WasmI32(0));
-          _waitable.addWaitable(readHandle);
+          waitable.addWaitable(readHandle);
 
           // Immediately complete the future to wake up the task.
           final writeHandle = write.handle.toWasmI32();
           _voidFutureWrite(writeHandle, const WasmI32(0));
-          _waitable.addWaitable(writeHandle);
+          waitable.addWaitable(writeHandle);
         }
       },
     );
@@ -179,7 +189,7 @@ final class Task {
     switch (state) {
       case SubtaskState.starting:
       case SubtaskState.started:
-        _waitable.addWaitable(WasmI32.fromInt(taskIndex));
+        waitable.addWaitable(WasmI32.fromInt(taskIndex));
         final task = SubtaskImpl(taskIndex, this);
         _subtasks[taskIndex] = task;
         return task;
@@ -229,7 +239,10 @@ int spawnTask({String? debugName, required void Function() run}) {
 
   task._isRunning = true;
   runZoned(
-    run,
+    () {
+      task._rootZone = Zone.current;
+      return run();
+    },
     zoneSpecification: task._zoneSpecification,
     zoneValues: {Task._currentTaskKey: task},
   );

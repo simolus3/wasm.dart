@@ -1,8 +1,8 @@
-use std::fs;
+use std::{fs, task::Poll};
 
 use wasmtime::{
     Result, Store, bail,
-    component::{Component, Linker, Val},
+    component::{Component, Linker, StreamConsumer, StreamReader, StreamResult, Val},
 };
 use wasmtime_wasi::{ResourceTable, WasiCtx, WasiCtxView, WasiView};
 
@@ -29,6 +29,10 @@ async fn main() -> Result<()> {
         print.func_wrap("print", |_store, params: (String,)| {
             println!("{}", &params.0);
             Ok(())
+        })?;
+        print.func_wrap("forward-to-stdout", |store, params: (StreamReader<u8>,)| {
+            println!("got stream");
+            params.0.pipe(store, StdoutConsumer)
         })?;
     }
 
@@ -57,6 +61,35 @@ async fn main() -> Result<()> {
             Ok(())
         })
         .await?
+}
+
+struct StdoutConsumer;
+
+impl<D> StreamConsumer<D> for StdoutConsumer {
+    type Item = u8;
+
+    fn poll_consume(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+        store: wasmtime::StoreContextMut<D>,
+        source: wasmtime::component::Source<'_, Self::Item>,
+        finish: bool,
+    ) -> Poll<Result<StreamResult>> {
+        let mut src = source.as_direct(store);
+        let buf = src.remaining();
+
+        println!(
+            "Stdout write: {}, {}, {finish}",
+            unsafe { str::from_utf8_unchecked(buf) },
+            buf.len()
+        );
+
+        Poll::Ready(Ok(if finish {
+            StreamResult::Dropped
+        } else {
+            StreamResult::Completed
+        }))
+    }
 }
 
 #[derive(Default)]

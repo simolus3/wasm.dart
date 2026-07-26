@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:hello_world_custom/src/component.g.dart';
 import 'package:wasm_components/wasm_components.dart';
@@ -8,24 +10,36 @@ void main() {
 }
 
 final class _Run implements Run {
+  StreamController<Uint8List>? _stdout;
+
   Completer<void>? _previous;
 
   _Run();
 
   @override
   Future<Result<void, void>> run() async {
+    final out = _configureStdout();
+
     if (_previous case final previous?) {
-      importedInstance0.print(line: 'Second run, delaying for one second');
+      out.add(utf8.encode('Second run, delaying for one second\n'));
       await Future<void>.delayed(const Duration(seconds: 1));
-      importedInstance0.print(line: 'Completing previous');
+      out.add(utf8.encode('Completing previous\n'));
       previous.complete();
       return const .ok(null);
     }
 
-    importedInstance0.print(line: 'first run, will wait for second');
+    out.add(utf8.encode('first run, wil wait for second\n'));
     final future = (_previous = Completer()).future;
 
     await future;
     return const .ok(null);
+  }
+
+  StreamController<Uint8List> _configureStdout() {
+    if (_stdout case final out?) return out;
+
+    final controller = StreamController<Uint8List>();
+    importedInstance0.forwardToStdout(data: controller.stream);
+    return _stdout = controller;
   }
 }

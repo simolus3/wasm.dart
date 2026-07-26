@@ -9,45 +9,19 @@ final class DartLinker {
   final ModuleInstanceIndex libc;
   final ComponentBuilder builder;
 
-  CoreMemoryIndex? _libcMemory;
-  CoreFunctionIndex? _libcRealloc;
+  late CoreMemoryIndex _libcMemory;
+  late CoreFunctionIndex _libcRealloc;
 
   DartLinker(this.builder, this.abi, this.libc) {
-    var needsMemory = false;
-    var needsRealloc = false;
+    _libcMemory = builder.linker.alias(
+      .coreMemory,
+      .coreInstanceExport(libc, 'memory'),
+    );
 
-    for (final import
-        in abi.functionImports.values.whereType<ImportedInstanceFunction>()) {
-      if (import.options.usesMemory) {
-        needsMemory = true;
-      }
-      if (import.options.needsRealloc) {
-        needsRealloc = true;
-      }
-    }
-
-    for (final export in abi.functionExports.values) {
-      if (export.options.usesMemory) {
-        needsMemory = true;
-      }
-      if (export.options.needsRealloc) {
-        needsRealloc = true;
-      }
-    }
-
-    if (needsMemory) {
-      _libcMemory = builder.linker.alias(
-        .coreMemory,
-        .coreInstanceExport(libc, 'memory'),
-      );
-    }
-
-    if (needsRealloc) {
-      _libcRealloc = builder.linker.alias(
-        .coreFunction,
-        .coreInstanceExport(libc, 'dart_realloc'),
-      );
-    }
+    _libcRealloc = builder.linker.alias(
+      .coreFunction,
+      .coreInstanceExport(libc, 'dart_realloc'),
+    );
   }
 
   ModuleInstanceIndex createImportInstance() {
@@ -108,7 +82,7 @@ final class DartLinker {
 
   void applyOptions(FunctionOptions options, CanonicalHasOptions canon) {
     if (options.usesMemory) {
-      canon.memory = _libcMemory!;
+      canon.memory = _libcMemory;
     }
     if (options.needsRealloc) canon.realloc = _libcRealloc;
     if (options.usesStrings) canon.stringEncoding = .utf16;

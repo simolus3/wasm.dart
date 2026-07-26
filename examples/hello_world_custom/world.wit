@@ -8,8 +8,7 @@ world root {
 package dart:components@0.0.1 {
   /// Component that can print stuff.
   interface print {
-    /// Prints a message to stdout.
-    print: func(line: string);
+    forward-to-stdout: func(data: stream<u8>);
   }
 }
 

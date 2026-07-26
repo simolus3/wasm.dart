@@ -3,6 +3,13 @@
     {
       "name": null,
       "kind": {
+        "stream": "u8"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
         "result": {
           "ok": null,
           "err": null
@@ -11,22 +18,51 @@
       "owner": null
     }
   ],
+  "canons": [
+    {
+      "core_name": "stream0.new",
+      "canon": {
+        "StreamNew": {
+          "stream_type": 0
+        }
+      }
+    },
+    {
+      "core_name": "stream0.write",
+      "canon": {
+        "StreamWrite": {
+          "stream_type": 0,
+          "options": {
+            "use_memory": true,
+            "uses_strings": false,
+            "uses_callback": false,
+            "async": true
+          }
+        }
+      }
+    },
+    {
+      "core_name": "stream0.drop-writable",
+      "canon": {
+        "StreamDropWritable": {
+          "stream_type": 0
+        }
+      }
+    }
+  ],
   "interfaces": [
     {
       "full_name": "dart:components/print@0.0.1",
       "exported_functions": {
-        "print": {
-          "name": "print",
+        "forward-to-stdout": {
+          "name": "forward-to-stdout",
           "kind": "freestanding",
           "params": [
             {
-              "name": "line",
-              "type": "string"
+              "name": "data",
+              "type": 0
             }
-          ],
-          "docs": {
-            "contents": "Prints a message to stdout."
-          }
+          ]
         }
       }
     },
@@ -37,7 +73,7 @@
           "name": "run",
           "kind": "async-freestanding",
           "params": [],
-          "result": 0
+          "result": 1
         }
       }
     }
@@ -45,12 +81,13 @@
   "imports": [
     {
       "interface_id": 0,
-      "function_name": "print",
+      "function_name": "forward-to-stdout",
       "core_name": "_import0",
       "options": {
-        "use_memory": true,
-        "uses_strings": true,
-        "uses_callback": false
+        "use_memory": false,
+        "uses_strings": false,
+        "uses_callback": false,
+        "async": false
       }
     }
   ],
@@ -63,6 +100,7 @@
         "use_memory": false,
         "uses_strings": false,
         "uses_callback": true,
+        "async": false,
         "task_return_import": "_component_0taskReturn"
       }
     }

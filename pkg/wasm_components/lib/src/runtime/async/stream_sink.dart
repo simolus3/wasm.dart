@@ -1,4 +1,6 @@
 import 'dart:async';
+// ignore: import_internal_library
+import 'dart:_wasm';
 
 import 'package:meta/meta.dart';
 
@@ -60,6 +62,7 @@ int newReadableStream<T extends List<Object?>>(
 
   final state = StreamSinkState<T>(vtable, task, subscription, writable);
   task.writeStreams[writable] = state;
+  task.waitable.addWaitable(WasmI32.fromInt(writable));
 
   return readable;
 }
@@ -137,11 +140,14 @@ final class StreamSinkState<T extends List<Object?>> {
             pending.advance(elementsTransferred);
 
             if (pending.acknowledged == pending.totalLength) {
-              _vtable.freeBuffer(
-                pending.startPointer,
-                pending.totalLength,
-                pending.totalLength,
-              );
+              if (pending.totalLength > 0) {
+                _vtable.freeBuffer(
+                  pending.startPointer,
+                  pending.totalLength,
+                  pending.totalLength,
+                );
+              }
+
               _pendingWrite = null;
             } else {
               // Continue partial write.

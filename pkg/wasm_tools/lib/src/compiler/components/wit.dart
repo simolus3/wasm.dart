@@ -46,6 +46,8 @@ final class ResolvedWitDefinitions {
             final err = readOptionalType(result['err']);
 
             return ResultType(ok: ok, error: err);
+          case {'stream': final innerType}:
+            return StreamType(readOptionalType(innerType));
         }
     }
 

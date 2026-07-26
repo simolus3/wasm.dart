@@ -110,19 +110,24 @@ external {wasm_import}.WasmVoid _streamDropWritable{id_str}({wasm_import}.WasmI3
 final class {vtable_name} implements {rt_import}.StreamVtable<"
         );
         self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("component.stream{id_str}.new")),
+            core_name: Rc::new(format!("stream{id_str}.new")),
             canon: SerializableCanonDefinition::StreamNew {
                 stream_type: id.index(),
             },
         });
+        let mut read_write_options = FunctionOptions::default();
+        read_write_options.is_async = true;
+        read_write_options.use_memory = inner_type.is_some();
+
         self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("component.stream{id_str}.write")),
+            core_name: Rc::new(format!("stream{id_str}.write")),
             canon: SerializableCanonDefinition::StreamWrite {
                 stream_type: id.index(),
+                options: read_write_options.clone(),
             },
         });
         self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("component.stream{id_str}.drop-writable")),
+            core_name: Rc::new(format!("stream{id_str}.drop-writable")),
             canon: SerializableCanonDefinition::StreamDropWritable {
                 stream_type: id.index(),
             },
@@ -143,11 +148,11 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
   int get elementSize => {size};
   @override
   int allocateBuffer(int size) {{
-    return {rt_import}.mallocAligned(const {wasm_import}.WasmI32({align}), (size * {size}).toWasmI32());
+    return {rt_import}.mallocAligned(const {wasm_import}.WasmI32({align}), (size * {size}).toWasmI32()).toIntUnsigned();
   }}
   @override
-  void freeBuffer(int address, int totalSize, int _nonTransferredOffset) {{
-    return {rt_import}.dartFree(address.toWasmI32(), (totalSize * {size}).toWasmI32(), const {wasm_import}.WasmI32({align}));
+  void freeBuffer(int address, int totalSize, int nonTransferredOffset) {{
+    {rt_import}.dartFree(address.toWasmI32(), (totalSize * {size}).toWasmI32(), const {wasm_import}.WasmI32({align}));
   }}
   @override
   void writeToBuffer(int address, "
@@ -157,6 +162,7 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
                 &mut definition,
                 " elements) {{
     for (final (i, element) in elements.indexed) {{
+      final wasmAddress = {wasm_import}.WasmI32.fromInt(address + i);
 "
             );
             let mut generator = DartFunctionGenerator::new(
@@ -167,7 +173,7 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
             lower_to_memory(
                 resolve,
                 &mut generator,
-                Rc::new("(address + i)".to_string()),
+                Rc::new("wasmAddress".to_string()),
                 Rc::new("element".to_string()),
                 inner,
             );
@@ -184,11 +190,11 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
   @override
   int get elementSize => 0;
   @override
-  int allocateBuffer(int _size) => 0;
+  int allocateBuffer(int size) => 0;
   @override
-  void freeBuffer(int _address, int _totalSize, int _nonTransferredOffset) {{}}
+  void freeBuffer(int address, int totalSize, int nonTransferredOffset) {{}}
   @override
-  void writeToBuffer(int _address, List<Object?> _elements) {{}}
+  void writeToBuffer(int address, List<Object?> elements) {{}}
 "
             );
         }

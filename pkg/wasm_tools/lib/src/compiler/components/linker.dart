@@ -201,6 +201,55 @@ final class CanonContextGet extends CanonPrimitive {
   }
 }
 
+final class StreamNew extends CanonPrimitive {
+  final ValueTypeReference streamType;
+
+  new(super.createdCoreFunction, this.streamType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x0e);
+    s.writeUnsigned(streamType.index.index);
+  }
+}
+
+final class StreamWrite extends CanonPrimitive with CanonicalHasOptions {
+  final ValueTypeReference streamType;
+
+  new(super.createdCoreFunction, this.streamType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x10);
+    s.writeUnsigned(streamType.index.index);
+    _serializeOptions(s);
+  }
+}
+
+final class StreamDropReadable extends CanonPrimitive {
+  final ValueTypeReference streamType;
+
+  new(super.createdCoreFunction, this.streamType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x13);
+    s.writeUnsigned(streamType.index.index);
+  }
+}
+
+final class StreamDropWritable extends CanonPrimitive {
+  final ValueTypeReference streamType;
+
+  new(super.createdCoreFunction, this.streamType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x14);
+    s.writeUnsigned(streamType.index.index);
+  }
+}
+
 final class FutureNew extends CanonPrimitive {
   final ValueTypeReference futureType;
 
