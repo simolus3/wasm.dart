@@ -6,11 +6,17 @@ import 'future.dart';
 import 'task.dart';
 import 'waitable.dart';
 
-abstract interface class StreamVtable<T> {
-  int get elementSize;
-
+abstract interface class StreamVtable<T extends List<Object?>> {
   /// Calls `canon stream.new` with the appropriate type.
   int newStream();
+
+  /// Calls `canon stream.write` on the stream.
+  int write(int stream, int ptr, int n);
+
+  /// Calls `canon stream.drop-writable` on the stream.
+  void dropWritable(int stream);
+
+  int get elementSize;
 
   /// Allocates a buffer holding the given amount of elements.
   int allocateBuffer(int size);
@@ -32,27 +38,16 @@ abstract interface class StreamVtable<T> {
     /// component and we may have to run their destructors.
     int nonTransferredOffset,
   );
-}
 
-abstract interface class WritableStreamVtable<T> implements StreamVtable<T> {
-  /// Calls `canon stream.write` on the stream.
-  int write(int stream, int ptr, int n);
-
-  /// Calls `canon stream.cancel-write` on the stream.
-  int cancelWrite(int stream);
-
-  /// Calls `canon stream.drop-writable` on the stream.
-  void dropWritable(int stream);
-
-  void writeToBuffer(int address, List<T> elements);
+  void writeToBuffer(int address, T elements);
 }
 
 /// Creates a stream from the Dart [stream].
 ///
 /// Returns the handle id of the readable end of the stream.
-int newReadableStream<T>(
-  WritableStreamVtable<T> vtable,
-  Stream<List<T>> stream,
+int newReadableStream<T extends List<Object?>>(
+  StreamVtable<T> vtable,
+  Stream<T> stream,
 ) {
   final task = Task.forCurrentZone();
 
@@ -70,10 +65,10 @@ int newReadableStream<T>(
 }
 
 @internal
-final class StreamSinkState<T> {
-  final WritableStreamVtable<T> _vtable;
+final class StreamSinkState<T extends List<Object?>> {
+  final StreamVtable<T> _vtable;
   final Task _task;
-  final StreamSubscription<List<T>> _subscription;
+  final StreamSubscription<T> _subscription;
   final int _id;
   final int _elementSize;
 
@@ -94,7 +89,7 @@ final class StreamSinkState<T> {
     _startWrite(_PendingStreamWrite(0, 0));
   }
 
-  void _onData(List<T> data) {
+  void _onData(T data) {
     if (_pendingWrite != null || _otherEndDropped || _dropped) {
       throw StateError(
         'Stream subscription emitted event during pause or after cancellation.',

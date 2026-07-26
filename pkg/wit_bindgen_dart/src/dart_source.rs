@@ -7,7 +7,7 @@ use std::{
 use heck::{AsLowerCamelCase, ToUpperCamelCase};
 use wit_bindgen_core::abi::{WasmSignature, WasmType};
 use wit_bindgen_core::wit_parser::{
-    Docs, Function, InterfaceId, Resolve, Type, TypeDef, TypeDefKind,
+    Docs, Function, InterfaceId, Resolve, Type, TypeDef, TypeDefKind, TypeId,
 };
 use wit_bindgen_core::{uwrite, uwriteln};
 
@@ -17,6 +17,7 @@ pub struct DartSource {
     definitions: String,
     import_aliases: HashMap<KnownDartUri, Rc<String>>,
     interface_names: HashMap<InterfaceId, Rc<String>>,
+    pub stream_future_vtables: HashMap<TypeId, Rc<String>>,
 }
 
 impl DartSource {
@@ -182,6 +183,37 @@ impl DartDefinition {
         self.0.push_str(simple_name);
     }
 
+    pub fn write_stream_element_type(
+        &mut self,
+        dart: &mut DartSource,
+        resolve: &Resolve,
+        wit_type: Option<&Type>,
+    ) {
+        let Some(wit_type) = wit_type else {
+            self.0.push_str("List<Object?>");
+            return;
+        };
+
+        match wit_type {
+            Type::U8 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Uint8List"),
+            Type::S8 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Int8List"),
+            Type::U16 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Uint16List"),
+            Type::S16 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Int16List"),
+            Type::U32 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Uint32List"),
+            Type::S32 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Int32List"),
+            Type::U64 | Type::S64 => {
+                self.imported_identifier(dart, KnownDartUri::DartTypedData, "Int64List")
+            }
+            Type::F32 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Float32List"),
+            Type::F64 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Float64List"),
+            _ => {
+                self.0.push_str("List<");
+                self.write_dart_type(dart, resolve, wit_type);
+                self.0.push_str(">");
+            }
+        };
+    }
+
     pub fn write_def_type(&mut self, dart: &mut DartSource, resolve: &Resolve, def_type: &TypeDef) {
         // TODO: Some of these will need classes (e.g. enums, also we should use sealed classes for
         // variants). Finally, we should introduce typedefs if the TypeDefs has a name.
@@ -235,7 +267,7 @@ impl DartDefinition {
             }
             TypeDefKind::Stream(element_type) => {
                 self.0.push_str("Stream<");
-                self.write_optional_dart_type(dart, resolve, element_type.as_ref());
+                self.write_stream_element_type(dart, resolve, element_type.as_ref());
                 self.0.push_str(">");
             }
             TypeDefKind::Type(wit_type) => self.write_dart_type(dart, resolve, wit_type),
@@ -295,6 +327,8 @@ impl Write for DartDefinition {
 pub enum KnownDartUri {
     /// `dart:_wasm`
     DartWasm,
+    /// `dart:typed_data`
+    DartTypedData,
     /// `package:wasm_components/component.dart`
     PkgWasmComponents,
 }
@@ -303,6 +337,7 @@ impl KnownDartUri {
     fn uri_str(&self) -> &str {
         match self {
             KnownDartUri::DartWasm => "dart:_wasm",
+            KnownDartUri::DartTypedData => "dart:typed_data",
             KnownDartUri::PkgWasmComponents => "package:wasm_components/wasm_components.dart",
         }
     }

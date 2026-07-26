@@ -4,14 +4,15 @@ use std::{borrow::Cow, fmt::Write, rc::Rc};
 use wit_bindgen_core::{
     WorldGenerator,
     abi::{
-        AbiVariant, LiftLower, WasmSignature, call, guest_export_needs_post_return, post_return,
+        AbiVariant, LiftLower, WasmSignature, call, guest_export_needs_post_return,
+        lower_to_memory, post_return,
     },
     uwrite, uwriteln,
-    wit_parser::{InterfaceId, Resolve, SizeAlign, WorldKey},
+    wit_parser::{InterfaceId, Resolve, SizeAlign, Type, TypeDefKind, TypeId, WorldKey},
 };
 
 use crate::{
-    abi_export::SerializableAbi,
+    abi_export::{SerializableAbi, SerializableCanonDefinition},
     dart_source::{DartDefinition, DartSource, KnownDartUri},
     functions::{
         DartFunctionGenerator, ExportedFunctionMode, FunctionMode, ImportedFunctionMode, PostReturn,
@@ -23,6 +24,8 @@ pub struct FunctionOptions {
     pub use_memory: bool,
     pub uses_strings: bool,
     pub uses_callback: bool,
+    #[serde(rename = "async")]
+    pub is_async: bool,
     /// Only set on lifted (export) functions, a function to clean up temporary values allocated by
     /// this function.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -37,6 +40,12 @@ pub struct ImportedCoreFunction {
     pub function_name: String,
     pub core_name: Rc<String>,
     pub options: FunctionOptions,
+}
+
+#[derive(Serialize)]
+pub struct ImportedCanonDefinition {
+    pub core_name: Rc<String>,
+    pub canon: SerializableCanonDefinition,
 }
 
 pub struct ExportedInstance {
@@ -67,6 +76,7 @@ pub struct DartWorldGenerator {
     pub size_align: SizeAlign,
     pub main: DartSource,
     pub function_imports: Vec<ImportedCoreFunction>,
+    pub canon_imports: Vec<ImportedCanonDefinition>,
     pub instance_exports: Vec<ExportedInstance>,
 }
 
@@ -75,8 +85,160 @@ impl DartWorldGenerator {
         Ok(serde_json::to_string(&SerializableAbi {
             resolve,
             imports: &self.function_imports,
+            canons: &self.canon_imports,
             exports: &self.instance_exports,
         })?)
+    }
+
+    fn define_stream_vtable(&mut self, resolve: &Resolve, id: TypeId, inner_type: Option<Type>) {
+        let id_str = format!("{}", id.index());
+        let vtable_name = Rc::new(format!("_Vtable{}", id_str));
+        let mut definition = DartDefinition::default();
+        let rt_import = self.main.import(KnownDartUri::PkgWasmComponents);
+        let wasm_import = self.main.import(KnownDartUri::DartWasm);
+
+        uwrite!(
+            &mut definition,
+            "
+@pragma('wasm:import', 'component.stream{id_str}.new')
+external {wasm_import}.WasmI64 _streamNew{id_str}();
+@pragma('wasm:import', 'component.stream{id_str}.write')
+external {wasm_import}.WasmI32 _streamWrite{id_str}({wasm_import}.WasmI32 stream, {wasm_import}.WasmI32 ptr, {wasm_import}.WasmI32 n);
+@pragma('wasm:import', 'component.stream{id_str}.drop-writable')
+external {wasm_import}.WasmVoid _streamDropWritable{id_str}({wasm_import}.WasmI32 stream);
+
+final class {vtable_name} implements {rt_import}.StreamVtable<"
+        );
+        self.canon_imports.push(ImportedCanonDefinition {
+            core_name: Rc::new(format!("component.stream{id_str}.new")),
+            canon: SerializableCanonDefinition::StreamNew {
+                stream_type: id.index(),
+            },
+        });
+        self.canon_imports.push(ImportedCanonDefinition {
+            core_name: Rc::new(format!("component.stream{id_str}.write")),
+            canon: SerializableCanonDefinition::StreamWrite {
+                stream_type: id.index(),
+            },
+        });
+        self.canon_imports.push(ImportedCanonDefinition {
+            core_name: Rc::new(format!("component.stream{id_str}.drop-writable")),
+            canon: SerializableCanonDefinition::StreamDropWritable {
+                stream_type: id.index(),
+            },
+        });
+
+        definition.write_stream_element_type(&mut self.main, resolve, inner_type.as_ref());
+        uwriteln!(&mut definition, "> {{");
+        uwriteln!(&mut definition, "  const {vtable_name}();");
+
+        if let Some(inner) = &inner_type {
+            let size = self.size_align.size(inner).size_wasm32();
+            let align = self.size_align.align(inner).align_wasm32();
+
+            uwrite!(
+                &mut definition,
+                "
+  @override
+  int get elementSize => {size};
+  @override
+  int allocateBuffer(int size) {{
+    return {rt_import}.mallocAligned(const {wasm_import}.WasmI32({align}), (size * {size}).toWasmI32());
+  }}
+  @override
+  void freeBuffer(int address, int totalSize, int _nonTransferredOffset) {{
+    return {rt_import}.dartFree(address.toWasmI32(), (totalSize * {size}).toWasmI32(), const {wasm_import}.WasmI32({align}));
+  }}
+  @override
+  void writeToBuffer(int address, "
+            );
+            definition.write_stream_element_type(&mut self.main, resolve, Some(inner));
+            uwriteln!(
+                &mut definition,
+                " elements) {{
+    for (final (i, element) in elements.indexed) {{
+"
+            );
+            let mut generator = DartFunctionGenerator::new(
+                &self.size_align,
+                &mut self.main,
+                FunctionMode::Standalone,
+            );
+            lower_to_memory(
+                resolve,
+                &mut generator,
+                Rc::new("(address + i)".to_string()),
+                Rc::new("element".to_string()),
+                inner,
+            );
+            uwriteln!(
+                &mut definition,
+                "{}    }}\n  }}",
+                generator.definition.take_code()
+            );
+        } else {
+            // Stream<void>. This means that elementSize is zero, and that allocateBuffer is a noop.
+            uwriteln!(
+                &mut definition,
+                "
+  @override
+  int get elementSize => 0;
+  @override
+  int allocateBuffer(int _size) => 0;
+  @override
+  void freeBuffer(int _address, int _totalSize, int _nonTransferredOffset) {{}}
+  @override
+  void writeToBuffer(int _address, List<Object?> _elements) {{}}
+"
+            );
+        }
+
+        uwriteln!(
+            &mut definition,
+            "
+  @override
+  int newStream() => _streamNew{id_str}().toInt();
+  @override
+  void dropWritable(int stream) {{
+    _streamDropWritable{id_str}({wasm_import}.WasmI32.fromInt(stream));
+  }}
+  @override
+  int write(int stream, int ptr, int n) {{
+    return _streamWrite{id_str}(
+      {wasm_import}.WasmI32.fromInt(stream),
+      {wasm_import}.WasmI32.fromInt(ptr),
+      {wasm_import}.WasmI32.fromInt(n)
+    ).toIntUnsigned();
+  }}
+"
+        );
+
+        uwriteln!(&mut definition, "}}");
+
+        self.main.consume_definition(definition);
+        self.main.stream_future_vtables.insert(id, vtable_name);
+    }
+
+    fn generate_stream_or_future_vtables(&mut self, resolve: &Resolve, iface: InterfaceId) {
+        let interface = &resolve.interfaces[iface];
+
+        for function in interface.functions.values() {
+            for stream_or_future in function.find_futures_and_streams(resolve) {
+                if !self
+                    .main
+                    .stream_future_vtables
+                    .contains_key(&stream_or_future)
+                {
+                    let resolved_type = &resolve.types[stream_or_future];
+                    match resolved_type.kind {
+                        TypeDefKind::Stream(inner) => {
+                            self.define_stream_vtable(resolve, stream_or_future, inner)
+                        }
+                        _ => todo!("futures"),
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -97,8 +259,8 @@ impl WorldGenerator for DartWorldGenerator {
         iface: wit_bindgen_core::wit_parser::InterfaceId,
         _files: &mut wit_bindgen_core::Files,
     ) -> Result<()> {
+        self.generate_stream_or_future_vtables(resolve, iface);
         let class_name = self.main.define_interface(&resolve, iface);
-
         let mut def = DartDefinition::default();
 
         {
@@ -187,6 +349,7 @@ impl WorldGenerator for DartWorldGenerator {
         iface: wit_bindgen_core::wit_parser::InterfaceId,
         _files: &mut wit_bindgen_core::Files,
     ) -> Result<()> {
+        self.generate_stream_or_future_vtables(resolve, iface);
         let class_name = self.main.define_interface(&resolve, iface);
         let field_name = match name {
             WorldKey::Name(name) => format!("_{}", name),

@@ -33,6 +33,7 @@ pub enum FunctionMode<'a> {
     Imported(ImportedFunctionMode<'a>),
     Exported(ExportedFunctionMode<'a>),
     PostReturn(PostReturn),
+    Standalone,
 }
 
 pub struct ImportedFunctionMode<'a> {
@@ -143,6 +144,7 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
                         results.push(Rc::new(format!("p{nth}")));
                         return;
                     }
+                    FunctionMode::Standalone => panic!("Standalone mode has no arguments"),
                 };
 
                 results.push(Rc::new(function.params[*nth].name.to_lower_camel_case()));
@@ -353,6 +355,23 @@ if ({has_value}.toBool()) {{
                 uwriteln!(self.definition, "}}");
 
                 results.extend(result_names);
+            }
+            Instruction::StreamLower { payload: _, ty } => {
+                let vtable = self.dart.stream_future_vtables.get(ty).cloned().unwrap();
+                let tmp = self.temporary_variable();
+
+                uwrite!(self.definition, "  final {tmp} = ");
+                self.definition.imported_identifier(
+                    self.dart,
+                    KnownDartUri::PkgWasmComponents,
+                    "newReadableStream",
+                );
+                uwriteln!(
+                    self.definition,
+                    "(const {vtable}(), {}).toWasmI32();",
+                    operands.pop().unwrap()
+                );
+                results.push(tmp);
             }
             Instruction::I32Store { offset }
             | Instruction::LengthStore { offset }

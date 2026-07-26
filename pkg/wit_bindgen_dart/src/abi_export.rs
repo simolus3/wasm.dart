@@ -4,11 +4,14 @@ use serde::{
 };
 use wit_bindgen_core::wit_parser::{Function, IndexMap, Interface, Resolve};
 
-use crate::bindgen::{ExportedCoreFunction, ExportedInstance, ImportedCoreFunction};
+use crate::bindgen::{
+    ExportedCoreFunction, ExportedInstance, ImportedCanonDefinition, ImportedCoreFunction,
+};
 
 pub struct SerializableAbi<'a> {
     pub resolve: &'a Resolve,
     pub imports: &'a [ImportedCoreFunction],
+    pub canons: &'a [ImportedCanonDefinition],
     pub exports: &'a [ExportedInstance],
 }
 
@@ -30,8 +33,9 @@ impl<'a> Serialize for SerializableAbi<'a> {
     where
         S: serde::Serializer,
     {
-        let mut s = serializer.serialize_struct("ProgramAbi", 3)?;
+        let mut s = serializer.serialize_struct("ProgramAbi", 4)?;
         s.serialize_field("type_defs", &SerializableTypes(self.resolve))?;
+        s.serialize_field("canons", self.canons)?;
 
         let interfaces: Vec<_> = self
             .resolve
@@ -91,4 +95,15 @@ struct SerializableExportedInstanceFunction<'a> {
     interface_id: usize,
     #[serde(flatten)]
     function: &'a ExportedCoreFunction,
+}
+
+#[derive(Serialize)]
+pub enum SerializableCanonDefinition {
+    StreamNew { stream_type: usize },
+    StreamRead { stream_type: usize },
+    StreamWrite { stream_type: usize },
+    StreamCancelRead { stream_type: usize },
+    StreamCancelWrite { stream_type: usize },
+    StreamDropReadable { stream_type: usize },
+    StreamDropWritable { stream_type: usize },
 }
