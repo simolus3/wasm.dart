@@ -295,8 +295,8 @@ if ({has_value}.toBool()) {{
             }
             Instruction::ResultLift { result: _, ty } => {
                 let tmp = self.temporary_variable();
-                let (ok, ok_results) = self.blocks.pop().unwrap();
                 let (err, err_results) = self.blocks.pop().unwrap();
+                let (ok, ok_results) = self.blocks.pop().unwrap();
                 let is_err = operands.pop().unwrap();
 
                 uwrite!(self.definition, "final ");
@@ -306,18 +306,18 @@ if ({has_value}.toBool()) {{
                     self.definition,
                     " {tmp};
 if ({is_err}.toBool()) {{
-  {ok}
-  {tmp} = .ok({})
-}} else {{
   {err}
-  {tmp} = .error({})
+  {tmp} = .error({});
+}} else {{
+  {ok}
+  {tmp} = .ok({});
 }}
 ",
-                    match ok_results.get(0) {
+                    match err_results.get(0) {
                         None => "null",
                         Some(e) => e,
                     },
-                    match err_results.get(0) {
+                    match ok_results.get(0) {
                         None => "null",
                         Some(e) => e,
                     },
@@ -339,6 +339,14 @@ if ({is_err}.toBool()) {{
                     "(const {vtable}(), {future}.toIntUnsigned());"
                 );
                 results.push(tmp);
+            }
+            Instruction::EnumLift { enum_, name: _, ty } => {
+                let index = operands.pop().unwrap();
+                let enum_class = self.dart.define_enum(*ty, &resolve.types[*ty], *enum_);
+
+                results.push(Rc::new(format!(
+                    "{enum_class}.values[{index}.toIntUnsigned()]"
+                )));
             }
             Instruction::GuestDeallocateString => {
                 let length = operands.pop().unwrap();
@@ -419,6 +427,14 @@ if ({is_err}.toBool()) {{
                     operands.pop().unwrap()
                 );
                 results.push(tmp);
+            }
+            Instruction::EnumLower {
+                enum_: _,
+                name: _,
+                ty: _,
+            } => {
+                let value = operands.pop().unwrap();
+                results.push(Rc::new(format!("{value}.index.toWasmI32()")));
             }
             Instruction::I32Store { offset }
             | Instruction::LengthStore { offset }

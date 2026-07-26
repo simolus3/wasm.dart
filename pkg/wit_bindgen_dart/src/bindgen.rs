@@ -281,13 +281,13 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
             },
         });
         self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("stream{id_str}.drop-readable")),
+            core_name: Rc::new(format!("future{id_str}.drop-readable")),
             canon: SerializableCanonDefinition::FutureDropReadable {
                 future_type: id.index(),
             },
         });
         self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("stream{id_str}.drop-writable")),
+            core_name: Rc::new(format!("future{id_str}.drop-writable")),
             canon: SerializableCanonDefinition::FutureDropWritable {
                 future_type: id.index(),
             },
@@ -327,7 +327,7 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
   }}
 
   @override
-  int allocateBuffer(int size) {{
+  int allocateBuffer() {{
     return {rt_import}.mallocAligned(const {wasm_import}.WasmI32({align}), const {wasm_import}.WasmI32({size})).toIntUnsigned();
   }}
 
@@ -352,7 +352,7 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
             resolve,
             &mut generator,
             Rc::new("wasmAddress".to_string()),
-            Rc::new("element".to_string()),
+            Rc::new("value".to_string()),
             &inner_type,
         );
         uwriteln!(

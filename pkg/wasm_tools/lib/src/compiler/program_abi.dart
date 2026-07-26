@@ -130,6 +130,51 @@ final class DartProgramAbi {
             return linker.builder.linker.addCanonPrimitive(
               (f) => StreamDropWritable(f, type),
             );
+          case 'FutureNew':
+            final type = linker.builder.types.addValueType(
+              definitions.types[value['future_type'] as int],
+            );
+            return linker.builder.linker.addCanonPrimitive(
+              (f) => FutureNew(f, type),
+            );
+          case 'FutureRead':
+            final type = linker.builder.types.addValueType(
+              definitions.types[value['future_type'] as int],
+            );
+            final options = FunctionOptions.fromJson(
+              value['options'] as Map<String, Object?>,
+            );
+            return linker.builder.linker.addCanonPrimitive((f) {
+              final write = FutureRead(f, type);
+              linker.applyOptions(options, write);
+              return write;
+            });
+          case 'FutureWrite':
+            final type = linker.builder.types.addValueType(
+              definitions.types[value['future_type'] as int],
+            );
+            final options = FunctionOptions.fromJson(
+              value['options'] as Map<String, Object?>,
+            );
+            return linker.builder.linker.addCanonPrimitive((f) {
+              final write = FutureWrite(f, type);
+              linker.applyOptions(options, write);
+              return write;
+            });
+          case 'FutureDropReadable':
+            final type = linker.builder.types.addValueType(
+              definitions.types[value['future_type'] as int],
+            );
+            return linker.builder.linker.addCanonPrimitive(
+              (f) => FutureDropReadable(f, type),
+            );
+          case 'FutureDropWritable':
+            final type = linker.builder.types.addValueType(
+              definitions.types[value['future_type'] as int],
+            );
+            return linker.builder.linker.addCanonPrimitive(
+              (f) => FutureDropWritable(f, type),
+            );
           default:
             throw UnsupportedError('Unsupported canon primitive $type');
         }

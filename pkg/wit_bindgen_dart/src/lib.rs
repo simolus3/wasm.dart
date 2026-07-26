@@ -215,8 +215,17 @@ world root {
 }
 
 package wasi:cli@0.3.0 {
+  interface types {
+    enum error-code {
+      io,
+      illegal-byte-sequence,
+      pipe
+    }
+  }
+
   interface stdin {
-    write-via-stream: func(data: stream<u8>) -> future<result>;
+    use types.{error-code};
+    write-via-stream: func(data: stream<u8>) -> future<result<_, error-code>>;
   }
 }
 ",

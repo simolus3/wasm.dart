@@ -4,10 +4,10 @@ use std::{
     rc::Rc,
 };
 
-use heck::{AsLowerCamelCase, ToUpperCamelCase};
+use heck::{AsLowerCamelCase, ToLowerCamelCase, ToUpperCamelCase};
 use wit_bindgen_core::abi::{WasmSignature, WasmType};
 use wit_bindgen_core::wit_parser::{
-    Docs, Function, InterfaceId, Resolve, Type, TypeDef, TypeDefKind, TypeId,
+    Docs, Enum, Function, InterfaceId, Resolve, Type, TypeDef, TypeDefKind, TypeId,
 };
 use wit_bindgen_core::{uwrite, uwriteln};
 
@@ -17,6 +17,7 @@ pub struct DartSource {
     definitions: String,
     import_aliases: HashMap<KnownDartUri, Rc<String>>,
     interface_names: HashMap<InterfaceId, Rc<String>>,
+    type_definitions: HashMap<TypeId, Rc<String>>,
     pub stream_future_vtables: HashMap<TypeId, Rc<String>>,
 }
 
@@ -77,6 +78,34 @@ impl DartSource {
 
     pub fn consume_definition(&mut self, definition: DartDefinition) {
         self.definitions.push_str(&definition.0);
+    }
+
+    pub fn define_enum(&mut self, id: TypeId, resolved: &TypeDef, def: &Enum) -> Rc<String> {
+        match self.type_definitions.entry(id) {
+            Entry::Occupied(e) => e.get().clone(),
+            Entry::Vacant(e) => {
+                let name = Rc::new(
+                    resolved
+                        .name
+                        .as_ref()
+                        .map(|e| e.to_upper_camel_case())
+                        .unwrap_or_else(|| format!("Enum{}", id.index())),
+                );
+                e.insert_entry(name.clone());
+
+                let mut definition = DartDefinition::default();
+                definition.write_docs(&resolved.docs);
+                uwriteln!(&mut definition, "enum {name} {{");
+                for case in &def.cases {
+                    definition.write_docs(&case.docs);
+                    uwriteln!(&mut definition, "{},", case.name.to_lower_camel_case())
+                }
+                uwriteln!(&mut definition, "}}");
+
+                self.consume_definition(definition);
+                name
+            }
+        }
     }
 }
 
@@ -174,8 +203,7 @@ impl DartDefinition {
                 return;
             }
             Type::Id(id) => {
-                let def = &resolve.types[*id];
-                self.write_def_type(dart, resolve, def);
+                self.write_def_type(dart, resolve, id);
                 return;
             }
         };
@@ -214,11 +242,13 @@ impl DartDefinition {
         };
     }
 
-    pub fn write_def_type(&mut self, dart: &mut DartSource, resolve: &Resolve, def_type: &TypeDef) {
+    pub fn write_def_type(&mut self, dart: &mut DartSource, resolve: &Resolve, def_type: &TypeId) {
+        let resolved_type = &resolve.types[*def_type];
+
         // TODO: Some of these will need classes (e.g. enums, also we should use sealed classes for
         // variants). Finally, we should introduce typedefs if the TypeDefs has a name.
 
-        match &def_type.kind {
+        match &resolved_type.kind {
             TypeDefKind::Record(record) => {
                 let _ = write!(self, "({{");
                 for element in &record.fields {
@@ -233,7 +263,10 @@ impl DartDefinition {
             TypeDefKind::Flags(_flags) => todo!(),
             TypeDefKind::Tuple(_tuple) => todo!(),
             TypeDefKind::Variant(_variant) => todo!(),
-            TypeDefKind::Enum(_) => todo!(),
+            TypeDefKind::Enum(enum_def) => {
+                let name = dart.define_enum(*def_type, &resolved_type, enum_def);
+                self.0.push_str(&name);
+            }
             TypeDefKind::Option(inner) => {
                 self.imported_identifier(dart, KnownDartUri::PkgWasmComponents, "Option");
                 self.0.push_str("<");
