@@ -17,21 +17,6 @@ external WasmVoid _contextSet(WasmI32 context);
 @pragma('wasm:import', 'component.canon.context.get_i32_0')
 external WasmI32 _contextGet();
 
-@pragma('wasm:import', 'component.canon.future<void>.new')
-external WasmI64 _voidFutureNew();
-
-@pragma('wasm:import', 'component.canon.future<void>.read')
-external WasmI32 _voidFutureRead(WasmI32 future, WasmI32 buffer);
-
-@pragma('wasm:import', 'component.canon.future<void>.write')
-external WasmI32 _voidFutureWrite(WasmI32 future, WasmI32 buffer);
-
-@pragma('wasm:import', 'component.canon.future<void>.drop-read')
-external WasmVoid _voidFutureDropRead(WasmI32 future);
-
-@pragma('wasm:import', 'component.canon.future<void>.drop-write')
-external WasmVoid _voidFutureDropWrite(WasmI32 future);
-
 @pragma('wasm:import', 'component.canon.subtask.drop')
 external WasmVoid _subtaskDrop(WasmI32 task);
 
@@ -53,8 +38,8 @@ final class Task {
 
   final LinkedList<_MicrotaskEntry> _microtaskQueue = LinkedList();
   final Map<int, SubtaskImpl> _subtasks = {};
-  final Map<int, FutureEventHandler> _pendingFutureWrites = {};
-  final Map<int, FutureEventHandler> _pendingFutureReads = {};
+  final Map<int, FutureEventHandler> pendingFutureWrites = {};
+  final Map<int, FutureEventHandler> pendingFutureReads = {};
   final Map<int, StreamSinkState<void>> writeStreams = {};
 
   var _isRunning = false;
@@ -89,10 +74,10 @@ final class Task {
         writeStreams[index]!.dispatchEvent(p2.toIntUnsigned());
       case EventCode.futureRead:
         final code = CopyResult.values[p2.toIntUnsigned()];
-        _pendingFutureReads.remove(index)!(code);
+        pendingFutureReads[index]!(code);
       case EventCode.futureWrite:
         final code = CopyResult.values[p2.toIntUnsigned()];
-        _pendingFutureWrites.remove(index)!(code);
+        pendingFutureWrites[index]!(code);
       case EventCode.taskCancelled:
         // We don't currently support cancellations, in the future we might want
         // to notify listeners.
@@ -156,25 +141,18 @@ final class Task {
         _microtaskQueue.add(_MicrotaskEntry(zone.bindCallbackGuarded(f)));
 
         if (!_isRunning && !_microtaskScheduled) {
-          final (read, write) = extractFutureHandlesFromPackedCode(
-            _voidFutureNew().toInt(),
+          final (read, writable) = WritableFuture.create(
+            FutureVtable.voidVtable,
+            this,
           );
           _microtaskScheduled = true;
-          _pendingFutureReads[read.handle] = (_) {
-            _voidFutureDropRead(read.handle.toWasmI32());
-          };
-          _pendingFutureWrites[write.handle] = (_) {
-            _voidFutureDropWrite(write.handle.toWasmI32());
-          };
 
-          final readHandle = read.handle.toWasmI32();
-          _voidFutureRead(readHandle, const WasmI32(0));
-          waitable.addWaitable(readHandle);
+          // We don't have to await the future, completing it will trigger an
+          // event loop iteration which then runs microtasks.
+          unawaited(readFutureInternal(FutureVtable.voidVtable, read, this));
 
           // Immediately complete the future to wake up the task.
-          final writeHandle = write.handle.toWasmI32();
-          _voidFutureWrite(writeHandle, const WasmI32(0));
-          waitable.addWaitable(writeHandle);
+          unawaited(writable.writeValue(null));
         }
       },
     );
