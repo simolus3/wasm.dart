@@ -7,7 +7,7 @@ import 'index_space.dart';
 /// A core WebAssembly module as part of a WebAssembly component.
 sealed class CoreModule implements w.Serializable {
   /// The index of the core module in the component.
-  final ModuleIndex index;
+  final CoreModuleIndex index;
 
   CoreModule._(this.index);
 }

@@ -1,7 +1,8 @@
 import 'package:hooks/hooks.dart';
 import 'package:logging/logging.dart';
 
-import 'components/linker.dart';
+import 'components/component.dart';
+import 'components/definition.dart';
 import 'components/type.dart';
 import 'components/wit.dart';
 import 'dart_linker.dart';
@@ -47,7 +48,7 @@ final class DartProgramAbi {
     for (final entry
         in (encoding['interfaces'] as List).cast<Map<String, Object?>>()) {
       final fullName = entry['full_name'] as String;
-      final instanceType = InstanceTypeBuilder();
+      final instanceType = InstanceType();
 
       interfaces.add(
         lookupOrAddInterface(fullName, () {
@@ -66,13 +67,18 @@ final class DartProgramAbi {
             final result = definitions.readOptionalType(value['result']);
             final async = (value['kind'] as String).contains('async');
 
-            instanceType.exportFunction(
-              name,
+            final functionType = instanceType.addType(
               FunctionType(async: async, parameters: params, result: result),
             );
+
+            throw 'todo';
+            // instanceType.exportFunction(
+            //   name,
+            //   FunctionType(async: async, parameters: params, result: result),
+            // );
           }
 
-          return ResolvedInterface(fullName, instanceType.build());
+          return ResolvedInterface(fullName, instanceType);
         }),
       );
     }
@@ -108,9 +114,7 @@ final class DartProgramAbi {
             final type = linker.builder.types.addValueType(
               definitions.types[value['stream_type'] as int],
             );
-            return linker.builder.linker.addCanonPrimitive(
-              (f) => StreamNew(f, type),
-            );
+            return linker.builder.addCanonPrimitive((f) => StreamNew(f, type));
           case 'StreamWrite':
             final type = linker.builder.types.addValueType(
               definitions.types[value['stream_type'] as int],
@@ -118,7 +122,7 @@ final class DartProgramAbi {
             final options = FunctionOptions.fromJson(
               value['options'] as Map<String, Object?>,
             );
-            return linker.builder.linker.addCanonPrimitive((f) {
+            return linker.builder.addCanonPrimitive((f) {
               final write = StreamWrite(f, type);
               linker.applyOptions(options, write);
               return write;
@@ -127,16 +131,14 @@ final class DartProgramAbi {
             final type = linker.builder.types.addValueType(
               definitions.types[value['stream_type'] as int],
             );
-            return linker.builder.linker.addCanonPrimitive(
+            return linker.builder.addCanonPrimitive(
               (f) => StreamDropWritable(f, type),
             );
           case 'FutureNew':
             final type = linker.builder.types.addValueType(
               definitions.types[value['future_type'] as int],
             );
-            return linker.builder.linker.addCanonPrimitive(
-              (f) => FutureNew(f, type),
-            );
+            return linker.builder.addCanonPrimitive((f) => FutureNew(f, type));
           case 'FutureRead':
             final type = linker.builder.types.addValueType(
               definitions.types[value['future_type'] as int],
@@ -144,7 +146,7 @@ final class DartProgramAbi {
             final options = FunctionOptions.fromJson(
               value['options'] as Map<String, Object?>,
             );
-            return linker.builder.linker.addCanonPrimitive((f) {
+            return linker.builder.addCanonPrimitive((f) {
               final write = FutureRead(f, type);
               linker.applyOptions(options, write);
               return write;
@@ -156,7 +158,7 @@ final class DartProgramAbi {
             final options = FunctionOptions.fromJson(
               value['options'] as Map<String, Object?>,
             );
-            return linker.builder.linker.addCanonPrimitive((f) {
+            return linker.builder.addCanonPrimitive((f) {
               final write = FutureWrite(f, type);
               linker.applyOptions(options, write);
               return write;
@@ -165,14 +167,14 @@ final class DartProgramAbi {
             final type = linker.builder.types.addValueType(
               definitions.types[value['future_type'] as int],
             );
-            return linker.builder.linker.addCanonPrimitive(
+            return linker.builder.addCanonPrimitive(
               (f) => FutureDropReadable(f, type),
             );
           case 'FutureDropWritable':
             final type = linker.builder.types.addValueType(
               definitions.types[value['future_type'] as int],
             );
-            return linker.builder.linker.addCanonPrimitive(
+            return linker.builder.addCanonPrimitive(
               (f) => FutureDropWritable(f, type),
             );
           default:
@@ -183,44 +185,47 @@ final class DartProgramAbi {
 
     final exports = (encoding['exports'] as List).cast<Map<String, Object?>>();
     for (final rawExport in exports) {
-      final interface = interfaces[rawExport['interface_id'] as int];
-      final functionName = rawExport['function_name'] as String;
-      final coreName = rawExport['core_export_name'] as String;
-      final options = FunctionOptions.fromJson(
-        rawExport['options'] as Map<String, Object?>,
-      );
+      throw 'todo: $rawExport';
+      // final interface = interfaces[rawExport['interface_id'] as int];
+      // final functionName = rawExport['function_name'] as String;
+      // final coreName = rawExport['core_export_name'] as String;
+      // final options = FunctionOptions.fromJson(
+      //   rawExport['options'] as Map<String, Object?>,
+      // );
 
-      final functionType = interface.type.functionExports
-          .singleWhere((e) => e.name == functionName)
-          .function;
+      //   final functionType = interface.type.functionExports
+      //       .singleWhere((e) => e.name == functionName)
+      //       .function;
 
-      final export = ExportedInstanceFunction(
-        coreName,
-        functionName,
-        functionType,
-        options,
-      );
-      functionExports[coreName] = export;
-      interface.exports.add(export);
+      //   final export = ExportedInstanceFunction(
+      //     coreName,
+      //     functionName,
+      //     ModelTypeReference(functionType),
+      //     options,
+      //   );
+      //   functionExports[coreName] = export;
+      //   interface.exports.add(export);
 
-      if (options.returnImport case final returnImport?) {
-        functionImports[returnImport] = ImportedCanonPrimitive(returnImport, (
-          linker,
-        ) {
-          final taskReturn = linker.builder.linker.addCanonPrimitive((idx) {
-            final originalResultType = functionType.result;
-            ValueTypeReference? result;
-            if (originalResultType != null) {
-              result = linker.builder.types.addValueType(originalResultType);
-            }
+      //   if (options.returnImport case final returnImport?) {
+      //     functionImports[returnImport] = ImportedCanonPrimitive(returnImport, (
+      //       linker,
+      //     ) {
+      //       final taskReturn = linker.builder.addCanonPrimitive((idx) {
+      //         final originalResultType = (functionType as FunctionType).result;
+      //         ModelTypeReference? result;
+      //         if (originalResultType != null) {
+      //           result = linker.builder.types.addValueType(
+      //             originalResultType as ValueType,
+      //           );
+      //         }
 
-            return TaskReturn(idx, result);
-          });
-          linker.applyOptions(options, taskReturn);
+      //         return TaskReturn(idx, result);
+      //       });
+      //       linker.applyOptions(options, taskReturn);
 
-          return taskReturn;
-        });
-      }
+      //       return taskReturn;
+      //     });
+      //   }
     }
   }
 }
@@ -279,7 +284,9 @@ final class ImportedCanonPrimitive extends ImportedInstanceFunctionOrCanon {
 final class ExportedInstanceFunction {
   final String exportCoreFunctionName;
   final String name;
-  final FunctionType type;
+
+  /// The [FunctionType] of the exported instance.
+  final ModelType type;
   final FunctionOptions options;
 
   ExportedInstanceFunction(

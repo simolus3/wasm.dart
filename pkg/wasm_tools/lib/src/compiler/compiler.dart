@@ -5,7 +5,8 @@ import 'package:path/path.dart' as p;
 
 import 'components/component.dart';
 import 'components/index_space.dart';
-import 'components/linker.dart';
+import 'components/definition.dart';
+import 'components/type.dart';
 import 'dart_linker.dart';
 import 'hooks/builder.dart';
 import 'transform.dart';
@@ -86,11 +87,11 @@ final class ComponentCompiler {
       final libcDef = builder.defineModuleFromBytes(
         await (await resolved.resolveRuntimeHelpersFile()).readAsBytes(),
       );
-      final libc = builder.linker.coreInstantiate(.moduleAndArgs(libcDef, {}));
+      final libc = builder.coreInstantiate(.moduleAndArgs(libcDef, {}));
 
       final appDef = builder.defineModule(transformer.module);
       final linker = DartLinker(builder, abi, libc);
-      final app = builder.linker.coreInstantiate(
+      final app = builder.coreInstantiate(
         .moduleAndArgs(appDef, {
           'libc': libc,
           'component': linker.createImportInstance(),
@@ -98,10 +99,7 @@ final class ComponentCompiler {
       );
 
       final callback = abi.hasAsyncExport
-          ? builder.linker.alias(
-              .coreFunction,
-              .coreInstanceExport(app, 'callback'),
-            )
+          ? builder.alias(.coreFunction, .coreInstanceExport(app, 'callback'))
           : null;
 
       for (final export in abi.interfaces) {
@@ -110,22 +108,22 @@ final class ComponentCompiler {
         final inlineExports = <(String, Sort, Index)>[];
 
         for (final function in export.exports) {
-          final resolved = builder.linker.alias(
+          final resolved = builder.alias(
             .coreFunction,
             .coreInstanceExport(app, function.exportCoreFunctionName),
           );
           CoreFunctionIndex? corePostReturnFunction;
           if (function.options.postReturn case final postReturn?) {
-            corePostReturnFunction = builder.linker.alias(
+            corePostReturnFunction = builder.alias(
               .coreFunction,
               .coreInstanceExport(app, postReturn),
             );
           }
 
           final originalType = function.type;
-          final lifted = builder.linker.canonLift(
+          final lifted = builder.canonLift(
             resolved,
-            builder.types.addFunctionType(originalType),
+            builder.types.addFunctionType(originalType as FunctionType).index,
           );
           linker.applyOptions(function.options, lifted);
           lifted.postReturn = corePostReturnFunction;
@@ -141,10 +139,8 @@ final class ComponentCompiler {
           ));
         }
 
-        final instance = builder.linker.instance(inlineExports: inlineExports);
-        builder.linker.export(
-          Export(export.fullName, .componentInstance, instance),
-        );
+        final instance = builder.instance(inlineExports: inlineExports);
+        builder.export(Export(export.fullName, .componentInstance, instance));
       }
 
       logger.info('Writing component to ${options.output.path}');

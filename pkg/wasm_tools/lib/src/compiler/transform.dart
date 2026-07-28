@@ -4,7 +4,7 @@ import 'package:logging/logging.dart';
 
 import '../third_party/wasm_builder/wasm_builder.dart' as w;
 import '../third_party/wasm_builder/src/builder/util.dart';
-import 'components/linker.dart';
+import 'components/definition.dart';
 import 'components/type.dart';
 import 'dart_linker.dart';
 import 'program_abi.dart';
@@ -93,54 +93,52 @@ final class ModuleTransformer {
 
           switch (import.name) {
             case 'canon.context.get_i32_0':
-              primitive = (linker) => linker.builder.linker.canonContextGet(0);
+              primitive = (linker) => linker.builder.canonContextGet(0);
             case 'canon.context.set_i32_0':
-              primitive = (linker) => linker.builder.linker.canonContextSet(0);
+              primitive = (linker) => linker.builder.canonContextSet(0);
             case 'canon.waitable-set.new':
               primitive = (linker) =>
-                  linker.builder.linker.addCanonPrimitive(WaitableSetNew.new);
+                  linker.builder.addCanonPrimitive(WaitableSetNew.new);
             case 'canon.waitable-set.drop':
               primitive = (linker) =>
-                  linker.builder.linker.addCanonPrimitive(WaitableSetDrop.new);
+                  linker.builder.addCanonPrimitive(WaitableSetDrop.new);
             case 'canon.waitable.join':
               primitive = (linker) =>
-                  linker.builder.linker.addCanonPrimitive(WaitableJoin.new);
+                  linker.builder.addCanonPrimitive(WaitableJoin.new);
             case 'canon.future<void>.new':
-              primitive = (linker) => linker.builder.linker.addCanonPrimitive(
+              primitive = (linker) => linker.builder.addCanonPrimitive(
                 (f) => FutureNew(
                   f,
                   linker.builder.types.addValueType(FutureType()),
                 ),
               );
             case 'canon.future<void>.read':
-              primitive = (linker) =>
-                  linker.builder.linker.addCanonPrimitive((f) {
-                    final read = FutureRead(
-                      f,
-                      linker.builder.types.addValueType(FutureType()),
-                    );
-                    read.async = true;
-                    return read;
-                  });
+              primitive = (linker) => linker.builder.addCanonPrimitive((f) {
+                final read = FutureRead(
+                  f,
+                  linker.builder.types.addValueType(FutureType()),
+                );
+                read.async = true;
+                return read;
+              });
             case 'canon.future<void>.write':
-              primitive = (linker) =>
-                  linker.builder.linker.addCanonPrimitive((f) {
-                    final read = FutureWrite(
-                      f,
-                      linker.builder.types.addValueType(FutureType()),
-                    );
-                    read.async = true;
-                    return read;
-                  });
+              primitive = (linker) => linker.builder.addCanonPrimitive((f) {
+                final read = FutureWrite(
+                  f,
+                  linker.builder.types.addValueType(FutureType()),
+                );
+                read.async = true;
+                return read;
+              });
             case 'canon.future<void>.drop-read':
-              primitive = (linker) => linker.builder.linker.addCanonPrimitive(
+              primitive = (linker) => linker.builder.addCanonPrimitive(
                 (f) => FutureDropReadable(
                   f,
                   linker.builder.types.addValueType(FutureType()),
                 ),
               );
             case 'canon.future<void>.drop-write':
-              primitive = (linker) => linker.builder.linker.addCanonPrimitive(
+              primitive = (linker) => linker.builder.addCanonPrimitive(
                 (f) => FutureDropWritable(
                   f,
                   linker.builder.types.addValueType(FutureType()),
@@ -148,9 +146,9 @@ final class ModuleTransformer {
               );
             case 'canon.subtask.drop':
               primitive = (linker) =>
-                  linker.builder.linker.addCanonPrimitive(CanonSubtaskDrop.new);
+                  linker.builder.addCanonPrimitive(CanonSubtaskDrop.new);
             case 'canon.subtask.cancel':
-              primitive = (linker) => linker.builder.linker.addCanonPrimitive(
+              primitive = (linker) => linker.builder.addCanonPrimitive(
                 (f) => CanonSubtaskCancel(f, async: true),
               );
             default:
@@ -333,11 +331,12 @@ final class _RandomImports extends _ComponentImport {
     const fullName = 'wasi:random/insecure@0.3.0';
 
     return abi.lookupOrAddInterface(fullName, () {
-      final builder = InstanceTypeBuilder()
-        ..exportFunction('get-insecure-random-bytes', _generateBytes())
-        ..exportFunction('get-insecure-random-u64', _generateU64());
+      final builder = InstanceType()
+      // ..exportFunction('get-insecure-random-bytes', _generateBytes())
+      // ..exportFunction('get-insecure-random-u64', _generateU64());
+      ;
 
-      return ResolvedInterface(fullName, builder.build());
+      return ResolvedInterface(fullName, builder);
     });
   }
 
@@ -345,11 +344,12 @@ final class _RandomImports extends _ComponentImport {
     const fullName = 'wasi:random/random@0.3.0';
 
     return abi.lookupOrAddInterface(fullName, () {
-      final builder = InstanceTypeBuilder()
-        ..exportFunction('get-random-bytes', _generateBytes())
-        ..exportFunction('get-random-u64', _generateU64());
+      final builder = InstanceType()
+      // ..exportFunction('get-random-bytes', _generateBytes())
+      // ..exportFunction('get-random-u64', _generateU64());
+      ;
 
-      return ResolvedInterface(fullName, builder.build());
+      return ResolvedInterface(fullName, builder);
     });
   }
 
@@ -501,24 +501,28 @@ final class _ClockImports extends _ComponentImport {
     const fullName = 'wasi:clocks/system-clock@0.3.0';
 
     return abi.lookupOrAddInterface(fullName, () {
-      final instance = InstanceTypeBuilder();
-      final instant = instance.exportType(
-        'instant',
-        RecordType([
-          .new(label: 'seconds', type: PrimitiveType.s64),
-          .new(label: 'nanoseconds', type: PrimitiveType.u32),
-        ]),
-      );
-      instance.exportFunction(
-        'now',
-        FunctionType(async: false, parameters: [], result: instant),
-      );
-      instance.exportFunction(
-        'get-resolution',
-        FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
-      );
+      final instance = InstanceType();
+      // final instant = instance.exportType(
+      //   'instant',
+      //   RecordType([
+      //     .new(label: 'seconds', type: PrimitiveType.s64),
+      //     .new(label: 'nanoseconds', type: PrimitiveType.u32),
+      //   ]),
+      // );
+      // instance.exportFunction(
+      //   'now',
+      //   FunctionType(
+      //     async: false,
+      //     parameters: [],
+      //     result: ModelTypeReference(instant),
+      //   ),
+      // );
+      // instance.exportFunction(
+      //   'get-resolution',
+      //   FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
+      // );
 
-      return ResolvedInterface(fullName, instance.build());
+      return ResolvedInterface(fullName, instance);
     });
   }
 
@@ -526,18 +530,18 @@ final class _ClockImports extends _ComponentImport {
     const fullName = 'wasi:clocks/timezone@0.3.0';
 
     return abi.lookupOrAddInterface(fullName, () {
-      final instance = InstanceTypeBuilder();
+      final instance = InstanceType();
 
-      instance.exportFunction(
-        'iana-id',
-        FunctionType(
-          async: false,
-          parameters: [],
-          result: OptionType(StringType()),
-        ),
-      );
+      // instance.exportFunction(
+      //   'iana-id',
+      //   FunctionType(
+      //     async: false,
+      //     parameters: [],
+      //     result: OptionType(StringType()),
+      //   ),
+      // );
 
-      return ResolvedInterface(fullName, instance.build());
+      return ResolvedInterface(fullName, instance);
     });
   }
 
@@ -545,26 +549,26 @@ final class _ClockImports extends _ComponentImport {
     const fullName = 'wasi:clocks/monotonic-clock@0.3.0';
 
     return abi.lookupOrAddInterface(fullName, () {
-      final instance = InstanceTypeBuilder();
+      final instance = InstanceType();
 
-      instance.exportFunction(
-        'now',
-        FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
-      );
-      instance.exportFunction(
-        'get-resolution',
-        FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
-      );
-      instance.exportFunction(
-        'wait-for',
-        FunctionType(
-          async: true,
-          parameters: [.new(label: 'how-long', type: PrimitiveType.u64)],
-          result: null,
-        ),
-      );
+      // instance.exportFunction(
+      //   'now',
+      //   FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
+      // );
+      // instance.exportFunction(
+      //   'get-resolution',
+      //   FunctionType(async: false, parameters: [], result: PrimitiveType.u64),
+      // );
+      // instance.exportFunction(
+      //   'wait-for',
+      //   FunctionType(
+      //     async: true,
+      //     parameters: [.new(label: 'how-long', type: PrimitiveType.u64)],
+      //     result: null,
+      //   ),
+      // );
 
-      return ResolvedInterface(fullName, instance.build());
+      return ResolvedInterface(fullName, instance);
     });
   }
 }

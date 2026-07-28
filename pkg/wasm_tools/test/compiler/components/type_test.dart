@@ -7,16 +7,16 @@ import 'utils.dart';
 void main() {
   test('can write types', () async {
     final c = ComponentBuilder();
-    final bool = c.types.addValueType(PrimitiveType.bool);
-    final int32 = c.types.addValueType(PrimitiveType.s32);
-    c.types.addFunctionType(
+    final bool = c.addType(PrimitiveType.bool);
+    final int32 = c.addType(PrimitiveType.s32);
+    c.addType(
       FunctionType(
         async: false,
         parameters: [
-          RecordOrVariantField(label: 'a', type: int32),
-          RecordOrVariantField(label: 'b', type: int32),
+          RecordOrVariantField(label: 'a', type: ModelTypeReference(int32)),
+          RecordOrVariantField(label: 'b', type: ModelTypeReference(int32)),
         ],
-        result: bool,
+        result: ModelTypeReference(bool),
       ),
     );
 
@@ -33,39 +33,48 @@ void main() {
   test('can write instances', () async {
     final c = ComponentBuilder();
     // To make sure we either generate an alias or duplicate the type.
-    final outerType = c.types.addValueType(PrimitiveType.s8);
+    final outerType = c.addType(PrimitiveType.s8);
 
-    final builder = InstanceTypeBuilder();
-    final exportedType = builder.exportType(
+    final instanceType = InstanceType();
+    final exportedType = instanceType.exportTypeEq(
       'foo',
-      RecordType([
-        .new(label: 'a', type: PrimitiveType.bool),
-        .new(label: 'b', type: PrimitiveType.s16),
-      ]),
+      instanceType.addType(
+        RecordType([
+          .new(label: 'a', type: PrimitiveType.bool),
+          .new(label: 'b', type: PrimitiveType.s16),
+        ]),
+      ),
     );
-    builder.exportFunction(
+    instanceType.exportFunction(
       'return-foo',
-      FunctionType(
-        async: false,
-        parameters: [.new(label: 'a', type: outerType)],
-        result: exportedType,
+      instanceType.addType(
+        FunctionType(
+          async: false,
+          parameters: [
+            .new(
+              label: 'a',
+              type: ModelTypeReference(
+                instanceType.alias(.componentType, .outer(1, outerType)),
+              ),
+            ),
+          ],
+          result: ModelTypeReference(exportedType),
+        ),
       ),
     );
 
-    c.types.addInstanceType(builder.build());
+    c.addType(instanceType);
 
     expect(await componentToWat(c), r'''
 (component
   (type (;0;) s8)
   (type (;1;)
     (instance
-      (type (;0;) bool)
-      (type (;1;) s16)
-      (type (;2;) (record (field "a" 0) (field "b" 1)))
-      (export (;3;) "foo" (type (eq 2)))
-      (type (;4;) s8)
-      (type (;5;) (func (param "a" 4) (result 3)))
-      (export (;0;) "return-foo" (func (type 5)))
+      (type (;0;) (record (field "a" bool) (field "b" s16)))
+      (export (;1;) "foo" (type (eq 0)))
+      (alias outer 1 0 (type (;2;)))
+      (type (;3;) (func (param "a" 2) (result 1)))
+      (export (;0;) "return-foo" (func (type 3)))
     )
   )
 )

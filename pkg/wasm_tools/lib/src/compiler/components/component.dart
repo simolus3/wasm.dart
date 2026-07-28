@@ -1,50 +1,48 @@
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
+
 import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 
 import 'binary.dart';
 import 'core_module.dart';
 import 'index_space.dart';
-import 'linker.dart';
+import 'definition.dart';
 import 'type.dart';
 import 'type_container.dart';
+
+mixin HasDefinitions {
+  final List<ComponentDefinition> _definitions = [];
+  final IndexSpaceCounters _counters = IndexSpaceCounters();
+
+  List<ComponentDefinition> get definitions =>
+      UnmodifiableListView(_definitions);
+
+  @protected
+  IndexSpaceCounters get counters => _counters;
+
+  @protected
+  void addDefinition(ComponentDefinition def) => _definitions.add(def);
+}
 
 /// Utilities to build a WebAssembly component.
 ///
 /// Since we only generate components (and don't transform / inspect existing
 /// ones), we can get away with only supporting the supset of the full component
 /// model we really need.
-///
-/// In our case, components unconditionally have the following shape:
-///
-///  1. Define core modules (the Rust helper and the dart2wasm-compiled app).
-///  2. Define all (component-level) types.
-///  3. Import used component instances.
-///  4. Create a `(core instance)` of the Rust helper.
-///  5. Create `(alias export)` and `(canon lower)` definitions to turn builtins
-///     and imported definitions into core modules.
-///  6. Create a `(core instance)` exporting those imports.
-///  7. Create a `(core instance)` of the dart2wasm app.
-///  8. Create a `(instance)` with inlineexports.
-///  9. Export that instance.
-final class ComponentBuilder implements w.Serializable {
-  final List<CoreModule> _modules = [];
-
-  final List<ModelType> _types = [];
-  late final TypesContainer types = TypesContainer(_types);
-
-  final IndexSpaceCounters _counters = IndexSpaceCounters();
+final class ComponentBuilder with HasDefinitions implements w.Serializable {
+  // TODO: Migrate this to definitions
+  late final TypesContainer types = TypesContainer();
 
   /// Imported component instances (we don't support any other type of import
   /// currently).
-  final List<(String, ModelTypeReference<InstanceType>)> _imports = [];
+  final List<(String, ComponentTypeIndex)> _imports = [];
 
-  late final LinkingBuilder linker = LinkingBuilder(this);
-
-  CoreModule _defineCoreModule(CoreModule Function(ModuleIndex) create) {
-    final index = ModuleIndex(_modules.length);
+  CoreModule _defineCoreModule(CoreModule Function(CoreModuleIndex) create) {
+    final index = _counters.incrementCoreModule();
     final module = create(index);
-    _modules.add(module);
+    addDefinition(CoreModuleDefinition(module));
     return module;
   }
 
@@ -56,76 +54,32 @@ final class ComponentBuilder implements w.Serializable {
     return _defineCoreModule((idx) => CoreModuleParsed(idx, module));
   }
 
-  ComponentInstanceIndex importInstance(
-    String name,
-    ModelTypeReference<InstanceType> type,
-  ) {
+  ComponentInstanceIndex importInstance(String name, ComponentTypeIndex type) {
     final idx = _counters.incrementComponentInstance();
     _imports.add((name, type));
     return idx;
   }
 
-  @override
-  void serialize(w.Serializer s) {
-    s.writeBytes(_preamble);
-    for (final module in _modules) {
-      ModuleSection(module).serialize(s);
-    }
-    TypesSection(_types).serialize(s);
-    ImportsSection(_imports).serialize(s);
-    linker.serialize(s);
-  }
-
-  Uint8List serializeToBytes() {
-    final serializer = w.Serializer();
-    serialize(serializer);
-    return serializer.data;
-  }
-
-  static final _preamble = Uint8List.fromList([
-    0x00,
-    0x61,
-    0x73,
-    0x6d,
-    0x0d,
-    0x00,
-    0x01,
-    0x00,
-  ]);
-}
-
-final class LinkingBuilder implements w.Serializable {
-  final ComponentBuilder _component;
-  final List<LinkingInstruction> _instructions = [];
-
-  LinkingBuilder(this._component);
-
-  I alias<I extends Index>(Sort<I> sort, AliasTarget target) {
-    final index = _component._counters.increment(sort);
-    _instructions.add(AliasDefinition(sort, index, target));
-    return index;
-  }
-
   CanonLower canonLower(ComponentFunctionIndex function) {
-    final index = _component._counters.incrementCoreFunction();
+    final index = _counters.incrementCoreFunction();
     final def = CanonLower(function, index);
-    _instructions.add(def);
+    _definitions.add(def);
     return def;
   }
 
-  CanonLift canonLift(CoreFunctionIndex function, FunctionTypeReference type) {
-    final index = _component._counters.incrementComponentFunction();
+  CanonLift canonLift(CoreFunctionIndex function, ComponentTypeIndex type) {
+    final index = _counters.incrementComponentFunction();
     final def = CanonLift(function, type, index);
-    _instructions.add(def);
+    _definitions.add(def);
     return def;
   }
 
   T addCanonPrimitive<T extends CanonPrimitive>(
     T Function(CoreFunctionIndex index) create,
   ) {
-    final index = _component._counters.incrementCoreFunction();
+    final index = _counters.incrementCoreFunction();
     final def = create(index);
-    _instructions.add(def);
+    _definitions.add(def);
     return def;
   }
 
@@ -137,36 +91,54 @@ final class LinkingBuilder implements w.Serializable {
     return addCanonPrimitive((index) => CanonContextSet(index, i));
   }
 
-  ModuleInstanceIndex coreInstantiate(CoreInstanceExpression expr) {
-    final index = _component._counters.incrementCoreInstance();
-    _instructions.add(expr);
+  CoreInstanceIndex coreInstantiate(CoreInstanceExpression expr) {
+    final index = _counters.incrementCoreInstance();
+    _definitions.add(expr);
     return index;
   }
 
   ComponentInstanceIndex instance({
     required List<(String, Sort, Index)> inlineExports,
   }) {
-    final index = _component._counters.incrementComponentInstance();
-    _instructions.add(InstanceFromInlineExports(inlineExports));
+    final index = _counters.incrementComponentInstance();
+    _definitions.add(InstanceFromInlineExports(inlineExports));
     return index;
   }
 
   void export(Export export) {
-    _instructions.add(export);
+    _definitions.add(export);
   }
 
   @override
   void serialize(w.Serializer s) {
+    s.writeBytes(_preamble);
+
     for (final section in _toSections()) {
       section.serialize(s);
     }
+
+    //    TypesSection(_types).serialize(s);
+    //ImportsSection(_imports).serialize(s);
+  }
+
+  Uint8List serializeToBytes() {
+    final serializer = w.Serializer();
+    serialize(serializer);
+    return serializer.data;
   }
 
   Iterable<w.Section> _toSections() sync* {
     w.Section? currentSection;
 
-    for (final instruction in _instructions) {
+    for (final instruction in _definitions) {
       switch (instruction) {
+        case TypeDefinition():
+          if (currentSection is TypesSection) {
+            currentSection.types.add(instruction);
+          } else {
+            if (currentSection != null) yield currentSection;
+            currentSection = TypesSection([instruction]);
+          }
         case AliasDefinition():
           if (currentSection is AliasSection) {
             currentSection.aliases.add(instruction);
@@ -202,9 +174,41 @@ final class LinkingBuilder implements w.Serializable {
             if (currentSection != null) yield currentSection;
             currentSection = ExportsSection([instruction]);
           }
+        case CoreModuleDefinition(:final module):
+          if (currentSection != null) yield currentSection;
+          currentSection = null;
+          yield ModuleSection(module);
+
+        case ExportDecl():
+          throw StateError('Components cannot have ExportDecl definitions');
       }
     }
 
     if (currentSection != null) yield currentSection;
+  }
+
+  static final _preamble = Uint8List.fromList([
+    0x00,
+    0x61,
+    0x73,
+    0x6d,
+    0x0d,
+    0x00,
+    0x01,
+    0x00,
+  ]);
+}
+
+extension AddDefinitions on HasDefinitions {
+  I alias<I extends Index>(Sort<I> sort, AliasTarget target) {
+    final index = _counters.increment(sort);
+    _definitions.add(AliasDefinition(sort, index, target));
+    return index;
+  }
+
+  ComponentTypeIndex addType(ModelType type) {
+    final index = _counters.incrementComponentType();
+    _definitions.add(TypeDefinition(type, index));
+    return index;
   }
 }

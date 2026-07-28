@@ -1,5 +1,7 @@
 import 'package:collection/collection.dart';
 
+import 'component.dart';
+import 'definition.dart';
 import 'index_space.dart';
 import 'type_container.dart';
 
@@ -8,30 +10,11 @@ const _listEquality = ListEquality<Object?>();
 /// A type in the component model.
 sealed class ModelType {}
 
-final class ModelTypeReference<T extends ModelType> extends ModelType {
-  /// The container containing the type that this is a reference to.
-  ///
-  /// We track this because nested containers, e.g. for instance types, need
-  /// separate references.
-  final TypesContainer container;
+final class ModelTypeReference extends ModelType {
+  /// The index of the referenced type.
   final ComponentTypeIndex index;
-  final T resolvedType;
 
-  ModelTypeReference(this.container, this.index, this.resolvedType);
-
-  // Replacing a type with a type reference must not change hash codes or
-  // equality.
-
-  @override
-  int get hashCode => resolvedType.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      other is ModelTypeReference &&
-      (
-      // Comparing indices is an optimization, if the index is the same then so
-      // is the underlying type.
-      index == other.index || other.resolvedType == resolvedType);
+  new(this.index);
 }
 
 sealed class ValueType extends ModelType {
@@ -101,16 +84,6 @@ abstract class ValueTypeVisitor<Arg, Ret> {
 
   Ret visitFutureType(FutureType type, Arg arg) {
     return defaultType(type, arg);
-  }
-}
-
-final class ValueTypeReference extends ModelTypeReference<ValueType>
-    implements ValueType {
-  ValueTypeReference(super.container, super.index, super.resolvedType);
-
-  @override
-  Ret visit<Arg, Ret>(ValueTypeVisitor<Arg, Ret> visitor, Arg arg) {
-    return resolvedType.visit(visitor, arg);
   }
 }
 
@@ -203,11 +176,11 @@ final class VariantType implements ValueType {
   }
 }
 
-typedef RecordField = RecordOrVariantField<ValueType>;
+typedef RecordField = RecordOrVariantField<ModelType>;
 
-typedef VariantField = RecordOrVariantField<ValueType?>;
+typedef VariantField = RecordOrVariantField<ModelType?>;
 
-final class RecordOrVariantField<T extends ValueType?> {
+final class RecordOrVariantField<T extends ModelType?> {
   final String label;
   final T type;
 
@@ -353,7 +326,7 @@ final class ResultType implements ValueType {
 }
 
 final class OwnType implements ValueType {
-  final ModelTypeReference<ResourceType> resource;
+  final ComponentTypeIndex resource;
 
   OwnType(this.resource);
 
@@ -371,7 +344,7 @@ final class OwnType implements ValueType {
 }
 
 final class BorrowType implements ValueType {
-  final ModelTypeReference<ResourceType> resource;
+  final ComponentTypeIndex resource;
 
   BorrowType(this.resource);
 
@@ -420,7 +393,7 @@ final class ResourceType extends ModelType {
 final class FunctionType extends ModelType {
   final bool async;
   final List<RecordField> parameters;
-  final ValueType? result;
+  final ModelType? result;
 
   FunctionType({
     required this.async,
@@ -440,101 +413,22 @@ final class FunctionType extends ModelType {
       Object.hash(async, _listEquality.hash(parameters), result);
 }
 
-final class FunctionTypeReference extends ModelTypeReference<FunctionType>
-    implements FunctionType {
-  FunctionTypeReference(super.container, super.index, super.resolvedType);
-
-  @override
-  bool get async => resolvedType.async;
-
-  @override
-  List<RecordField> get parameters => resolvedType.parameters;
-
-  @override
-  ValueType? get result => resolvedType.result;
-}
-
-final class InstanceType extends ModelType {
-  final List<ModelType> types;
-
-  /// The functions exported by this instance.
-  ///
-  /// Exported types are part of [types].
-  final List<InstanceFunctionExport> functionExports;
-
-  InstanceType._(this.types, this.functionExports);
-
-  @override
-  int get hashCode => _listEquality.hash(functionExports);
-
-  @override
-  bool operator ==(Object other) =>
-      other is InstanceType &&
-      _listEquality.equals(other.functionExports, functionExports);
-}
-
-final class InstanceTypeBuilder {
-  final List<ModelType> _types = [];
-  late final TypesContainer types = TypesContainer(_types);
-  final List<InstanceFunctionExport> _exports = [];
-
-  InstanceTypeExport exportType(String name, ValueType type) {
-    final ref = types.addValueType(type);
-
-    // An (export ... (type)) occupies its own type index, so add it to types.
-    final index = _types.length;
-    final export = InstanceTypeExport(
-      name,
-      types,
-      ComponentTypeIndex(index),
-      ref,
-    );
-    _types.add(export);
-    return export;
+final class InstanceType extends ModelType with HasDefinitions {
+  ComponentFunctionIndex exportFunction(
+    String name,
+    ComponentTypeIndex functionType,
+  ) {
+    addDefinition(ExportDeclFunction(name, functionType));
+    return counters.incrementComponentFunction();
   }
 
-  void exportFunction(String name, FunctionType type) {
-    _exports.add(InstanceFunctionExport(name, types.addFunctionType(type)));
+  ComponentTypeIndex exportTypeEq(String name, ComponentTypeIndex type) {
+    addDefinition(ExportDeclTypeEq(name, type));
+    return counters.incrementComponentType();
   }
 
-  InstanceType build() {
-    return InstanceType._(_types, _exports);
+  ComponentTypeIndex exportTypeSubResource(String name) {
+    addDefinition(ExportDeclTypeSubResource(name));
+    return counters.incrementComponentType();
   }
-}
-
-enum InstanceExportKind { type, function }
-
-final class InstanceTypeExport extends ValueTypeReference {
-  final String name;
-
-  new(this.name, super.container, super.index, super.resolvedType);
-}
-
-final class InstanceFunctionExport {
-  final String name;
-  final FunctionTypeReference function;
-
-  new(this.name, this.function);
-
-  @override
-  int get hashCode => Object.hash(name, function);
-
-  @override
-  bool operator ==(Object other) {
-    return other is InstanceFunctionExport &&
-        other.name == name &&
-        other.function == function;
-  }
-}
-
-final class InstanceTypeReference extends ModelTypeReference<InstanceType>
-    implements InstanceType {
-  InstanceTypeReference(super.container, super.index, super.resolvedType);
-
-  @override
-  List<ModelType> get types => resolvedType.types;
-
-  @override
-  List<InstanceFunctionExport> get functionExports =>
-      resolvedType.functionExports;
 }

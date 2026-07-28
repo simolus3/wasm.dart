@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:wasm_tools/src/compiler/components/linker.dart';
+import 'package:wasm_tools/src/compiler/components/definition.dart';
 
 import 'package:wasm_tools/src/third_party/wasm_builder/wasm_builder.dart' as w;
 import 'package:wasm_tools/src/compiler/components/component.dart';
@@ -34,29 +34,29 @@ void main() {
       'wasi:cli/exit@0.2.12',
       wasiCliExitInstanceType,
     );
-    final componentExitFunc = builder.linker.alias(
+    final componentExitFunc = builder.alias(
       .componentFunction,
       .instanceExport(exitInstance, 'exit'),
     );
-    final coreExitFunc = builder.linker.canonLower(componentExitFunc);
-    final instantiatedApp = builder.linker.coreInstantiate(
+    final coreExitFunc = builder.canonLower(componentExitFunc);
+    final instantiatedApp = builder.coreInstantiate(
       .moduleAndArgs(app, {
-        'runtime': builder.linker.coreInstantiate(
+        'runtime': builder.coreInstantiate(
           .inlineExports([
             ('exit', .coreFunction, coreExitFunc.createdCoreFunction),
           ]),
         ),
       }),
     );
-    final coreMain = builder.linker.alias(
+    final coreMain = builder.alias(
       .coreFunction,
       .coreInstanceExport(instantiatedApp, 'main'),
     );
-    final main = builder.linker.canonLift(coreMain, mainType);
-    final finalInstance = builder.linker.instance(
+    final main = builder.canonLift(coreMain, mainType);
+    final finalInstance = builder.instance(
       inlineExports: [('run', .componentFunction, main.createdFunction)],
     );
-    builder.linker.export(
+    builder.export(
       Export('wasi:cli/run@0.2.12', .componentInstance, finalInstance),
     );
 

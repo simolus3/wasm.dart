@@ -2,29 +2,29 @@ import 'program_abi.dart';
 
 import 'components/component.dart';
 import 'components/index_space.dart';
-import 'components/linker.dart';
+import 'components/definition.dart';
 
 final class DartLinker {
   final DartProgramAbi abi;
-  final ModuleInstanceIndex libc;
+  final CoreInstanceIndex libc;
   final ComponentBuilder builder;
 
   late CoreMemoryIndex _libcMemory;
   late CoreFunctionIndex _libcRealloc;
 
   DartLinker(this.builder, this.abi, this.libc) {
-    _libcMemory = builder.linker.alias(
+    _libcMemory = builder.alias(
       .coreMemory,
       .coreInstanceExport(libc, 'memory'),
     );
 
-    _libcRealloc = builder.linker.alias(
+    _libcRealloc = builder.alias(
       .coreFunction,
       .coreInstanceExport(libc, 'dart_realloc'),
     );
   }
 
-  ModuleInstanceIndex createImportInstance() {
+  CoreInstanceIndex createImportInstance() {
     // Note: Build all imports first, then all aliases, then all lowerings. This
     // means we can use 3 sections in total instead of 3 sections per function
     // import.
@@ -35,14 +35,14 @@ final class DartLinker {
       for (final import in importedInstances)
         builder.importInstance(
           import.fullName,
-          builder.types.addInstanceType(import.type),
+          builder.types.addInstanceType(import.type).index,
         ),
     ];
 
     final functionAliases = [
       for (final (i, instance) in importedInstances.indexed)
         for (final function in instance.importedFunctions)
-          builder.linker.alias(
+          builder.alias(
             .componentFunction,
             .instanceExport(instances[i], function.interfaceMethod),
           ),
@@ -56,7 +56,7 @@ final class DartLinker {
     var i = 0;
     for (final instance in importedInstances) {
       for (final function in instance.importedFunctions) {
-        final lower = lowered[function] = builder.linker.canonLower(
+        final lower = lowered[function] = builder.canonLower(
           functionAliases[i++],
         );
         applyOptions(function.options, lower);
@@ -77,7 +77,7 @@ final class DartLinker {
       ));
     }
 
-    return builder.linker.coreInstantiate(.inlineExports(inlineExports));
+    return builder.coreInstantiate(.inlineExports(inlineExports));
   }
 
   void applyOptions(FunctionOptions options, CanonicalHasOptions canon) {
