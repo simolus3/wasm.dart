@@ -35,10 +35,6 @@ final class ComponentBuilder with HasDefinitions implements w.Serializable {
   // TODO: Migrate this to definitions
   late final TypesContainer types = TypesContainer();
 
-  /// Imported component instances (we don't support any other type of import
-  /// currently).
-  final List<(String, ComponentTypeIndex)> _imports = [];
-
   CoreModule _defineCoreModule(CoreModule Function(CoreModuleIndex) create) {
     final index = _counters.incrementCoreModule();
     final module = create(index);
@@ -56,7 +52,7 @@ final class ComponentBuilder with HasDefinitions implements w.Serializable {
 
   ComponentInstanceIndex importInstance(String name, ComponentTypeIndex type) {
     final idx = _counters.incrementComponentInstance();
-    _imports.add((name, type));
+    addDefinition(Import(name, type));
     return idx;
   }
 
@@ -173,6 +169,13 @@ final class ComponentBuilder with HasDefinitions implements w.Serializable {
           } else {
             if (currentSection != null) yield currentSection;
             currentSection = ExportsSection([instruction]);
+          }
+        case Import():
+          if (currentSection is ImportsSection) {
+            currentSection.imports.add(instruction);
+          } else {
+            if (currentSection != null) yield currentSection;
+            currentSection = ImportsSection([instruction]);
           }
         case CoreModuleDefinition(:final module):
           if (currentSection != null) yield currentSection;

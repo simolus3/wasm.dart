@@ -12,24 +12,34 @@ void main() {
     final builder = ComponentBuilder();
     final app = builder.defineModule(_defineModuleCallingExit0());
 
-    final resultType = builder.types.addValueType(ResultType());
-    final exitFunctionType = builder.types.addFunctionType(
+    final resultType = builder.addType(ResultType());
+    final mainType = builder.addType(
       FunctionType(
         async: false,
-        parameters: [RecordOrVariantField(label: 'status', type: resultType)],
-        result: null,
+        parameters: [],
+        result: ModelTypeReference(resultType),
       ),
     );
-    final mainType = builder.types.addFunctionType(
-      FunctionType(async: false, parameters: [], result: resultType),
-    );
 
-    final instanceType = InstanceTypeBuilder()
-      ..exportFunction('exit', exitFunctionType);
+    final instanceType = InstanceType();
+    {
+      final resultType = instanceType.addType(ResultType());
+      final exitFunctionType = instanceType.addType(
+        FunctionType(
+          async: false,
+          parameters: [
+            RecordOrVariantField(
+              label: 'status',
+              type: ModelTypeReference(resultType),
+            ),
+          ],
+          result: null,
+        ),
+      );
+      instanceType.exportFunction('exit', exitFunctionType);
+    }
 
-    final wasiCliExitInstanceType = builder.types.addInstanceType(
-      instanceType.build(),
-    );
+    final wasiCliExitInstanceType = builder.addType(instanceType);
     final exitInstance = builder.importInstance(
       'wasi:cli/exit@0.2.12',
       wasiCliExitInstanceType,
@@ -75,16 +85,15 @@ void main() {
     )
   )
   (type (;0;) (result))
-  (type (;1;) (func (param "status" 0)))
-  (type (;2;) (func (result 0)))
-  (type (;3;)
+  (type (;1;) (func (result 0)))
+  (type (;2;)
     (instance
       (type (;0;) (result))
       (type (;1;) (func (param "status" 0)))
       (export (;0;) "exit" (func (type 1)))
     )
   )
-  (import "wasi:cli/exit@0.2.12" (instance (;0;) (type 3)))
+  (import "wasi:cli/exit@0.2.12" (instance (;0;) (type 2)))
   (alias export 0 "exit" (func (;0;)))
   (core func (;0;) (canon lower (func 0)))
   (core instance (;0;)
@@ -95,7 +104,7 @@ void main() {
     )
   )
   (alias core export 1 "main" (core func (;1;)))
-  (func (;1;) (type 2) (canon lift (core func 1)))
+  (func (;1;) (type 1) (canon lift (core func 1)))
   (instance (;1;)
     (export "run" (func 1))
   )

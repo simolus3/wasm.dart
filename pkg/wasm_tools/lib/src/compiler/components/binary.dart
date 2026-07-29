@@ -2,7 +2,6 @@ import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 
 import 'core_module.dart';
 import 'definition.dart';
-import 'index_space.dart';
 
 final class ModuleSection extends w.Section {
   final CoreModule module;
@@ -89,7 +88,7 @@ final class CanonSection extends w.Section {
 }
 
 final class ImportsSection extends w.Section {
-  final List<(String, ComponentTypeIndex)> imports;
+  final List<Import> imports;
 
   ImportsSection(this.imports, [super.watchPoints = const []]);
 
@@ -98,15 +97,7 @@ final class ImportsSection extends w.Section {
 
   @override
   void serializeContents(w.Serializer s) {
-    s.writeUnsigned(imports.length);
-    for (final (name, importedInstanceType) in imports) {
-      // importname'
-      s.writeByte(0x00);
-      s.writeName(name);
-
-      s.writeByte(0x05); // in externdesc production, tag instance type
-      s.writeUnsigned(importedInstanceType.index);
-    }
+    s.writeList(imports);
   }
 }
 

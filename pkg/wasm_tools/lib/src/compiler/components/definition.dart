@@ -481,6 +481,26 @@ final class Export extends ComponentDefinition {
   }
 }
 
+/// A component-level import.
+///
+/// We currently only support importing instances.
+final class Import extends ComponentDefinition {
+  final String name;
+  final ComponentTypeIndex instanceType;
+
+  new(this.name, this.instanceType);
+
+  @override
+  void serialize(w.Serializer s) {
+    // importname'
+    s.writeByte(0x00);
+    s.writeName(name);
+
+    s.writeByte(0x05); // in externdesc production, tag instance type
+    s.writeUnsigned(instanceType.index);
+  }
+}
+
 sealed class ExportDecl extends ComponentDefinition {
   final String name;
 
