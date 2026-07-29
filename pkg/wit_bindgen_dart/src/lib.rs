@@ -7,7 +7,7 @@ use wit_bindgen_core::{
 
 use crate::bindgen::DartWorldGenerator;
 
-mod abi_export;
+mod abi;
 mod bindgen;
 mod dart_source;
 mod functions;

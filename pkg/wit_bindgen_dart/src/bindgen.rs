@@ -1,6 +1,5 @@
 use anyhow::{Result, bail};
-use serde::Serialize;
-use std::{borrow::Cow, fmt::Write, rc::Rc};
+use std::{borrow::Cow, collections::HashMap, fmt::Write, rc::Rc};
 use wit_bindgen_core::{
     WorldGenerator,
     abi::{
@@ -12,41 +11,15 @@ use wit_bindgen_core::{
 };
 
 use crate::{
-    abi_export::{SerializableAbi, SerializableCanonDefinition},
+    abi::{
+        CanonicalOptions, ImportedFromInstance, ImportedFunction, ImportedFunctionDefinition,
+        LiftedFunction, PackageAbiWithWorld,
+    },
     dart_source::{DartDefinition, DartSource, KnownDartUri},
     functions::{
         DartFunctionGenerator, ExportedFunctionMode, FunctionMode, ImportedFunctionMode, PostReturn,
     },
 };
-
-#[derive(Default, Clone, Serialize)]
-pub struct FunctionOptions {
-    pub use_memory: bool,
-    pub uses_strings: bool,
-    pub uses_callback: bool,
-    #[serde(rename = "async")]
-    pub is_async: bool,
-    /// Only set on lifted (export) functions, a function to clean up temporary values allocated by
-    /// this function.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub post_return: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub task_return_import: Option<String>,
-}
-
-#[derive(Serialize)]
-pub struct ImportedCoreFunction {
-    pub interface_id: usize,
-    pub function_name: String,
-    pub core_name: Rc<String>,
-    pub options: FunctionOptions,
-}
-
-#[derive(Serialize)]
-pub struct ImportedCanonDefinition {
-    pub core_name: Rc<String>,
-    pub canon: SerializableCanonDefinition,
-}
 
 pub struct ExportedInstance {
     /// The private top-level Dart variable storing the instance to export.
@@ -62,31 +35,46 @@ impl ExportedInstance {
         assert!(self.field_name.chars().nth(0) == Some('_'));
         &self.field_name[1..]
     }
+
+    pub fn to_abi_export(&self) -> crate::abi::ExportedInstance {
+        let mut functions = HashMap::new();
+        for export in &self.functions {
+            functions.insert(export.function_name.clone(), export.lifted.clone());
+        }
+
+        crate::abi::ExportedInstance {
+            implements: self.interface,
+            functions,
+        }
+    }
 }
 
-#[derive(Serialize)]
 pub struct ExportedCoreFunction {
+    /// The function in the interface type.
     pub function_name: String,
-    pub core_export_name: String,
-    pub options: FunctionOptions,
+    pub lifted: LiftedFunction,
 }
 
 #[derive(Default)]
 pub struct DartWorldGenerator {
     pub size_align: SizeAlign,
     pub main: DartSource,
-    pub function_imports: Vec<ImportedCoreFunction>,
-    pub canon_imports: Vec<ImportedCanonDefinition>,
+    pub imports: Vec<ImportedFunction>,
     pub instance_exports: Vec<ExportedInstance>,
 }
 
 impl DartWorldGenerator {
     pub fn serialize_abi(&self, resolve: &Resolve) -> anyhow::Result<String> {
-        Ok(serde_json::to_string(&SerializableAbi {
-            resolve,
-            imports: &self.function_imports,
-            canons: &self.canon_imports,
-            exports: &self.instance_exports,
+        let exports: Vec<crate::abi::ExportedInstance> = self
+            .instance_exports
+            .iter()
+            .map(|e| e.to_abi_export())
+            .collect();
+
+        Ok(serde_json::to_string(&PackageAbiWithWorld {
+            imports: &self.imports,
+            exports: &exports,
+            world: resolve,
         })?)
     }
 
@@ -109,28 +97,30 @@ external {wasm_import}.WasmVoid _streamDropWritable{id_str}({wasm_import}.WasmI3
 
 final class {vtable_name} implements {rt_import}.StreamVtable<"
         );
-        self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("stream{id_str}.new")),
-            canon: SerializableCanonDefinition::StreamNew {
+        self.imports.push(ImportedFunction {
+            import_name: format!("stream{id_str}.new"),
+            definition: ImportedFunctionDefinition::StreamNew {
                 stream_type: id.index(),
             },
+            lower_options: Default::default(),
         });
-        let mut read_write_options = FunctionOptions::default();
+        let mut read_write_options = CanonicalOptions::default();
         read_write_options.is_async = true;
         read_write_options.use_memory = inner_type.is_some();
 
-        self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("stream{id_str}.write")),
-            canon: SerializableCanonDefinition::StreamWrite {
+        self.imports.push(ImportedFunction {
+            import_name: format!("stream{id_str}.write"),
+            definition: ImportedFunctionDefinition::StreamWrite {
                 stream_type: id.index(),
-                options: read_write_options.clone(),
             },
+            lower_options: read_write_options.clone(),
         });
-        self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("stream{id_str}.drop-writable")),
-            canon: SerializableCanonDefinition::StreamDropWritable {
+        self.imports.push(ImportedFunction {
+            import_name: format!("stream{id_str}.drop-writable"),
+            definition: ImportedFunctionDefinition::StreamDropWritable {
                 stream_type: id.index(),
             },
+            lower_options: Default::default(),
         });
 
         definition.write_stream_element_type(&mut self.main, resolve, inner_type.as_ref());
@@ -256,41 +246,44 @@ external {wasm_import}.WasmVoid _futureDropWritable{id_str}({wasm_import}.WasmI3
 
 final class {vtable_name} implements {rt_import}.FutureVtable<"
         );
-        self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("future{id_str}.new")),
-            canon: SerializableCanonDefinition::FutureNew {
+        self.imports.push(ImportedFunction {
+            import_name: format!("future{id_str}.new"),
+            definition: ImportedFunctionDefinition::FutureNew {
                 future_type: id.index(),
             },
+            lower_options: Default::default(),
         });
-        let mut read_write_options = FunctionOptions::default();
+        let mut read_write_options = CanonicalOptions::default();
         read_write_options.is_async = true;
         read_write_options.use_memory = true;
 
-        self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("future{id_str}.write")),
-            canon: SerializableCanonDefinition::FutureWrite {
+        self.imports.push(ImportedFunction {
+            import_name: format!("future{id_str}.write"),
+            definition: ImportedFunctionDefinition::FutureWrite {
                 future_type: id.index(),
-                options: read_write_options.clone(),
             },
+            lower_options: read_write_options.clone(),
         });
-        self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("future{id_str}.read")),
-            canon: SerializableCanonDefinition::FutureRead {
+        self.imports.push(ImportedFunction {
+            import_name: format!("future{id_str}.read"),
+            definition: ImportedFunctionDefinition::FutureRead {
                 future_type: id.index(),
-                options: read_write_options.clone(),
             },
+            lower_options: read_write_options.clone(),
         });
-        self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("future{id_str}.drop-readable")),
-            canon: SerializableCanonDefinition::FutureDropReadable {
+        self.imports.push(ImportedFunction {
+            import_name: format!("future{id_str}.drop-readable"),
+            definition: ImportedFunctionDefinition::FutureDropReadable {
                 future_type: id.index(),
             },
+            lower_options: Default::default(),
         });
-        self.canon_imports.push(ImportedCanonDefinition {
-            core_name: Rc::new(format!("future{id_str}.drop-writable")),
-            canon: SerializableCanonDefinition::FutureDropWritable {
+        self.imports.push(ImportedFunction {
+            import_name: format!("future{id_str}.drop-writable"),
+            definition: ImportedFunctionDefinition::FutureDropWritable {
                 future_type: id.index(),
             },
+            lower_options: Default::default(),
         });
 
         definition.write_dart_type(&mut self.main, resolve, &inner_type);
@@ -452,7 +445,7 @@ impl WorldGenerator for DartWorldGenerator {
                 } else {
                     AbiVariant::GuestImport
                 };
-                let core_name = Rc::new(format!("_import{}", self.function_imports.len()));
+                let core_name = Rc::new(format!("_import{}", self.imports.len()));
 
                 uwriteln!(def, "@override");
                 def.write_function_signature(&mut self.main, resolve, name, function);
@@ -479,6 +472,7 @@ impl WorldGenerator for DartWorldGenerator {
                 );
                 generator.write_cleanup();
                 let _ = writeln!(def, "{}\n}}", generator.definition.take_code());
+                self.imports.extend(generator.additional_imports);
 
                 {
                     let options = generator.options;
@@ -494,11 +488,13 @@ impl WorldGenerator for DartWorldGenerator {
                     let _ = writeln!(&mut import, ";");
                     self.main.consume_definition(import);
 
-                    self.function_imports.push(ImportedCoreFunction {
-                        interface_id: iface.index(),
-                        function_name: name.to_string(),
-                        core_name: core_name.clone(),
-                        options,
+                    self.imports.push(ImportedFunction {
+                        import_name: (*core_name).clone(),
+                        definition: ImportedFunctionDefinition::Instance(ImportedFromInstance {
+                            interface: iface,
+                            function_name: name.to_string(),
+                        }),
+                        lower_options: options,
                     });
                 }
             }
@@ -641,6 +637,7 @@ impl WorldGenerator for DartWorldGenerator {
                     &mut self.main,
                     FunctionMode::Exported(ExportedFunctionMode {
                         instance: &mut export,
+                        result_type: &function.result,
                         async_return_name: &async_return_name,
                         async_return_params: &mut async_return_params,
                     }),
@@ -654,6 +651,7 @@ impl WorldGenerator for DartWorldGenerator {
                     is_async,
                 );
                 let body = generator.definition.take_code();
+                self.imports.extend(generator.additional_imports);
 
                 if is_async {
                     let components = generator.dart.import(KnownDartUri::PkgWasmComponents);
@@ -744,9 +742,13 @@ return asyncExitCode.toWasmI32();
 
                 options.uses_callback = is_async;
                 export.functions.push(ExportedCoreFunction {
-                    core_export_name: format!("component_{}", this_export_id),
                     function_name: name.clone(),
-                    options,
+                    lifted: LiftedFunction {
+                        exported_name: format!("component_{}", this_export_id),
+                        options,
+                        parameters: function.params.clone(),
+                        result: function.result.clone(),
+                    },
                 });
             }
         }

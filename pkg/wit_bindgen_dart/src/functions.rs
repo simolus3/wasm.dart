@@ -10,9 +10,10 @@ use wit_bindgen_core::{
 };
 use wit_bindgen_core::{uwrite, uwriteln};
 
+use crate::abi::{CanonicalOptions, ImportedFunction, ImportedFunctionDefinition};
 use crate::dart_source::DartSource;
 use crate::{
-    bindgen::{ExportedInstance, FunctionOptions},
+    bindgen::ExportedInstance,
     dart_source::{DartDefinition, KnownDartUri},
 };
 
@@ -25,8 +26,9 @@ pub struct DartFunctionGenerator<'a> {
     mode: FunctionMode<'a>,
     cleanup: String,
     next_temporary: usize,
-    pub options: FunctionOptions,
+    pub options: CanonicalOptions,
     pub allocated_return_value: Option<(ArchitectureSize, Alignment)>,
+    pub additional_imports: Vec<ImportedFunction>,
 }
 
 pub enum FunctionMode<'a> {
@@ -43,6 +45,7 @@ pub struct ImportedFunctionMode<'a> {
 
 pub struct ExportedFunctionMode<'a> {
     pub instance: &'a mut ExportedInstance,
+    pub result_type: &'a Option<Type>,
     pub async_return_name: &'a str,
     pub async_return_params: &'a mut Option<Vec<WasmType>>,
 }
@@ -66,6 +69,7 @@ impl<'a> DartFunctionGenerator<'a> {
             next_temporary: 0,
             options: Default::default(),
             allocated_return_value: None,
+            additional_imports: Default::default(),
         }
     }
 
@@ -596,8 +600,17 @@ if ({is_err}.toBool()) {{
                 let name = match &mut self.mode {
                     FunctionMode::Exported(exported) => {
                         *exported.async_return_params = Some(params.iter().cloned().collect());
-                        self.options.task_return_import =
-                            Some(exported.async_return_name.to_string());
+
+                        self.additional_imports.push(ImportedFunction {
+                            import_name: exported.async_return_name.to_string(),
+                            definition: ImportedFunctionDefinition::TaskReturn {
+                                result_list: match exported.result_type {
+                                    None => vec![],
+                                    Some(e) => vec![e.clone()],
+                                },
+                            },
+                            lower_options: self.options.clone(),
+                        });
 
                         exported.async_return_name
                     }

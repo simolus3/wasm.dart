@@ -678,40 +678,6 @@ final class TypeDefinition extends ComponentDefinition {
               throw ArgumentError('Illegal definition in instance type: $def');
           }
         }
-
-      // // Type exports are written with other types, an (export ... (type eq))
-      // s.writeUnsigned(types.length + functionExports.length);
-      // for (final type in types) {
-      //   if (type is InstanceTypeExport) {
-      //     s.writeByte(0x04); // in instancedecl production, tag export
-
-      //     s.writeByte(0x00);
-      //     s.writeName(type.name);
-
-      //     s.writeByte(0x03); // type bound
-      //     s.writeByte(0x00);
-      //     s.writeUnsigned(
-      //       (type.resolvedType as ValueTypeReference).index.index,
-      //     );
-      //   } else {
-      //     s.writeByte(0x01); // in instancedecl production, tag type
-      //     _writeType(type, s);
-      //   }
-      // }
-
-      // for (final export in functionExports) {
-      //   s.writeByte(0x04); // in instancedecl production, tag export
-
-      //   // exportname'. Not sure what's up with options?
-      //   s.writeByte(0x00);
-      //   s.writeName(export.name);
-
-      //   s.writeByte(0x01); // type function
-
-      //   // Function type guaranteed to match index of function because we use
-      //   // aliases.
-      //   s.writeUnsigned(export.function.index.index);
-      // }
     }
   }
 
