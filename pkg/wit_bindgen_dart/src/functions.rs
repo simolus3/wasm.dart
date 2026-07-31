@@ -237,7 +237,7 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
                 }
             }
             Instruction::StringLower { realloc: _ } => {
-                self.options.use_memory = true;
+                self.options.uses_memory = true;
                 self.options.uses_strings = true;
 
                 let temp = self.temporary_variable();
@@ -257,7 +257,7 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
                 results.push(Rc::new(format!("{}.packedLength", temp)));
             }
             Instruction::StringLift {} => {
-                self.options.use_memory = true;
+                self.options.uses_memory = true;
                 self.options.uses_strings = true;
 
                 let length = operands.pop().unwrap();

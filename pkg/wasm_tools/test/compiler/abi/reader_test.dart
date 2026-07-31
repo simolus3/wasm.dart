@@ -75,8 +75,9 @@ const _exampleAbi = r'''
         }
       },
       "lower_options": {
-        "use_memory": false,
+        "uses_memory": false,
         "uses_strings": false,
+        "uses_realloc": false,
         "is_async": false,
         "uses_callback": false
       }
@@ -89,8 +90,9 @@ const _exampleAbi = r'''
         }
       },
       "lower_options": {
-        "use_memory": true,
+        "uses_memory": true,
         "uses_strings": false,
+        "uses_realloc": false,
         "is_async": true,
         "uses_callback": false
       }
@@ -103,8 +105,9 @@ const _exampleAbi = r'''
         }
       },
       "lower_options": {
-        "use_memory": false,
+        "uses_memory": false,
         "uses_strings": false,
+        "uses_realloc": false,
         "is_async": false,
         "uses_callback": false
       }
@@ -117,8 +120,9 @@ const _exampleAbi = r'''
         }
       },
       "lower_options": {
-        "use_memory": false,
+        "uses_memory": false,
         "uses_strings": false,
+        "uses_realloc": false,
         "is_async": false,
         "uses_callback": false
       }
@@ -131,8 +135,9 @@ const _exampleAbi = r'''
         }
       },
       "lower_options": {
-        "use_memory": true,
+        "uses_memory": true,
         "uses_strings": false,
+        "uses_realloc": false,
         "is_async": true,
         "uses_callback": false
       }
@@ -145,8 +150,9 @@ const _exampleAbi = r'''
         }
       },
       "lower_options": {
-        "use_memory": true,
+        "uses_memory": true,
         "uses_strings": false,
+        "uses_realloc": false,
         "is_async": true,
         "uses_callback": false
       }
@@ -159,8 +165,9 @@ const _exampleAbi = r'''
         }
       },
       "lower_options": {
-        "use_memory": false,
+        "uses_memory": false,
         "uses_strings": false,
+        "uses_realloc": false,
         "is_async": false,
         "uses_callback": false
       }
@@ -173,8 +180,9 @@ const _exampleAbi = r'''
         }
       },
       "lower_options": {
-        "use_memory": false,
+        "uses_memory": false,
         "uses_strings": false,
+        "uses_realloc": false,
         "is_async": false,
         "uses_callback": false
       }
@@ -188,8 +196,9 @@ const _exampleAbi = r'''
         }
       },
       "lower_options": {
-        "use_memory": false,
+        "uses_memory": false,
         "uses_strings": false,
+        "uses_realloc": false,
         "is_async": false,
         "uses_callback": false
       }
@@ -204,8 +213,9 @@ const _exampleAbi = r'''
         }
       },
       "lower_options": {
-        "use_memory": false,
+        "uses_memory": false,
         "uses_strings": false,
+        "uses_realloc": false,
         "is_async": false,
         "uses_callback": false
       }
@@ -218,8 +228,9 @@ const _exampleAbi = r'''
         "run": {
           "exported_name": "component_0",
           "options": {
-            "use_memory": false,
+            "uses_memory": false,
             "uses_strings": false,
+            "uses_realloc": false,
             "is_async": false,
             "uses_callback": true
           },

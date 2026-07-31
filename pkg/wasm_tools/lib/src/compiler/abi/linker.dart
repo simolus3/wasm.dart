@@ -2,15 +2,56 @@ import '../components/component.dart';
 import '../components/index_space.dart';
 import '../components/type.dart' as types;
 import '../components/type.dart';
-import 'abi.dart';
+import 'interface.dart';
 
 final class Linker {
   final ComponentBuilder component;
+  final CoreInstanceIndex? libc;
+
   final Map<AbiType, ComponentTypeIndex> _topLevelTypes = {};
   final Map<AbiInterface, ComponentTypeIndex> _interfaces = {};
   final Map<AbiInterface, ComponentInstanceIndex> _importedInstances = {};
+  CoreMemoryIndex? _libcMemory;
+  CoreFunctionIndex? _libcRealloc;
+  CoreFunctionIndex? _callback;
 
-  new(this.component);
+  CoreInstanceIndex? _program;
+  final Map<String, CoreFunctionIndex> _programExports = {};
+
+  new(this.component, [this.libc]);
+
+  CoreMemoryIndex get libcMemory {
+    if (_libcMemory case final memory?) return memory;
+
+    return _libcMemory = component.alias(
+      .coreMemory,
+      .coreInstanceExport(_requireLibc(), 'memory'),
+    );
+  }
+
+  CoreFunctionIndex get libcRealloc {
+    if (_libcRealloc case final realloc?) return realloc;
+
+    return _libcRealloc = component.alias(
+      .coreFunction,
+      .coreInstanceExport(_requireLibc(), 'dart_realloc'),
+    );
+  }
+
+  CoreInstanceIndex _requireLibc() => ArgumentError.checkNotNull(libc, 'libc');
+
+  CoreInstanceIndex _requireProgram() {
+    if (_program case final program?) return program;
+
+    throw StateError('Cannot use instantiated program, not instantiated yet.');
+  }
+
+  CoreFunctionIndex programExport(String name) {
+    return _programExports.putIfAbsent(name, () {
+      final program = _requireProgram();
+      return component.alias(.coreFunction, .coreInstanceExport(program, name));
+    });
+  }
 
   ComponentInstanceIndex importInstance(AbiInterface interface) {
     return _importedInstances.putIfAbsent(interface, () {
@@ -24,6 +65,17 @@ final class Linker {
     return component.alias(
       .componentType,
       .instanceExport(instance, import.name),
+    );
+  }
+
+  ModelTypeReference mapType(AbiType type) {
+    return ModelTypeReference(
+      _addType(
+        definitions: component,
+        existing: _topLevelTypes,
+        type: type,
+        resolveImport: (type) => ModelTypeReference(importType(type)),
+      ),
     );
   }
 

@@ -1,4 +1,11 @@
+import '../components/definition.dart';
+import '../components/index_space.dart';
+import '../components/type.dart';
 import 'abi.dart';
+import 'canonical_options.dart';
+import 'imported_function.dart';
+import 'interface.dart';
+import 'linker.dart';
 
 typedef _JsonObject = Map<String, Object?>;
 
@@ -114,11 +121,12 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
         (definition['kind'] as String).startsWith('async-'),
       );
     }
+
+    abi.interfaces[key.fullName] = key;
   }
 
-  // Commit pending interfaces to abi
-  for (final added in pendingInterfaces.keys) {
-    abi.interfaces[added.fullName] = added;
+  for (final imported in rawAbi.imports) {
+    abi.imports.add(imported.readFunction(interfaces, types));
   }
 }
 
@@ -148,6 +156,8 @@ AbiType _deserializeType(List<AbiType> existing, Object? type) {
 }
 
 extension type _WasmAbi(_JsonObject json) implements _JsonObject {
+  List<_ImportedFunction> get imports => (json['imports'] as List).cast();
+
   _SerializedWorld get world => json['world'] as _SerializedWorld;
 }
 
@@ -155,6 +165,132 @@ extension type _SerializedWorld(_JsonObject json) implements _JsonObject {
   List<_JsonObject> get types => (json['types'] as List).cast();
   List<_JsonObject> get packages => (json['packages'] as List).cast();
   List<_JsonObject> get interfaces => (json['interfaces'] as List).cast();
+}
+
+extension type _ImportedFunction(_JsonObject json) implements _JsonObject {
+  String get importName => json['import_name'] as String;
+  CanonicalOptions get lowerOptions =>
+      .fromJson(json['lower_options'] as _JsonObject);
+
+  (String, Object?) get _definition {
+    final entry = (json['definition'] as _JsonObject).entries.single;
+    return (entry.key, entry.value);
+  }
+
+  ImportedFunction readFunction(
+    List<AbiInterface> interfaces,
+    List<AbiType> types,
+  ) {
+    final (key, def) = _definition;
+    FunctionDefinition parsedDefinition;
+
+    ModelTypeReference Function(Linker) readType(String subkey) {
+      final abiType = _deserializeType(types, (def as _JsonObject)[subkey]);
+      return (linker) => linker.mapType(abiType);
+    }
+
+    FunctionDefinition withPrimitive(
+      CanonPrimitive Function(CoreFunctionIndex, Linker, CanonicalOptions)
+      createPrimitive,
+    ) {
+      return (linker, options) {
+        final f = linker.component.addCanonPrimitive(
+          (idx) => createPrimitive(idx, linker, options),
+        );
+
+        if (f case final CanonicalHasOptions hasOptions) {
+          options.applyTo(linker, hasOptions);
+        }
+        return f.createdCoreFunction;
+      };
+    }
+
+    switch (key) {
+      case 'Instance':
+        final {'interface': interfaceId, 'function_name': name} =
+            def as _JsonObject;
+
+        parsedDefinition = ImportedFunction.importedFromInstance(
+          interfaces[interfaceId as int],
+          name as String,
+        );
+      case 'TaskReturn':
+        final resultType = switch ((def as _JsonObject)['result_list']
+            as List) {
+          [] => null,
+          [final type] => _deserializeType(types, type),
+          _ => throw ArgumentError.value(
+            def,
+            'def',
+            'Expected 0 or 1 return types.',
+          ),
+        };
+
+        parsedDefinition = withPrimitive((idx, linker, options) {
+          return TaskReturn(
+            idx,
+            resultType == null ? null : linker.mapType(resultType),
+          );
+        });
+      case 'StreamNew':
+        final type = readType('stream_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => StreamNew(i, type(linker)),
+        );
+      case 'StreamWrite':
+        final type = readType('stream_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => StreamWrite(i, type(linker)),
+        );
+      case 'StreamDropWritable':
+        final type = readType('stream_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => StreamDropWritable(i, type(linker)),
+        );
+      case 'StreamDropReadable':
+        final type = readType('stream_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => StreamDropReadable(i, type(linker)),
+        );
+      case 'FutureNew':
+        final type = readType('future_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => FutureNew(i, type(linker)),
+        );
+      case 'FutureRead':
+        final type = readType('future_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => FutureRead(i, type(linker)),
+        );
+      case 'FutureWrite':
+        final type = readType('future_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => FutureWrite(i, type(linker)),
+        );
+      case 'FutureDropReadable':
+        final type = readType('future_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => FutureDropReadable(i, type(linker)),
+        );
+      case 'FutureDropWritable':
+        final type = readType('future_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => FutureDropWritable(i, type(linker)),
+        );
+      default:
+        throw ArgumentError.value(
+          key,
+          'key',
+          'Unknown ImportedFunctionDefinition variant',
+        );
+    }
+
+    return ImportedFunction(
+      importName: importName,
+      lowerOptions: lowerOptions,
+      resolve: parsedDefinition,
+    );
+  }
 }
 
 final class Package {

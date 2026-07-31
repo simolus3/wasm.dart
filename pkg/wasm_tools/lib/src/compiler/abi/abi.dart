@@ -1,75 +1,9 @@
-import '../components/type.dart' as types;
+import 'imported_function.dart';
+import 'interface.dart';
 
 final class ProgramAbi {
   /// Interfaces, indexed by their [AbiInterface.fullName].
   final Map<String, AbiInterface> interfaces = {};
-}
 
-final class AbiInterface {
-  // The full name of this interface, including name and version.
-  final String fullName;
-
-  final Map<String, AbiType> exportedTypes = {};
-  final Map<String, AbiFunction> exportedFunctions = {};
-
-  AbiInterface(this.fullName);
-
-  @override
-  String toString() {
-    return 'AbiInterface: $fullName';
-  }
-}
-
-final class AbiFunction {
-  final List<(String, AbiType)> parameters;
-  final AbiType? result;
-  final bool async;
-
-  new(this.parameters, this.result, this.async);
-}
-
-sealed class AbiType {
-  final AbiInterface? owner;
-
-  const AbiType({this.owner});
-}
-
-final class SimpleAbiType extends AbiType {
-  final types.ValueType type;
-
-  const SimpleAbiType.primitive(types.PrimitiveType this.type);
-  const SimpleAbiType.string() : type = const types.StringType();
-}
-
-final class EnumAbiType extends AbiType {
-  final List<String> cases;
-
-  new(this.cases, {super.owner});
-}
-
-/// A type imported from another interface definition.
-final class ImportedAbiType extends AbiType {
-  final AbiInterface definingInterface;
-  final String name;
-
-  new(this.definingInterface, this.name, {super.owner});
-}
-
-final class StreamAbiType extends AbiType {
-  final AbiType element;
-
-  new(this.element, {super.owner});
-}
-
-final class FutureAbiType extends AbiType {
-  final AbiType element;
-
-  new(this.element, {super.owner});
-}
-
-final class ResultAbiType extends AbiType {
-  final AbiType? ok;
-  final AbiType? error;
-
-  new({this.ok, this.error, super.owner});
+  final List<ImportedFunction> imports = [];
 }

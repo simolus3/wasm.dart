@@ -14,9 +14,10 @@ pub struct PackageAbiWithWorld<'a> {
 pub struct CanonicalOptions {
     /// Whether tio add a `memory` option. We only support a single memory instance which is
     /// imported from a libc module.
-    pub use_memory: bool,
+    pub uses_memory: bool,
     /// Whether to add a `string-encoding=utf16` option.
     pub uses_strings: bool,
+    pub uses_realloc: bool,
     /// Whether to add the `async` option.
     pub is_async: bool,
     pub uses_callback: bool,

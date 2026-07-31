@@ -106,7 +106,7 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
         });
         let mut read_write_options = CanonicalOptions::default();
         read_write_options.is_async = true;
-        read_write_options.use_memory = inner_type.is_some();
+        read_write_options.uses_memory = inner_type.is_some();
 
         self.imports.push(ImportedFunction {
             import_name: format!("stream{id_str}.write"),
@@ -255,7 +255,7 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
         });
         let mut read_write_options = CanonicalOptions::default();
         read_write_options.is_async = true;
-        read_write_options.use_memory = true;
+        read_write_options.uses_memory = true;
 
         self.imports.push(ImportedFunction {
             import_name: format!("future{id_str}.write"),
