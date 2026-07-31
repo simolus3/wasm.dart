@@ -3,7 +3,6 @@ import 'package:collection/collection.dart';
 import 'component.dart';
 import 'definition.dart';
 import 'index_space.dart';
-import 'type_container.dart';
 
 const _listEquality = ListEquality<Object?>();
 
@@ -307,8 +306,8 @@ final class OptionType implements ValueType {
 }
 
 final class ResultType implements ValueType {
-  final ValueType? ok;
-  final ValueType? error;
+  final ModelType? ok;
+  final ModelType? error;
 
   ResultType({this.ok, this.error});
 
@@ -362,7 +361,7 @@ final class BorrowType implements ValueType {
 }
 
 final class StreamType implements ValueType {
-  final ValueType? element;
+  final ModelType? element;
 
   StreamType([this.element]);
 
@@ -373,7 +372,7 @@ final class StreamType implements ValueType {
 }
 
 final class FutureType implements ValueType {
-  final ValueType? element;
+  final ModelType? element;
 
   FutureType([this.element]);
 

@@ -8,13 +8,17 @@ Future<String> componentToWat(ComponentBuilder builder) async {
   final bytes = builder.serializeToBytes();
 
   {
-    final (exitCode, _, stderr) = await _runWasmTool('validate', bytes);
+    final (exitCode, _, stderr) = await _runWasmTool([
+      'validate',
+      '--features',
+      'all',
+    ], bytes);
     if (exitCode != 0) {
       throw ArgumentError('wasm-tools validate failed: $stderr');
     }
   }
 
-  final (exitCode, stdout, stderr) = await _runWasmTool('print', bytes);
+  final (exitCode, stdout, stderr) = await _runWasmTool(['print'], bytes);
   if (exitCode != 0) {
     throw ArgumentError('Could not print to WAT: $stderr');
   }
@@ -23,10 +27,10 @@ Future<String> componentToWat(ComponentBuilder builder) async {
 }
 
 Future<(int, String, String)> _runWasmTool(
-  String subcommand,
+  List<String> args,
   Uint8List stdin,
 ) async {
-  final toWat = await Process.start('wasm-tools', [subcommand]);
+  final toWat = await Process.start('wasm-tools', args);
   final stdoutFuture = utf8.decodeStream(toWat.stdout);
   final stderrFuture = utf8.decodeStream(toWat.stderr);
 

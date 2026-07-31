@@ -87,9 +87,9 @@ final class ComponentCompiler {
       final libcDef = builder.defineModuleFromBytes(
         await (await resolved.resolveRuntimeHelpersFile()).readAsBytes(),
       );
-      final libc = builder.coreInstantiate(.moduleAndArgs(libcDef, {}));
-
       final appDef = builder.defineModule(transformer.module);
+
+      final libc = builder.coreInstantiate(.moduleAndArgs(libcDef, {}));
       final linker = DartLinker(builder, abi, libc);
       final app = builder.coreInstantiate(
         .moduleAndArgs(appDef, {

@@ -666,6 +666,7 @@ final class TypeDefinition extends ComponentDefinition {
           switch (def) {
             case TypeDefinition():
               s.writeByte(0x01);
+              assert(def.type is! ModelTypeReference);
               def.serialize(s);
             case AliasDefinition():
               s.writeByte(0x02);
