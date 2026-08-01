@@ -13,12 +13,15 @@ final class Linker {
   final Map<AbiInterface, ComponentInstanceIndex> _importedInstances = {};
   CoreMemoryIndex? _libcMemory;
   CoreFunctionIndex? _libcRealloc;
-  CoreFunctionIndex? _callback;
 
   CoreInstanceIndex? _program;
   final Map<String, CoreFunctionIndex> _programExports = {};
 
   new(this.component, [this.libc]);
+
+  set program(CoreInstanceIndex value) {
+    _program = value;
+  }
 
   CoreMemoryIndex get libcMemory {
     if (_libcMemory case final memory?) return memory;
@@ -160,11 +163,23 @@ ComponentTypeIndex _addType({
       SimpleAbiType(:final type) => type,
       EnumAbiType(:final cases) => types.EnumType(cases),
       ImportedAbiType() => resolveImport(type),
-      StreamAbiType(:final element) => types.StreamType(innerType(element)),
-      FutureAbiType(:final element) => types.FutureType(innerType(element)),
+      StreamAbiType(:final element) => types.StreamType(
+        element != null ? innerType(element) : null,
+      ),
+      FutureAbiType(:final element) => types.FutureType(
+        element != null ? innerType(element) : null,
+      ),
       ResultAbiType(:final ok, :final error) => types.ResultType(
         ok: ok != null ? innerType(ok) : null,
         error: error != null ? innerType(error) : null,
+      ),
+      OptionAbiType(:final element) => types.OptionType(innerType(element)),
+      RecordAbiType(:final fields) => types.RecordType([
+        for (final (name, type) in fields)
+          .new(label: name, type: innerType(type)),
+      ]),
+      VariableLengthListAbiType(:final element) => types.VariableLengthListType(
+        elementType: innerType(element),
       ),
     });
   });

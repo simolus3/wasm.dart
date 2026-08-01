@@ -112,13 +112,13 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
     for (final MapEntry(key: name, value: definition as _JsonObject)
         in (value['functions'] as _JsonObject).entries) {
       key.exportedFunctions[name] = AbiFunction(
-        [
+        parameters: [
           for (final {'name': paramName as String, 'type': type}
               in (definition['params'] as List).cast<_JsonObject>())
             (paramName, _deserializeType(types, type)),
         ],
-        _deserializeNullableType(types, definition['result']),
-        (definition['kind'] as String).startsWith('async-'),
+        result: _deserializeNullableType(types, definition['result']),
+        async: (definition['kind'] as String).startsWith('async-'),
       );
     }
 

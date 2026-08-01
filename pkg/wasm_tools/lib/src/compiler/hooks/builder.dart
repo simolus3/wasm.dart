@@ -7,14 +7,15 @@ import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 
 import '../../failure.dart';
-import '../program_abi.dart';
+import '../abi/abi.dart';
+import '../abi/reader.dart';
 import 'extension.dart';
 import 'extension.dart' as hooks;
 
 final class PackageConfigWithAbi {
   final String packageConfigFile;
   final PackageConfig packageConfig;
-  final DartProgramAbi abi;
+  final ProgramAbi abi;
 
   PackageConfigWithAbi({
     required this.packageConfigFile,
@@ -82,11 +83,11 @@ final class PackageConfigWithAbi {
       return null;
     }
 
-    final abi = DartProgramAbi();
+    final abi = ProgramAbi();
     final assets = buildResult.asSuccess.value.encodedAssets;
     for (final asset in assets) {
       if (asset.type == hooks.name) {
-        abi.includeAsset(logger, asset);
+        readAbi(abi, asset.encoding);
       }
     }
 

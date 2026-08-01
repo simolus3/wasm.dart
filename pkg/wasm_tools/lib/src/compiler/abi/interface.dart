@@ -20,7 +20,7 @@ final class AbiFunction {
   final AbiType? result;
   final bool async;
 
-  new(this.parameters, this.result, this.async);
+  const new({this.parameters = const [], this.result, this.async = false});
 }
 
 sealed class AbiType {
@@ -51,15 +51,15 @@ final class ImportedAbiType extends AbiType {
 }
 
 final class StreamAbiType extends AbiType {
-  final AbiType element;
+  final AbiType? element;
 
-  new(this.element, {super.owner});
+  const new(this.element, {super.owner});
 }
 
 final class FutureAbiType extends AbiType {
-  final AbiType element;
+  final AbiType? element;
 
-  new(this.element, {super.owner});
+  const new(this.element, {super.owner});
 }
 
 final class ResultAbiType extends AbiType {
@@ -67,4 +67,22 @@ final class ResultAbiType extends AbiType {
   final AbiType? error;
 
   new({this.ok, this.error, super.owner});
+}
+
+final class OptionAbiType extends AbiType {
+  final AbiType element;
+
+  const new(this.element, {super.owner});
+}
+
+final class VariableLengthListAbiType extends AbiType {
+  final AbiType element;
+
+  const new(this.element, {super.owner});
+}
+
+final class RecordAbiType extends AbiType {
+  final List<(String, AbiType)> fields;
+
+  const new({required this.fields, super.owner});
 }

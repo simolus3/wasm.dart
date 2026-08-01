@@ -10,13 +10,13 @@ final class CanonicalOptions {
 
   final String? postReturn;
 
-  new({
-    required this.usesMemory,
-    required this.usesString,
-    required this.usesRealloc,
-    required this.isAsync,
-    required this.usesCallback,
-    required this.postReturn,
+  const new({
+    this.usesMemory = false,
+    this.usesString = false,
+    this.usesRealloc = false,
+    this.isAsync = false,
+    this.usesCallback = false,
+    this.postReturn,
   });
 
   factory CanonicalOptions.fromJson(Map<String, Object?> json) {

@@ -10,7 +10,6 @@ import 'core_module.dart';
 import 'index_space.dart';
 import 'definition.dart';
 import 'type.dart';
-import 'type_container.dart';
 
 mixin HasDefinitions {
   final List<ComponentDefinition> _definitions = [];
@@ -32,9 +31,6 @@ mixin HasDefinitions {
 /// ones), we can get away with only supporting the supset of the full component
 /// model we really need.
 final class ComponentBuilder with HasDefinitions implements w.Serializable {
-  // TODO: Migrate this to definitions
-  late final TypesContainer types = TypesContainer();
-
   CoreModule _defineCoreModule(CoreModule Function(CoreModuleIndex) create) {
     final index = _counters.incrementCoreModule();
     final module = create(index);

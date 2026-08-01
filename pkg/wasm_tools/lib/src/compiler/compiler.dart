@@ -3,11 +3,9 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
+import 'abi/linker.dart';
 import 'components/component.dart';
-import 'components/index_space.dart';
 import 'components/definition.dart';
-import 'components/type.dart';
-import 'dart_linker.dart';
 import 'hooks/builder.dart';
 import 'transform.dart';
 
@@ -90,57 +88,19 @@ final class ComponentCompiler {
       final appDef = builder.defineModule(transformer.module);
 
       final libc = builder.coreInstantiate(.moduleAndArgs(libcDef, {}));
-      final linker = DartLinker(builder, abi, libc);
-      final app = builder.coreInstantiate(
+      final linker = Linker(builder, libc);
+      linker.program = builder.coreInstantiate(
         .moduleAndArgs(appDef, {
           'libc': libc,
-          'component': linker.createImportInstance(),
+          'component': abi.createImportInstance(linker),
         }),
       );
 
-      final callback = abi.hasAsyncExport
-          ? builder.alias(.coreFunction, .coreInstanceExport(app, 'callback'))
-          : null;
-
-      for (final export in abi.interfaces) {
-        if (export.exports.isEmpty) continue;
-
-        final inlineExports = <(String, Sort, Index)>[];
-
-        for (final function in export.exports) {
-          final resolved = builder.alias(
-            .coreFunction,
-            .coreInstanceExport(app, function.exportCoreFunctionName),
-          );
-          CoreFunctionIndex? corePostReturnFunction;
-          if (function.options.postReturn case final postReturn?) {
-            corePostReturnFunction = builder.alias(
-              .coreFunction,
-              .coreInstanceExport(app, postReturn),
-            );
-          }
-
-          final originalType = function.type;
-          final lifted = builder.canonLift(
-            resolved,
-            builder.types.addFunctionType(originalType as FunctionType).index,
-          );
-          linker.applyOptions(function.options, lifted);
-          lifted.postReturn = corePostReturnFunction;
-          if (function.options.usesCallback) {
-            lifted.callback = callback!;
-            lifted.async = true;
-          }
-
-          inlineExports.add((
-            function.name,
-            .componentFunction,
-            lifted.createdFunction,
-          ));
-        }
-
-        final instance = builder.instance(inlineExports: inlineExports);
-        builder.export(Export(export.fullName, .componentInstance, instance));
+      for (final export in abi.exports) {
+        final instance = export.instantiate(linker);
+        builder.export(
+          Export(export.interface.fullName, .componentInstance, instance),
+        );
       }
 
       logger.info('Writing component to ${options.output.path}');
