@@ -4,10 +4,10 @@ use std::{
     rc::Rc,
 };
 
-use heck::{AsLowerCamelCase, ToLowerCamelCase, ToUpperCamelCase};
+use heck::{AsLowerCamelCase, AsUpperCamelCase, ToLowerCamelCase, ToUpperCamelCase};
 use wit_bindgen_core::abi::{WasmSignature, WasmType};
 use wit_bindgen_core::wit_parser::{
-    Docs, Enum, Function, InterfaceId, Resolve, Type, TypeDef, TypeDefKind, TypeId,
+    Docs, Enum, Function, Handle, InterfaceId, Resolve, Type, TypeDef, TypeDefKind, TypeId, Variant,
 };
 use wit_bindgen_core::{uwrite, uwriteln};
 
@@ -101,6 +101,95 @@ impl DartSource {
                     uwriteln!(&mut definition, "{},", case.name.to_lower_camel_case())
                 }
                 uwriteln!(&mut definition, "}}");
+
+                self.consume_definition(definition);
+                name
+            }
+        }
+    }
+
+    pub fn define_resource(&mut self, id: TypeId, resolved: &TypeDef) -> Rc<String> {
+        match self.type_definitions.entry(id) {
+            Entry::Occupied(e) => e.get().clone(),
+            Entry::Vacant(e) => {
+                let name = Rc::new(
+                    resolved
+                        .name
+                        .as_ref()
+                        .map(|e| e.to_upper_camel_case())
+                        .unwrap_or_else(|| format!("Resource{}", id.index())),
+                );
+                e.insert_entry(name.clone());
+
+                let mut definition = DartDefinition::default();
+                definition.write_docs(&resolved.docs);
+                uwriteln!(&mut definition, "final class {name} {{}}");
+                self.consume_definition(definition);
+                name
+            }
+        }
+    }
+
+    pub fn define_variant(
+        &mut self,
+        id: TypeId,
+        resolve: &Resolve,
+        variant: &Variant,
+    ) -> Rc<String> {
+        match self.type_definitions.entry(id) {
+            Entry::Occupied(e) => e.get().clone(),
+            Entry::Vacant(e) => {
+                let resolved = &resolve.types[id];
+
+                let name = Rc::new(
+                    resolved
+                        .name
+                        .as_ref()
+                        .map(|e| e.to_upper_camel_case())
+                        .unwrap_or_else(|| format!("Variant{}", id.index())),
+                );
+                e.insert_entry(name.clone());
+
+                let mut definition = DartDefinition::default();
+                definition.write_docs(&resolved.docs);
+                uwriteln!(&mut definition, "sealed class {name} {{");
+                uwriteln!(&mut definition, "  const {name}._();");
+
+                // Create generative factories for subtypes
+                for case in &variant.cases {
+                    uwrite!(
+                        &mut definition,
+                        "  const {name}.{}(",
+                        AsLowerCamelCase(&case.name)
+                    );
+                    if let Some(ty) = &case.ty {
+                        definition.write_dart_type(self, resolve, ty);
+                        uwrite!(&mut definition, " payload");
+                    }
+                    uwriteln!(&mut definition, ") = {};", AsUpperCamelCase(&case.name));
+                }
+
+                uwriteln!(&mut definition, "}}");
+
+                for case in &variant.cases {
+                    let case_name = case.name.to_upper_camel_case();
+
+                    uwriteln!(&mut definition, "final class {case_name} extends {name} {{");
+                    if let Some(ty) = &case.ty {
+                        uwrite!(&mut definition, "final ");
+                        definition.write_dart_type(self, resolve, ty);
+                        uwriteln!(
+                            &mut definition,
+                            " payload;\n  const {case_name}(this.payload): super._();"
+                        );
+                    } else {
+                        uwriteln!(
+                            &mut definition,
+                            " payload;\n  const {case_name}(): super._();"
+                        );
+                    }
+                    uwriteln!(&mut definition, "}}");
+                }
 
                 self.consume_definition(definition);
                 name
@@ -257,9 +346,20 @@ impl DartDefinition {
                 }
                 uwrite!(self, "}})");
             }
-            TypeDefKind::Resource => todo!(),
-            TypeDefKind::Handle(_handle) => {
-                uwrite!(self, "int /* TODO: Handle */")
+            TypeDefKind::Resource => {
+                let name = dart.define_resource(*def_type, &resolved_type);
+                self.0.push_str(&name);
+            }
+            TypeDefKind::Handle(handle) => {
+                let (class, id) = match handle {
+                    Handle::Own(id) => ("Owned", id),
+                    Handle::Borrow(id) => ("Borrowed", id),
+                };
+
+                self.imported_identifier(dart, KnownDartUri::PkgWasmComponents, class);
+                uwrite!(self, "<");
+                self.write_def_type(dart, resolve, id);
+                uwrite!(self, ">");
             }
             TypeDefKind::Flags(_flags) => todo!(),
             TypeDefKind::Tuple(tuple) => {
@@ -270,7 +370,10 @@ impl DartDefinition {
                 }
                 uwrite!(self, ")");
             }
-            TypeDefKind::Variant(_variant) => todo!(),
+            TypeDefKind::Variant(variant) => {
+                let name = dart.define_variant(*def_type, resolve, variant);
+                uwrite!(self, "{name}")
+            }
             TypeDefKind::Enum(enum_def) => {
                 let name = dart.define_enum(*def_type, &resolved_type, enum_def);
                 self.0.push_str(&name);

@@ -298,4 +298,44 @@ interface greeting {
         )
         .expect("Could not generate definitions")
     }
+
+    #[test]
+    fn variants() {
+        print_definitions(
+            "
+package demo:component;
+
+world root {
+  import greeting;
+}
+
+interface greeting {
+  variant input {
+    foo,
+    bar(u64),
+  }
+  variant output {
+    a,
+    b(u8),
+  }
+  pass-list: func(a: input) -> output;
+}
+",
+        )
+        .expect("Could not generate definitions")
+    }
+
+    #[test]
+    fn wasi_cli() {
+        let options = GenerateDartOptions {
+            files: vec![InputFile {
+                path: "../wasi/wit/".to_string(),
+                is_main: true,
+                is_directory: true,
+            }],
+            runs: vec![GenerationRun { main: None }],
+        };
+
+        wit_bindgen_dart_internal(options).unwrap();
+    }
 }

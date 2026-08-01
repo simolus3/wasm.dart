@@ -1,9 +1,9 @@
 use std::rc::Rc;
 use std::{fmt::Write, mem};
 
-use heck::{AsLowerCamelCase, ToLowerCamelCase};
+use heck::{AsLowerCamelCase, AsUpperCamelCase, ToLowerCamelCase};
 use wit_bindgen_core::abi::WasmType;
-use wit_bindgen_core::wit_parser::{Alignment, ArchitectureSize};
+use wit_bindgen_core::wit_parser::{Alignment, ArchitectureSize, Handle};
 use wit_bindgen_core::{
     abi::{Bindgen, Instruction},
     wit_parser::{Function, Resolve, SizeAlign, Type},
@@ -300,6 +300,40 @@ if ({has_value}.toBool()) {{
 
                 results.push(tmp);
             }
+            Instruction::VariantLift { variant, name, ty } => {
+                let tmp = self.temporary_variable();
+                uwrite!(self.definition, "final ");
+                self.definition
+                    .write_dart_type(self.dart, resolve, &Type::Id(*ty));
+                let discriminant = operands.pop().unwrap();
+
+                let cases = self
+                    .blocks
+                    .split_off(self.blocks.len() - variant.cases.len());
+                uwriteln!(
+                    self.definition,
+                    " {tmp};\nswitch({discriminant}.toIntUnsigned()) {{"
+                );
+
+                for ((i, case), (block, results)) in variant.cases.iter().enumerate().zip(cases) {
+                    uwriteln!(self.definition, "case {i}:\n{block}");
+
+                    uwrite!(self.definition, "return {}(", AsUpperCamelCase(&case.name));
+                    if case.ty.is_some() {
+                        uwrite!(self.definition, "{}", results[0]);
+                    }
+                    uwriteln!(self.definition, ");");
+                }
+
+                uwriteln!(
+                    self.definition,
+                    "
+default:
+  throw ArgumentValue('Invalid discrimant value for variant');
+}}",
+                );
+                results.push(tmp);
+            }
             Instruction::ResultLift { result: _, ty } => {
                 let tmp = self.temporary_variable();
                 let (err, err_results) = self.blocks.pop().unwrap();
@@ -371,6 +405,29 @@ if ({is_err}.toBool()) {{
                     "{enum_class}.values[{index}.toIntUnsigned()]"
                 )));
             }
+            Instruction::HandleLift {
+                handle,
+                name: _,
+                ty: _,
+            } => {
+                let tmp = self.temporary_variable();
+                let (class, id) = match handle {
+                    Handle::Own(id) => ("Owned", id),
+                    Handle::Borrow(id) => ("Borrowed", id),
+                };
+
+                uwrite!(self.definition, "final {tmp} = ");
+                self.definition.imported_identifier(
+                    self.dart,
+                    KnownDartUri::PkgWasmComponents,
+                    class,
+                );
+                uwrite!(self.definition, "<");
+                self.definition.write_def_type(self.dart, resolve, id);
+                uwrite!(self.definition, ">({tmp}.toIntUnsigned());");
+
+                results.push(tmp);
+            }
             Instruction::GuestDeallocateString => {
                 let length = operands.pop().unwrap();
                 let ptr = operands.pop().unwrap();
@@ -391,6 +448,24 @@ if ({is_err}.toBool()) {{
                 def.imported_identifier(self.dart, KnownDartUri::DartWasm, "WasmI32");
                 let _ = write!(&mut def, "({})", *val);
                 results.push(Rc::new(def.take_code()));
+            }
+            Instruction::ConstZero { tys } => {
+                let import = self.dart.import(KnownDartUri::DartWasm);
+
+                for ty in *tys {
+                    let constant = match ty {
+                        WasmType::I64 | WasmType::PointerOrI64 => {
+                            format!("const {import}.WasmI64(0)")
+                        }
+                        WasmType::F32 => format!("const {import}.WasmF32(0)"),
+                        WasmType::F64 => format!("const {import}.WasmF64(0)"),
+                        WasmType::I32 | WasmType::Pointer | WasmType::Length => {
+                            format!("const {import}.WasmI32(0)")
+                        }
+                    };
+
+                    results.push(Rc::new(constant));
+                }
             }
             Instruction::ResultLower {
                 result: _,
@@ -434,6 +509,80 @@ if ({is_err}.toBool()) {{
 
                 results.extend(result_names);
             }
+            Instruction::OptionLower {
+                payload: _,
+                ty: _,
+                results: result_types,
+            } => {
+                let (none, none_results) = self.blocks.pop().unwrap();
+                let (some, some_results) = self.blocks.pop().unwrap();
+                let value = operands.pop().unwrap();
+
+                let result_names = (0..result_types.len())
+                    .map(|_| self.temporary_variable())
+                    .collect::<Vec<_>>();
+
+                for (wasm_type, name) in result_types.iter().zip(&result_names) {
+                    self.definition.write_core_type(self.dart, wasm_type);
+                    uwriteln!(self.definition, " {};", name);
+                }
+
+                uwrite!(
+                    self.definition,
+                    "if ({value}.hasValue) {{\n  final value = {value}.requireValue();{some}"
+                );
+                for (value, name) in some_results.iter().zip(&result_names) {
+                    uwriteln!(self.definition, "{name} = {value};");
+                }
+                uwriteln!(self.definition, "}} else {{{none}");
+                for (value, name) in none_results.iter().zip(&result_names) {
+                    uwriteln!(self.definition, "{name} = {value};");
+                }
+                uwriteln!(self.definition, "}}");
+
+                results.extend(result_names);
+            }
+            Instruction::VariantLower {
+                variant,
+                name: _,
+                ty: _,
+                results: result_types,
+            } => {
+                let result_names = (0..result_types.len())
+                    .map(|_| self.temporary_variable())
+                    .collect::<Vec<_>>();
+                for (wasm_type, name) in result_types.iter().zip(&result_names) {
+                    self.definition.write_core_type(self.dart, wasm_type);
+                    uwriteln!(self.definition, " {};", name);
+                }
+
+                let variant_expr = operands.pop().unwrap();
+                let variant_blocks = self
+                    .blocks
+                    .split_off(self.blocks.len() - variant.cases.len());
+
+                uwriteln!(self.definition, "switch ({variant_expr}) {{");
+
+                for (case, (block, results)) in variant.cases.iter().zip(variant_blocks) {
+                    if case.ty.is_some() {
+                        uwriteln!(
+                            self.definition,
+                            "case {}(payload: final value):",
+                            AsUpperCamelCase(&case.name)
+                        );
+                    } else {
+                        uwriteln!(self.definition, "case {}():", AsUpperCamelCase(&case.name));
+                    }
+                    uwrite!(self.definition, "{block}");
+
+                    for (value, name) in results.iter().zip(&result_names) {
+                        uwriteln!(self.definition, "{name} = {value};");
+                    }
+                }
+
+                uwriteln!(self.definition, "}}");
+                results.extend(result_names);
+            }
             Instruction::StreamLower { payload: _, ty } => {
                 let vtable = self.dart.stream_future_vtables.get(ty).cloned().unwrap();
                 let tmp = self.temporary_variable();
@@ -458,6 +607,14 @@ if ({is_err}.toBool()) {{
             } => {
                 let value = operands.pop().unwrap();
                 results.push(Rc::new(format!("{value}.index.toWasmI32()")));
+            }
+            Instruction::HandleLower {
+                handle: _,
+                name: _,
+                ty: _,
+            } => {
+                let handle = operands.pop().unwrap();
+                results.push(Rc::new(format!("{handle}.handle.toWasmI32()")));
             }
             Instruction::I32Store { offset }
             | Instruction::LengthStore { offset }

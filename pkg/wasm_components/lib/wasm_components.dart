@@ -6,6 +6,7 @@ export 'src/runtime/async/subtask.dart' hide SubtaskImpl, SubtaskState;
 export 'src/runtime/async/task.dart' show spawnTask;
 export 'src/runtime/error_context.dart';
 export 'src/runtime/option.dart';
+export 'src/runtime/resource.dart';
 export 'src/runtime/result.dart';
 export 'src/runtime/string.dart';
 
