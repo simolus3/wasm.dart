@@ -1,3 +1,5 @@
+import 'package:logging/logging.dart';
+
 import '../components/component.dart';
 import '../components/index_space.dart';
 import '../components/type.dart' as types;
@@ -5,6 +7,7 @@ import '../components/type.dart';
 import 'interface.dart';
 
 final class Linker {
+  final Logger logger;
   final ComponentBuilder component;
   final CoreInstanceIndex? libc;
 
@@ -17,7 +20,8 @@ final class Linker {
   CoreInstanceIndex? _program;
   final Map<String, CoreFunctionIndex> _programExports = {};
 
-  new(this.component, [this.libc]);
+  new(this.component, {this.libc, Logger? logger})
+    : logger = .detached('Linker');
 
   set program(CoreInstanceIndex value) {
     _program = value;

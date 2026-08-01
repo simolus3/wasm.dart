@@ -153,7 +153,7 @@ final class ModuleTransformer {
           }
 
           abi.imports.add(
-            ImportedFunction(
+            ImportedFunction.exists(
               importName: import.name,
               lowerOptions: const CanonicalOptions(),
               resolve: (linker, options) =>
@@ -319,7 +319,7 @@ final class _RandomImports extends _ComponentImport {
       ..functions.add(import);
 
     abi.imports.add(
-      ImportedFunction(
+      ImportedFunction.exists(
         importName: coreImportName,
         lowerOptions: const CanonicalOptions(),
         resolve: ImportedFunction.importedFromInstance(interface, methodName),
@@ -385,7 +385,7 @@ final class _ClockImports extends _ComponentImport {
         function.module = 'component';
         function.name = 'implicitImport_systemClockNow';
         abi.imports.add(
-          ImportedFunction(
+          ImportedFunction.exists(
             importName: function.name,
             lowerOptions: CanonicalOptions(usesMemory: true),
             resolve: ImportedFunction.importedFromInstance(systemClock, 'now'),
@@ -401,7 +401,7 @@ final class _ClockImports extends _ComponentImport {
         function.module = 'component';
         function.name = 'implicitImport_timezoneIanaId';
         abi.imports.add(
-          ImportedFunction(
+          ImportedFunction.exists(
             importName: function.name,
             lowerOptions: CanonicalOptions(
               usesMemory: true,
@@ -420,7 +420,7 @@ final class _ClockImports extends _ComponentImport {
         function.module = 'component';
         function.name = 'implicitImport_monotonicTicks';
         abi.imports.add(
-          ImportedFunction(
+          ImportedFunction.exists(
             importName: function.name,
             lowerOptions: const CanonicalOptions(),
             resolve: ImportedFunction.importedFromInstance(clock, 'now'),
@@ -436,7 +436,7 @@ final class _ClockImports extends _ComponentImport {
         function.module = 'component';
         function.name = 'implicitImport_monotonicDuration';
         abi.imports.add(
-          ImportedFunction(
+          ImportedFunction.exists(
             importName: function.name,
             lowerOptions: const CanonicalOptions(),
             resolve: ImportedFunction.importedFromInstance(
@@ -450,7 +450,7 @@ final class _ClockImports extends _ComponentImport {
         function.module = 'component';
         function.name = 'implicitImport_monotonicWaitFor';
         abi.imports.add(
-          ImportedFunction(
+          ImportedFunction.exists(
             importName: function.name,
             lowerOptions: const CanonicalOptions(isAsync: true),
             resolve: ImportedFunction.importedFromInstance(clock, 'wait-for'),

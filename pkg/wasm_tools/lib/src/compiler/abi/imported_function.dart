@@ -14,11 +14,26 @@ final class ImportedFunction {
   final CanonicalOptions lowerOptions;
   final FunctionDefinition _resolve;
 
-  new({
+  /// Whether this function import exists in the compiled core WebAssembly
+  /// module.
+  ///
+  /// It's possible for functions declared in the program abi to not be used
+  /// (e.g. due to dead code elimination in dart2wasm).
+  var existsInProgram = false;
+
+  ImportedFunction({
     required this.importName,
     required this.lowerOptions,
     required this._resolve,
   });
+
+  ImportedFunction.exists({
+    required this.importName,
+    required this.lowerOptions,
+    required this._resolve,
+  }) {
+    existsInProgram = true;
+  }
 
   CoreFunctionIndex resolve(Linker linker) {
     lowerOptions.requireDefinitions(linker);

@@ -14,6 +14,12 @@ final class ProgramAbi {
   CoreInstanceIndex createImportInstance(Linker linker) {
     final inlineExports = <(String, Sort, Index)>[];
     for (final import in imports) {
+      if (!import.existsInProgram) {
+        linker.logger.fine(
+          'Skipping ${import.importName} import, removed by Dart DCE.',
+        );
+      }
+
       final functionIndex = import.resolve(linker);
 
       inlineExports.add((import.importName, .coreFunction, functionIndex));

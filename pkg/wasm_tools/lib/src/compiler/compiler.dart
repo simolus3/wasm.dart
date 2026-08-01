@@ -88,7 +88,7 @@ final class ComponentCompiler {
       final appDef = builder.defineModule(transformer.module);
 
       final libc = builder.coreInstantiate(.moduleAndArgs(libcDef, {}));
-      final linker = Linker(builder, libc);
+      final linker = Linker(builder, libc: libc, logger: logger);
       linker.program = builder.coreInstantiate(
         .moduleAndArgs(appDef, {
           'libc': libc,
