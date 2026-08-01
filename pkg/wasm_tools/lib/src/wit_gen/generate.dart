@@ -1,10 +1,36 @@
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
 import 'native.dart';
+
+final class GenerateDartOptions {
+  final List<WitInputFile> files;
+  final List<GenerationRun> runs;
+
+  GenerateDartOptions({required this.files, required this.runs});
+
+  Map<String, Object?> toJson() {
+    return {
+      'files': [for (final file in files) file.toJson()],
+      'runs': [for (final run in runs) run.toJson()],
+    };
+  }
+}
+
+final class GenerationRun {
+  /// The main world for which to generate code.
+  final String? main;
+
+  GenerationRun(this.main);
+
+  Map<String, Object?> toJson() {
+    return {'main': main};
+  }
+}
 
 final class WitInputFile {
   final String path;
@@ -12,17 +38,37 @@ final class WitInputFile {
   final bool isMain;
 
   WitInputFile(this.path, this.contents, {this.isMain = false});
+
+  Map<String, Object?> toJson() {
+    return {'contents': contents, 'path': path, 'is_main': isMain};
+  }
 }
 
-final class WitExportResult {
-  /// Unformatted generated Dart code to write to `lib/src/wasm_component.g.dart`.
-  final String dartCode;
+sealed class GeneratedFile {
+  final String contents;
 
-  /// A JSON encoding of the package's component ABI, to include in a build
-  /// hook.
-  final String abi;
+  GeneratedFile(this.contents);
 
-  WitExportResult(this.dartCode, this.abi);
+  factory GeneratedFile.fromJson(Map<String, Object?> json) {
+    final contents = json['contents'] as String;
+    final kind = json['kind'];
+
+    if (kind == 'AbiJson') {
+      return AbiJsonFile(contents);
+    } else {
+      final package = (kind as Map<String, Object?>)['Package'] as String;
+      return GeneratedPackage(package, contents);
+    }
+  }
+}
+
+final class AbiJsonFile extends GeneratedFile {
+  AbiJsonFile(super.contents);
+}
+
+final class GeneratedPackage extends GeneratedFile {
+  final String package;
+  GeneratedPackage(this.package, super.contents);
 }
 
 final class WitGenerateException implements Exception {
@@ -36,74 +82,32 @@ final class WitGenerateException implements Exception {
   }
 }
 
-Future<WitExportResult> witBindgen(
-  List<WitInputFile> files,
-  String? mainWorld,
-) {
+Future<List<GeneratedFile>> witBindgen(GenerateDartOptions options) {
   return Isolate.run(() {
-    return _witBindgenSync(files, mainWorld);
+    return _witBindgenSync(options);
   });
 }
 
-WitExportResult _witBindgenSync(List<WitInputFile> files, String? mainWorld) {
+List<GeneratedFile> _witBindgenSync(GenerateDartOptions options) {
   return using((alloc) {
-    final options = alloc<GenerateDartOptions>();
-    final result = alloc<ExportResult>();
-    final rawFiles = alloc<ImportFile>(files.length);
+    final result = alloc<RawExportResult>();
+    final encoded = JsonUtf8Encoder().convert(options) as Uint8List;
 
-    options.ref
-      ..files = rawFiles
-      ..fileCount = files.length;
-    if (mainWorld != null) {
-      final (ptr, length) = alloc.allocateString(mainWorld);
-      options.ref
-        ..main = ptr
-        ..mainLength = length;
-    } else {
-      options.ref
-        ..main = nullptr
-        ..mainLength = 0;
-    }
-
-    for (final (i, inputFile) in files.indexed) {
-      final (pathPtr, pathLength) = alloc.allocateString(inputFile.path);
-      final (contentPtr, contentLength) = alloc.allocateString(
-        inputFile.contents,
-      );
-
-      rawFiles[i]
-        ..isMain = inputFile.isMain ? 1 : 0
-        ..contents = contentPtr
-        ..contentsLength = contentLength
-        ..path = pathPtr
-        ..pathLength = pathLength;
-    }
-
-    wit_bindgen_dart_gen(options, result);
+    wit_bindgen_dart_gen(encoded.length, encoded.address, result);
     final resultRef = result.ref;
-    final content = _readString(resultRef.output, resultRef.outputLength);
+    final content = json.decode(
+      _readString(resultRef.start, resultRef.length),
+    ) as Map<String, Object?>;
 
-    if (resultRef.isError != 0) {
-      wit_bindgen_dart_free(result);
-      throw WitGenerateException(content);
+    if (content['Ok'] case final generated?) {
+      return [
+        for (final entry in (generated as List).cast<Map<String, Object?>>())
+          GeneratedFile.fromJson(entry),
+      ];
     }
 
-    final exports = WitExportResult(
-      content,
-      _readString(resultRef.abi, resultRef.abiLength),
-    );
-    wit_bindgen_dart_free(result);
-    return exports;
+    throw WitGenerateException(content['Err'] as String);
   });
-}
-
-extension on Allocator {
-  (Pointer<Uint8>, int) allocateString(String str) {
-    final encoded = utf8.encode(str);
-    final ptr = this<Uint8>(encoded.length);
-    ptr.asTypedList(encoded.length).setAll(0, encoded);
-    return (ptr, encoded.length);
-  }
 }
 
 String _readString(Pointer<Uint8> data, int length) {

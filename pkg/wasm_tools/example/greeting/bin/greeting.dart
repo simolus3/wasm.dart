@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:greeting/src/component.g.dart';
+import 'package:greeting/src/components/demo_component.dart';
 
 void main(List<String> arguments) {
   defineInstanceExport(unnamedExport0: const _Greeting());

@@ -1,5 +1,5 @@
 use anyhow::{Result, bail};
-use std::{borrow::Cow, collections::HashMap, fmt::Write, rc::Rc};
+use std::{borrow::Cow, collections::HashMap, fmt::Write, mem, rc::Rc};
 use wit_bindgen_core::{
     WorldGenerator,
     abi::{
@@ -55,27 +55,27 @@ pub struct ExportedCoreFunction {
     pub lifted: LiftedFunction,
 }
 
-#[derive(Default)]
-pub struct DartWorldGenerator {
+pub struct DartWorldGenerator<'a> {
     pub size_align: SizeAlign,
     pub main: DartSource,
-    pub imports: Vec<ImportedFunction>,
-    pub instance_exports: Vec<ExportedInstance>,
+    pub io: &'a mut ImportsAndExports,
+    pub local_exports: Vec<ExportedInstance>,
 }
 
-impl DartWorldGenerator {
-    pub fn serialize_abi(&self, resolve: &Resolve) -> anyhow::Result<String> {
-        let exports: Vec<crate::abi::ExportedInstance> = self
-            .instance_exports
-            .iter()
-            .map(|e| e.to_abi_export())
-            .collect();
+#[derive(Default)]
+pub struct ImportsAndExports {
+    pub imports: Vec<ImportedFunction>,
+    pub exports: Vec<ExportedInstance>,
+}
 
-        Ok(serde_json::to_string(&PackageAbiWithWorld {
-            imports: &self.imports,
-            exports: &exports,
-            world: resolve,
-        })?)
+impl<'a> DartWorldGenerator<'a> {
+    pub fn new(io: &'a mut ImportsAndExports) -> Self {
+        Self {
+            size_align: Default::default(),
+            main: Default::default(),
+            io,
+            local_exports: Default::default(),
+        }
     }
 
     fn define_stream_vtable(&mut self, resolve: &Resolve, id: TypeId, inner_type: Option<Type>) {
@@ -97,7 +97,7 @@ external {wasm_import}.WasmVoid _streamDropWritable{id_str}({wasm_import}.WasmI3
 
 final class {vtable_name} implements {rt_import}.StreamVtable<"
         );
-        self.imports.push(ImportedFunction {
+        self.io.imports.push(ImportedFunction {
             import_name: format!("stream{id_str}.new"),
             definition: ImportedFunctionDefinition::StreamNew {
                 stream_type: id.index(),
@@ -108,14 +108,14 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
         read_write_options.is_async = true;
         read_write_options.uses_memory = inner_type.is_some();
 
-        self.imports.push(ImportedFunction {
+        self.io.imports.push(ImportedFunction {
             import_name: format!("stream{id_str}.write"),
             definition: ImportedFunctionDefinition::StreamWrite {
                 stream_type: id.index(),
             },
             lower_options: read_write_options.clone(),
         });
-        self.imports.push(ImportedFunction {
+        self.io.imports.push(ImportedFunction {
             import_name: format!("stream{id_str}.drop-writable"),
             definition: ImportedFunctionDefinition::StreamDropWritable {
                 stream_type: id.index(),
@@ -246,7 +246,7 @@ external {wasm_import}.WasmVoid _futureDropWritable{id_str}({wasm_import}.WasmI3
 
 final class {vtable_name} implements {rt_import}.FutureVtable<"
         );
-        self.imports.push(ImportedFunction {
+        self.io.imports.push(ImportedFunction {
             import_name: format!("future{id_str}.new"),
             definition: ImportedFunctionDefinition::FutureNew {
                 future_type: id.index(),
@@ -257,28 +257,28 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
         read_write_options.is_async = true;
         read_write_options.uses_memory = true;
 
-        self.imports.push(ImportedFunction {
+        self.io.imports.push(ImportedFunction {
             import_name: format!("future{id_str}.write"),
             definition: ImportedFunctionDefinition::FutureWrite {
                 future_type: id.index(),
             },
             lower_options: read_write_options.clone(),
         });
-        self.imports.push(ImportedFunction {
+        self.io.imports.push(ImportedFunction {
             import_name: format!("future{id_str}.read"),
             definition: ImportedFunctionDefinition::FutureRead {
                 future_type: id.index(),
             },
             lower_options: read_write_options.clone(),
         });
-        self.imports.push(ImportedFunction {
+        self.io.imports.push(ImportedFunction {
             import_name: format!("future{id_str}.drop-readable"),
             definition: ImportedFunctionDefinition::FutureDropReadable {
                 future_type: id.index(),
             },
             lower_options: Default::default(),
         });
-        self.imports.push(ImportedFunction {
+        self.io.imports.push(ImportedFunction {
             import_name: format!("future{id_str}.drop-writable"),
             definition: ImportedFunctionDefinition::FutureDropWritable {
                 future_type: id.index(),
@@ -409,7 +409,7 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
     }
 }
 
-impl WorldGenerator for DartWorldGenerator {
+impl<'a> WorldGenerator for DartWorldGenerator<'a> {
     fn preprocess(
         &mut self,
         resolve: &Resolve,
@@ -445,7 +445,7 @@ impl WorldGenerator for DartWorldGenerator {
                 } else {
                     AbiVariant::GuestImport
                 };
-                let core_name = Rc::new(format!("_import{}", self.imports.len()));
+                let core_name = Rc::new(format!("_import{}", self.io.imports.len()));
 
                 uwriteln!(def, "@override");
                 def.write_function_signature(&mut self.main, resolve, name, function);
@@ -472,7 +472,7 @@ impl WorldGenerator for DartWorldGenerator {
                 );
                 generator.write_cleanup();
                 let _ = writeln!(def, "{}\n}}", generator.definition.take_code());
-                self.imports.extend(generator.additional_imports);
+                self.io.imports.extend(generator.additional_imports);
 
                 {
                     let options = generator.options;
@@ -488,7 +488,7 @@ impl WorldGenerator for DartWorldGenerator {
                     let _ = writeln!(&mut import, ";");
                     self.main.consume_definition(import);
 
-                    self.imports.push(ImportedFunction {
+                    self.io.imports.push(ImportedFunction {
                         import_name: (*core_name).clone(),
                         definition: ImportedFunctionDefinition::Instance(ImportedFromInstance {
                             interface: iface,
@@ -532,7 +532,7 @@ impl WorldGenerator for DartWorldGenerator {
             self.main.consume_definition(def);
         }
 
-        self.instance_exports.push(ExportedInstance {
+        self.local_exports.push(ExportedInstance {
             field_name,
             class_name,
             interface: iface,
@@ -575,7 +575,7 @@ impl WorldGenerator for DartWorldGenerator {
         _world: wit_bindgen_core::wit_parser::WorldId,
         _files: &mut wit_bindgen_core::Files,
     ) -> Result<()> {
-        if self.instance_exports.is_empty() {
+        if self.local_exports.is_empty() {
             return Ok(());
         }
 
@@ -585,7 +585,7 @@ impl WorldGenerator for DartWorldGenerator {
         {
             let def = &mut def;
             let _ = write!(def, "void defineInstanceExport({{");
-            for export in &self.instance_exports {
+            for export in &self.local_exports {
                 let _ = write!(
                     def,
                     "required {} {},",
@@ -594,7 +594,7 @@ impl WorldGenerator for DartWorldGenerator {
                 );
             }
             let _ = writeln!(def, "}}) {{");
-            for export in &self.instance_exports {
+            for export in &self.local_exports {
                 let _ = writeln!(
                     def,
                     "  {} = {};",
@@ -606,7 +606,7 @@ impl WorldGenerator for DartWorldGenerator {
         }
 
         let mut export_id = 0usize;
-        for mut export in &mut self.instance_exports {
+        for mut export in &mut self.local_exports {
             let interface = &resolve.interfaces[export.interface];
 
             for (name, function) in &interface.functions {
@@ -651,7 +651,7 @@ impl WorldGenerator for DartWorldGenerator {
                     is_async,
                 );
                 let body = generator.definition.take_code();
-                self.imports.extend(generator.additional_imports);
+                self.io.imports.extend(generator.additional_imports);
 
                 if is_async {
                     let components = generator.dart.import(KnownDartUri::PkgWasmComponents);
@@ -756,6 +756,20 @@ return asyncExitCode.toWasmI32();
 
         self.main.consume_definition(def);
 
+        self.io.exports.extend(mem::take(&mut self.local_exports));
         Ok(())
+    }
+}
+
+impl ImportsAndExports {
+    pub fn serialize_abi(&self, resolve: &Resolve) -> anyhow::Result<String> {
+        let exports: Vec<crate::abi::ExportedInstance> =
+            self.exports.iter().map(|e| e.to_abi_export()).collect();
+
+        Ok(serde_json::to_string(&PackageAbiWithWorld {
+            imports: &self.imports,
+            exports: &exports,
+            world: resolve,
+        })?)
     }
 }

@@ -23,7 +23,7 @@ final class GenerateWitInteropCommand extends Command<void> {
       'output',
       abbr: 'o',
       help: 'Output file for main sources.',
-      defaultsTo: 'lib/src/component.g.dart',
+      defaultsTo: 'lib/src/components',
     );
 
     argParser.addOption(
@@ -59,33 +59,49 @@ final class GenerateWitInteropCommand extends Command<void> {
         throw ToolFailure('Input file $input does not exist');
     }
 
-    var WitExportResult(:dartCode, :abi) = await witBindgen(
-      inputs,
-      results.option('world'),
+    final generated = await witBindgen(
+      GenerateDartOptions(
+        files: inputs,
+        runs: [GenerationRun(results.option('world'))],
+      ),
     );
 
-    try {
-      final formatter = DartFormatter(
-        // TODO: Read config from project?
-        languageVersion: DartFormatter.latestLanguageVersion,
-      );
-
-      dartCode = formatter.format(dartCode);
-    } on FormatterException catch (e, s) {
-      logger.warning('Could not format Dart sources', e, s);
+    final formatter = DartFormatter(
+      // TODO: Read config from project?
+      languageVersion: DartFormatter.latestLanguageVersion,
+    );
+    final outputDirectory = Directory(results.option('output')!);
+    if (!await outputDirectory.exists()) {
+      await outputDirectory.create();
     }
 
-    final outputFile = File(results.option('output')!);
-    await outputFile.parent.create(recursive: true);
-    await outputFile.writeAsString(dartCode);
+    for (final file in generated) {
+      switch (file) {
+        case AbiJsonFile(:final contents):
+          final hookDirectory = Directory('hook');
+          if (!await hookDirectory.exists()) {
+            await hookDirectory.create();
+          }
+          final file = File('hook/wasm_abi.json');
+          await file.writeAsString(
+            JsonEncoder.withIndent('  ').convert(jsonDecode(contents)),
+          );
+          logger.fine('Wrote abi to ${file.path}.');
+        case GeneratedPackage(:final package, :var contents):
+          try {
+            contents = formatter.format(contents);
+          } on FormatterException catch (e, s) {
+            logger.warning('Could not format Dart sources', e, s);
+          }
 
-    final hookDirectory = Directory('hook');
-    if (!await hookDirectory.exists()) {
-      await hookDirectory.create();
+          final file = File.fromUri(
+            outputDirectory.uri.resolve('$package.dart'),
+          );
+          await file.writeAsString(contents);
+          logger.fine('Wrote component to ${file.path}.');
+      }
     }
-    File('hook/wasm_abi.json')
-        .writeAsString(JsonEncoder.withIndent('  ').convert(jsonDecode(abi)));
 
-    logger.info('Wrote outputs to ${outputFile.path}');
+    logger.info('Wrote outputs');
   }
 }
