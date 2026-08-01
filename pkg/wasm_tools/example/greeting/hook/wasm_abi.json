@@ -1,29 +1,69 @@
 {
-  "type_defs": [],
-  "interfaces": [
+  "imports": [],
+  "exports": [
     {
-      "full_name": "demo:component/greeting",
-      "exported_functions": {
+      "implements": 0,
+      "functions": {
         "generate-greeting": {
-          "name": "generate-greeting",
-          "kind": "freestanding",
-          "params": [],
+          "exported_name": "component_0",
+          "options": {
+            "uses_memory": true,
+            "uses_strings": true,
+            "uses_realloc": false,
+            "is_async": false,
+            "uses_callback": false,
+            "post_return": "component_0_postreturn"
+          },
+          "parameters": [],
           "result": "string"
         }
       }
     }
   ],
-  "imports": [],
-  "exports": [
-    {
-      "interface_id": 0,
-      "function_name": "generate-greeting",
-      "core_export_name": "component_0",
-      "options": {
-        "use_memory": true,
-        "uses_strings": true,
-        "post_return": "component_0_postreturn"
+  "world": {
+    "worlds": [
+      {
+        "name": "root",
+        "imports": {},
+        "exports": {
+          "interface-0": {
+            "interface": {
+              "id": 0
+            }
+          }
+        },
+        "package": 0
       }
-    }
-  ]
+    ],
+    "interfaces": [
+      {
+        "name": "greeting",
+        "types": {},
+        "functions": {
+          "generate-greeting": {
+            "name": "generate-greeting",
+            "kind": "freestanding",
+            "params": [],
+            "result": "string"
+          }
+        },
+        "package": 0
+      }
+    ],
+    "types": [],
+    "packages": [
+      {
+        "name": "demo:component",
+        "docs": {
+          "contents": "test.wit"
+        },
+        "interfaces": {
+          "greeting": 0
+        },
+        "worlds": {
+          "root": 0
+        }
+      }
+    ]
+  }
 }

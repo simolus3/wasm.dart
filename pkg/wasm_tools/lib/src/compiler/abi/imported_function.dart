@@ -21,6 +21,8 @@ final class ImportedFunction {
   });
 
   CoreFunctionIndex resolve(Linker linker) {
+    lowerOptions.requireDefinitions(linker);
+
     return _resolve(linker, lowerOptions);
   }
 

@@ -740,6 +740,7 @@ return asyncExitCode.toWasmI32();
                     uwriteln!(def, "}}");
                 }
 
+                options.is_async = is_async;
                 options.uses_callback = is_async;
                 export.functions.push(ExportedCoreFunction {
                     function_name: name.clone(),

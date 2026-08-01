@@ -35,6 +35,8 @@ final class ExportedFunction {
   new({required this.name, required this.options, required this.function});
 
   ComponentFunctionIndex lift(Linker linker) {
+    options.requireDefinitions(linker);
+
     final core = linker.programExport(name);
     final lifted = linker.component.canonLift(
       core,

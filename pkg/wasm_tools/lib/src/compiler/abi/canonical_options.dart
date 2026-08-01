@@ -24,10 +24,17 @@ final class CanonicalOptions {
       usesMemory: json['uses_memory'] as bool,
       usesString: json['uses_strings'] as bool,
       usesRealloc: json['uses_realloc'] as bool,
-      isAsync: json['async'] as bool? ?? false,
+      isAsync: json['is_async'] as bool? ?? false,
       usesCallback: json['uses_callback'] as bool? ?? false,
       postReturn: json['post_return'] as String?,
     );
+  }
+
+  void requireDefinitions(Linker linker) {
+    if (usesMemory) linker.libcMemory;
+    if (usesRealloc) linker.libcRealloc;
+    if (usesCallback) linker.programExport('callback');
+    if (postReturn case final pr?) linker.programExport(pr);
   }
 
   void applyTo(Linker linker, CanonicalHasOptions definition) {

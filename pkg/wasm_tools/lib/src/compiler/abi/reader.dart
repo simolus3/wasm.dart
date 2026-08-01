@@ -3,6 +3,7 @@ import '../components/index_space.dart';
 import '../components/type.dart';
 import 'abi.dart';
 import 'canonical_options.dart';
+import 'export.dart';
 import 'imported_function.dart';
 import 'interface.dart';
 import 'linker.dart';
@@ -128,6 +129,26 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
   for (final imported in rawAbi.imports) {
     abi.imports.add(imported.readFunction(interfaces, types));
   }
+
+  for (final export in rawAbi.exports) {
+    final interface = interfaces[export.implementedInterface];
+    final functions = <String, ExportedFunction>{};
+
+    for (final MapEntry(key: name, value: definition)
+        in export.functions.entries) {
+      final exportedName = definition['exported_name'] as String;
+      final def = interface.exportedFunctions[name]!;
+      functions[name] = ExportedFunction(
+        name: exportedName,
+        options: .fromJson(definition['options'] as _JsonObject),
+        function: def,
+      );
+    }
+
+    abi.exports.add(
+      ExportedInterface(interface: interface, functions: functions),
+    );
+  }
 }
 
 AbiType? _deserializeNullableType(List<AbiType> existing, Object? type) {
@@ -157,6 +178,7 @@ AbiType _deserializeType(List<AbiType> existing, Object? type) {
 
 extension type _WasmAbi(_JsonObject json) implements _JsonObject {
   List<_ImportedFunction> get imports => (json['imports'] as List).cast();
+  List<_ExportedInterface> get exports => (json['exports'] as List).cast();
 
   _SerializedWorld get world => json['world'] as _SerializedWorld;
 }
@@ -291,6 +313,12 @@ extension type _ImportedFunction(_JsonObject json) implements _JsonObject {
       resolve: parsedDefinition,
     );
   }
+}
+
+extension type _ExportedInterface(_JsonObject json) implements _JsonObject {
+  int get implementedInterface => json['implements'] as int;
+  Map<String, _JsonObject> get functions =>
+      (json['functions'] as _JsonObject).cast();
 }
 
 final class Package {

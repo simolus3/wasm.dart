@@ -164,7 +164,7 @@
             "uses_memory": false,
             "uses_strings": false,
             "uses_realloc": false,
-            "is_async": false,
+            "is_async": true,
             "uses_callback": true
           },
           "parameters": [],

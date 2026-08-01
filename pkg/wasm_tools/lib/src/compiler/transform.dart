@@ -44,6 +44,7 @@ final class ModuleTransformer {
     for (final exported in abi.exportedFunctions) {
       expectedExports.add(exported.name);
       if (exported.options.usesCallback) expectedExports.add('callback');
+      if (exported.options.postReturn case final pr?) expectedExports.add(pr);
     }
 
     _removeExports(expectedExports);

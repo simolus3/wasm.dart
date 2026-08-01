@@ -77,7 +77,7 @@ final class Linker {
         definitions: component,
         existing: _topLevelTypes,
         type: type,
-        resolveImport: (type) => ModelTypeReference(importType(type)),
+        resolveImport: (type) => importType(type),
       ),
     );
   }
@@ -99,9 +99,7 @@ final class Linker {
           definitions: mapped,
           existing: typeEntries,
           type: type,
-          resolveImport: (import) {
-            return types.ModelTypeReference(importFromOuter(import));
-          },
+          resolveImport: (import) => importFromOuter(import),
         );
       }
 
@@ -145,7 +143,7 @@ ComponentTypeIndex _addType({
   required HasDefinitions definitions,
   required Map<AbiType, ComponentTypeIndex> existing,
   required AbiType type,
-  required types.ModelType Function(ImportedAbiType) resolveImport,
+  required ComponentTypeIndex Function(ImportedAbiType) resolveImport,
 }) {
   types.ModelTypeReference innerType(AbiType inner) {
     return types.ModelTypeReference(
@@ -159,10 +157,13 @@ ComponentTypeIndex _addType({
   }
 
   return existing.putIfAbsent(type, () {
+    if (type is ImportedAbiType) {
+      return resolveImport(type);
+    }
+
     return definitions.addType(switch (type) {
       SimpleAbiType(:final type) => type,
       EnumAbiType(:final cases) => types.EnumType(cases),
-      ImportedAbiType() => resolveImport(type),
       StreamAbiType(:final element) => types.StreamType(
         element != null ? innerType(element) : null,
       ),
@@ -181,6 +182,7 @@ ComponentTypeIndex _addType({
       VariableLengthListAbiType(:final element) => types.VariableLengthListType(
         elementType: innerType(element),
       ),
+      ImportedAbiType() => throw AssertionError('handled above'),
     });
   });
 }

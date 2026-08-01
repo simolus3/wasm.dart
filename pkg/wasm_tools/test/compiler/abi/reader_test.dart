@@ -61,6 +61,13 @@ void main() {
 )
 ''');
     });
+
+    test('exports', () {
+      final abi = ProgramAbi();
+      readAbi(abi, json.decode(_exampleAbi) as Map<String, Object?>);
+
+      expect(abi.exports, hasLength(1));
+    });
   });
 }
 
