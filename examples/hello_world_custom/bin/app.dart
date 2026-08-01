@@ -17,7 +17,7 @@ final class _Run implements Run {
     final out = StreamController<Uint8List>();
     final stdoutDone = importedInstance1.writeViaStream(data: out.stream);
 
-    out.add(utf8.encode('Hello world!'));
+    out.add(utf8.encode('Hello world!\n'));
     out.close();
 
     await stdoutDone;

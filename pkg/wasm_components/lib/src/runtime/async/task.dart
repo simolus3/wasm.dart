@@ -32,6 +32,7 @@ final class Task {
 
   /// The root zone for this task, created when it was originally created.
   late Zone _rootZone;
+  (Object, StackTrace)? _unhandledError;
 
   /// A set of async subtasks that this is waiting on.
   final WaitableSet waitable = WaitableSet();
@@ -97,6 +98,13 @@ final class Task {
     }
 
     _isRunning = false;
+    if (_unhandledError case (final error, final trace)?) {
+      // This crashes the program, which is better than letting async errors go
+      // unhandled.
+      _unhandledError = null;
+      Error.throwWithStackTrace(error, trace);
+    }
+
     return CallbackCode.wait.packResult(waitable);
   }
 
@@ -119,6 +127,9 @@ final class Task {
   /// its task.
   ZoneSpecification get _zoneSpecification {
     return ZoneSpecification(
+      handleUncaughtError: (self, parent, zone, error, stackTrace) {
+        _unhandledError = (error, stackTrace);
+      },
       run: <R>(self, parent, zone, f) {
         _verifyCurrent();
         return parent.run(zone, f);
