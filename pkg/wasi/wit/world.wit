@@ -1,0 +1,5 @@
+package dart:wasi;
+
+world target-command {
+  include wasi:cli/command@0.3.0;
+}

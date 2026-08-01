@@ -9,6 +9,7 @@ workspace:
   - pkg/wasm_tools/example/greeting
 
   - pkg/test_runner
+  - pkg/wasi
   - pkg/wasm_components
   - pkg/wasm_tools
 

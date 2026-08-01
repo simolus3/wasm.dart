@@ -1,0 +1,8 @@
+name: wasi
+description: Bindings to the WebAssembly system interface for Dart guests.
+version: 0.1.0-preview.0
+resolution: workspace
+repository: https://github.com/simolus3/wasm.dart/
+
+environment:
+  sdk: ^3.13.0-0
