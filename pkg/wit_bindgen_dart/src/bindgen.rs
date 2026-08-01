@@ -462,13 +462,21 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
                         function,
                     }),
                 );
+
+                if function.kind.is_async() {
+                    bail!(
+                        "Async imports are not supported yet (function {name} at {}).",
+                        interface.name.as_deref().unwrap_or("unknown interface")
+                    )
+                }
+
                 call(
                     resolve,
                     variant,
                     LiftLower::LowerArgsLiftResults,
                     function,
                     &mut generator,
-                    function.kind.is_async(),
+                    false,
                 );
                 generator.write_cleanup();
                 let _ = writeln!(def, "{}\n}}", generator.definition.take_code());

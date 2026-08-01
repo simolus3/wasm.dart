@@ -300,7 +300,11 @@ if ({has_value}.toBool()) {{
 
                 results.push(tmp);
             }
-            Instruction::VariantLift { variant, name, ty } => {
+            Instruction::VariantLift {
+                variant,
+                name: _,
+                ty,
+            } => {
                 let tmp = self.temporary_variable();
                 uwrite!(self.definition, "final ");
                 self.definition
@@ -770,7 +774,11 @@ if ({is_err}.toBool()) {{
                 uwriteln!(self.definition, ");");
                 results.push(tmp);
             }
-            Instruction::RecordLower { record, name, ty } => {
+            Instruction::RecordLower {
+                record,
+                name: _,
+                ty: _,
+            } => {
                 let instance = operands.pop().unwrap();
                 for field in &record.fields {
                     results.push(Rc::new(format!(
