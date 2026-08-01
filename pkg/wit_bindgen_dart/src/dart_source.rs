@@ -250,18 +250,24 @@ impl DartDefinition {
 
         match &resolved_type.kind {
             TypeDefKind::Record(record) => {
-                let _ = write!(self, "({{");
+                uwrite!(self, "({{");
                 for element in &record.fields {
                     self.write_dart_type(dart, resolve, &element.ty);
                     let _ = write!(self, " {},", element.name);
                 }
-                let _ = write!(self, "}})");
-                return;
+                uwrite!(self, "}})");
             }
             TypeDefKind::Resource => todo!(),
             TypeDefKind::Handle(_handle) => todo!(),
             TypeDefKind::Flags(_flags) => todo!(),
-            TypeDefKind::Tuple(_tuple) => todo!(),
+            TypeDefKind::Tuple(tuple) => {
+                uwrite!(self, "(");
+                for element_type in &tuple.types {
+                    self.write_dart_type(dart, resolve, element_type);
+                    self.0.push_str(", ");
+                }
+                uwrite!(self, ")");
+            }
             TypeDefKind::Variant(_variant) => todo!(),
             TypeDefKind::Enum(enum_def) => {
                 let name = dart.define_enum(*def_type, &resolved_type, enum_def);

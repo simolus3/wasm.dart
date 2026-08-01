@@ -49,12 +49,9 @@ final class GenerateWitInteropCommand extends Command<void> {
 
     switch (type) {
       case FileSystemEntityType.file:
-        logger.fine('Reading $input');
-        inputs.add(
-          WitInputFile(input, await File(input).readAsString(), isMain: true),
-        );
+        inputs.add(WitInputFile(input, isMain: true));
       case FileSystemEntityType.directory:
-        throw 'TODO: Input directory';
+        inputs.add(WitInputFile(input, isMain: true, isDirectory: true));
       default:
         throw ToolFailure('Input file $input does not exist');
     }

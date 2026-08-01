@@ -631,6 +631,7 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
                 let is_async = function.kind.is_async();
                 let async_return_name = format!("_component_{}taskReturn", { this_export_id });
                 let mut async_return_params = None;
+                let mut allocated_return_value = None;
 
                 let mut generator = DartFunctionGenerator::new(
                     &self.size_align,
@@ -640,6 +641,7 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
                         result_type: &function.result,
                         async_return_name: &async_return_name,
                         async_return_params: &mut async_return_params,
+                        allocated_return_value: &mut allocated_return_value,
                     }),
                 );
                 call(
@@ -673,7 +675,6 @@ return asyncExitCode.toWasmI32();
                 }
 
                 let mut options = generator.options;
-                let allocated_return = generator.allocated_return_value;
 
                 if let Some(params) = async_return_params {
                     uwrite!(
@@ -721,7 +722,7 @@ return asyncExitCode.toWasmI32();
                     uwrite!(def, "{{\n{code}");
                     let wasm_import = self.main.import(KnownDartUri::DartWasm);
 
-                    if let Some((size, align)) = allocated_return {
+                    if let Some((size, align)) = allocated_return_value {
                         assert!(core_signature.retptr);
                         def.imported_identifier(
                             &mut self.main,

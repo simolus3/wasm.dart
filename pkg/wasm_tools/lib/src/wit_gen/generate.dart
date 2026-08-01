@@ -34,13 +34,13 @@ final class GenerationRun {
 
 final class WitInputFile {
   final String path;
-  final String contents;
   final bool isMain;
+  final bool isDirectory;
 
-  WitInputFile(this.path, this.contents, {this.isMain = false});
+  WitInputFile(this.path, {this.isMain = false, this.isDirectory = false});
 
   Map<String, Object?> toJson() {
-    return {'contents': contents, 'path': path, 'is_main': isMain};
+    return {'path': path, 'is_main': isMain, 'is_directory': isDirectory};
   }
 }
 

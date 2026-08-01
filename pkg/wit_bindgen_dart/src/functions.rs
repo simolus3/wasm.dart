@@ -27,7 +27,6 @@ pub struct DartFunctionGenerator<'a> {
     cleanup: String,
     next_temporary: usize,
     pub options: CanonicalOptions,
-    pub allocated_return_value: Option<(ArchitectureSize, Alignment)>,
     pub additional_imports: Vec<ImportedFunction>,
 }
 
@@ -48,6 +47,7 @@ pub struct ExportedFunctionMode<'a> {
     pub result_type: &'a Option<Type>,
     pub async_return_name: &'a str,
     pub async_return_params: &'a mut Option<Vec<WasmType>>,
+    pub allocated_return_value: &'a mut Option<(ArchitectureSize, Alignment)>,
 }
 
 pub struct PostReturn {}
@@ -68,7 +68,6 @@ impl<'a> DartFunctionGenerator<'a> {
             cleanup: Default::default(),
             next_temporary: 0,
             options: Default::default(),
-            allocated_return_value: None,
             additional_imports: Default::default(),
         }
     }
@@ -125,7 +124,7 @@ impl<'a> DartFunctionGenerator<'a> {
     pub fn write_cleanup(&mut self) {
         if !self.cleanup.is_empty() {
             let cleanup = std::mem::take(&mut self.cleanup);
-            let _ = write!(self.definition, "{}", cleanup);
+            uwrite!(self.definition, "{}", cleanup);
         }
     }
 }
@@ -225,6 +224,10 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
                 uwriteln!(self.definition, ");");
             }
             Instruction::Return { amt, func: _ } => {
+                if let FunctionMode::Imported(_) = self.mode {
+                    self.write_cleanup();
+                }
+
                 if *amt == 0 {
                     if let FunctionMode::Exported(_) = self.mode {
                         let import = self.dart.import(KnownDartUri::DartWasm);
@@ -586,7 +589,19 @@ if ({is_err}.toBool()) {{
                 let tmp = self.temporary_variable();
                 uwrite!(self.definition, "  final {tmp} = (");
 
-                for _ in &record.fields {
+                for f in &record.fields {
+                    let op = operands.pop().unwrap();
+                    uwrite!(self.definition, "{} {op}, ", f.name);
+                }
+
+                uwriteln!(self.definition, ");");
+                results.push(tmp);
+            }
+            Instruction::TupleLift { tuple, ty: _ } => {
+                let tmp = self.temporary_variable();
+                uwrite!(self.definition, "  final {tmp} = (");
+
+                for _ in &tuple.types {
                     let op = operands.pop().unwrap();
                     uwrite!(self.definition, "{op}, ");
                 }
@@ -625,6 +640,78 @@ if ({is_err}.toBool()) {{
                 }
                 uwrite!(self.definition, ");");
             }
+            Instruction::IterElem { element: _ } => {
+                results.push(Rc::new("element".to_string()));
+            }
+            Instruction::IterBasePointer => {
+                results.push(Rc::new("elementPtr".to_string()));
+            }
+            Instruction::ListLower {
+                element,
+                realloc: _,
+            } => {
+                self.options.uses_memory = true;
+                self.options.uses_realloc = true;
+                let size = self.size_align.size(element).size_wasm32();
+                let align = self.size_align.align(element).align_wasm32();
+
+                let list = operands.pop().unwrap();
+
+                let runtime = self.dart.import(KnownDartUri::PkgWasmComponents);
+                let dart = self.dart.import(KnownDartUri::DartWasm);
+                let total_length = self.temporary_variable();
+                let ptr = self.temporary_variable();
+                let base_ptr = self.temporary_variable();
+
+                let (body, _) = self.blocks.pop().unwrap();
+                uwriteln!(
+                    self.definition,
+                    "
+final {total_length} = {dart}.WasmI32.fromInt({size} * {list}.length);
+final {ptr} = {runtime}.mallocAligned(const {dart}.WasmI32({align}), {total_length});
+var {base_ptr} = {ptr}.toIntUnsigned();
+for (final element in {list}) {{
+  final elementPtr = {base_ptr};
+  {body}
+  {base_ptr} += {size};
+}}
+"
+                );
+
+                uwriteln!(
+                    &mut self.cleanup,
+                    "{runtime}.dartFree({ptr}, {total_length}, const {dart}.WasmI32({align}));"
+                );
+
+                results.push(ptr);
+                results.push(Rc::new(format!("{dart}.WasmI32.fromInt({list}.length)")));
+            }
+            Instruction::ListLift { element, ty: _ } => {
+                self.options.uses_memory = true;
+                let list = self.temporary_variable();
+                let start_ptr = self.temporary_variable();
+
+                let size = self.size_align.size(element).size_wasm32();
+                let dart = self.dart.import(KnownDartUri::DartWasm);
+                let ptr = operands.pop().unwrap();
+                let length = operands.pop().unwrap();
+                let (body, mut elements) = self.blocks.pop().unwrap();
+                let value = elements.pop().unwrap();
+
+                uwriteln!(
+                    self.definition,
+                    "
+final {start_ptr} = {ptr}.toIntUnsigned();
+final {list} = List.generate({length}.toIntUnsigned(), growable: false, (i) {{
+  final elementPtr = {dart}.WasmI32.fromInt({start_ptr} + i * {size});
+  {body}
+  return {value};
+}});
+"
+                );
+
+                results.push(list);
+            }
             Instruction::Flush { amt } => {
                 let operands = operands.split_off(operands.len() - *amt);
                 results.extend_from_slice(&operands);
@@ -634,24 +721,30 @@ if ({is_err}.toBool()) {{
     }
 
     fn return_pointer(&mut self, size: ArchitectureSize, align: Alignment) -> Self::Operand {
-        assert!(self.allocated_return_value.is_none());
-
         let local = self.temporary_variable();
-        uwrite!(&mut self.definition, "var {local} = ");
-        self.definition.imported_identifier(
-            self.dart,
-            KnownDartUri::PkgWasmComponents,
-            "mallocAligned",
+        let wasm_import = self.dart.import(KnownDartUri::DartWasm);
+        let rt_import = self.dart.import(KnownDartUri::PkgWasmComponents);
+
+        uwriteln!(
+            &mut self.definition,
+            "var {local} = {rt_import}.mallocAligned(const {wasm_import}.WasmI32({}), const {wasm_import}.WasmI32({}));",
+            align.align_wasm32(),
+            size.size_wasm32(),
         );
-        uwrite!(&mut self.definition, "(const ");
-        self.definition
-            .imported_identifier(self.dart, KnownDartUri::DartWasm, "WasmI32");
-        uwrite!(&mut self.definition, "({})", align.align_wasm32());
-        uwrite!(&mut self.definition, ", const ");
-        self.definition
-            .imported_identifier(self.dart, KnownDartUri::DartWasm, "WasmI32");
-        uwriteln!(&mut self.definition, "({}));", size.size_wasm32());
-        self.allocated_return_value = Some((size, align));
+
+        match &mut self.mode {
+            FunctionMode::Exported(e) => {
+                *e.allocated_return_value = Some((size, align));
+            }
+            _ => {
+                uwriteln!(
+                    &mut self.cleanup,
+                    "{rt_import}.dartFree({local}, const {wasm_import}.WasmI32({}), const {wasm_import}.WasmI32({}));",
+                    size.size_wasm32(),
+                    align.align_wasm32(),
+                );
+            }
+        }
 
         local
     }

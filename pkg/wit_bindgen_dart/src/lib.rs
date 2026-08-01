@@ -24,9 +24,9 @@ pub struct GenerationRun {
 
 #[derive(Deserialize, Debug)]
 pub struct InputFile {
-    pub contents: String,
     pub path: String,
     pub is_main: bool,
+    pub is_directory: bool,
 }
 
 #[derive(Serialize, Debug)]
@@ -61,8 +61,11 @@ pub extern "C" fn wit_bindgen_dart_gen(
     result: &mut MaybeUninit<RawExportResult>,
 ) {
     let input = unsafe { slice::from_raw_parts(input_bytes, input_length) };
+    let output = serde_json::from_slice(input)
+        .map_err(|e| e.into())
+        .and_then(wit_bindgen_dart_internal);
 
-    let outputs = match wit_bindgen_dart_internal(input) {
+    let outputs = match output {
         Ok(files) => ExportResult::Ok(files),
         Err(e) => ExportResult::Err(format!("{e:?}")),
     };
@@ -83,13 +86,17 @@ pub extern "C" fn wit_bindgen_dart_free(options: &RawExportResult) {
     });
 }
 
-fn wit_bindgen_dart_internal(options: &[u8]) -> anyhow::Result<Vec<GeneratedFile>> {
-    let input: GenerateDartOptions = serde_json::from_slice(options)?;
-
+fn wit_bindgen_dart_internal(input: GenerateDartOptions) -> anyhow::Result<Vec<GeneratedFile>> {
     let mut resolve = Resolve::default();
     let mut main_packages = vec![];
     for file in input.files {
-        let package_id = resolve.push_str(&file.path, &file.contents)?;
+        let package_id = if file.is_directory {
+            let (package_id, _) = resolve.push_dir(&file.path)?;
+            package_id
+        } else {
+            resolve.push_file(&file.path)?
+        };
+
         if file.is_main {
             main_packages.push(package_id);
         }
@@ -134,7 +141,11 @@ fn wit_bindgen_dart_internal(options: &[u8]) -> anyhow::Result<Vec<GeneratedFile
 mod test {
     use wit_bindgen_core::{Files, WorldGenerator, wit_parser::Resolve};
 
-    use crate::bindgen::{DartWorldGenerator, ImportsAndExports};
+    use crate::{
+        GenerateDartOptions, GenerationRun, InputFile,
+        bindgen::{DartWorldGenerator, ImportsAndExports},
+        wit_bindgen_dart_internal,
+    };
 
     fn print_definitions(wit: &str) -> anyhow::Result<()> {
         let mut resolve = Resolve::default();
@@ -264,6 +275,24 @@ interface greeting {
     }
 
  now: func() -> instant;
+}
+",
+        )
+        .expect("Could not generate definitions")
+    }
+
+    #[test]
+    fn pass_list() {
+        print_definitions(
+            "
+package demo:component;
+
+world root {
+  import greeting;
+}
+
+interface greeting {
+ pass-list: func(elements: list<u8>) -> list<u16>;
 }
 ",
         )
