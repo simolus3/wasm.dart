@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:hello_world_custom/src/component.g.dart';
+import 'package:hello_world_wasi/src/component.g.dart';
+
 import 'package:wasm_components/wasm_components.dart';
 
 void main() {

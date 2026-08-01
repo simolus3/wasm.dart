@@ -5,7 +5,7 @@ environment:
   sdk: ^3.13.0-0
 
 workspace:
-  - examples/hello_world_custom
+  - pkg/wasm_tools/example/hello_world_wasi
   - pkg/wasm_tools/example/greeting
 
   - pkg/test_runner

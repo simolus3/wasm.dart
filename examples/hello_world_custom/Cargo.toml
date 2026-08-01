@@ -1,9 +1,0 @@
-[package]
-name = "hello_world_custom"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-wasmtime = "47.0.2"
-wasmtime-wasi = { version = "47.0.2", features = ["p3"] }
-tokio = { version = "1.53", features = ["macros", "rt"] }

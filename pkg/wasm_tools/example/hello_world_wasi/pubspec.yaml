@@ -1,4 +1,4 @@
-name: hello_world_custom
+name: hello_world_wasi
 publish_to: none
 resolution: workspace
 
