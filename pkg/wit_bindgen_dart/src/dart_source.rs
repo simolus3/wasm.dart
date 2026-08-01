@@ -258,7 +258,9 @@ impl DartDefinition {
                 uwrite!(self, "}})");
             }
             TypeDefKind::Resource => todo!(),
-            TypeDefKind::Handle(_handle) => todo!(),
+            TypeDefKind::Handle(_handle) => {
+                uwrite!(self, "int /* TODO: Handle */")
+            }
             TypeDefKind::Flags(_flags) => todo!(),
             TypeDefKind::Tuple(tuple) => {
                 uwrite!(self, "(");

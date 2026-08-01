@@ -6,7 +6,7 @@ import 'dart:collection';
 import '../../embedder/clock.dart';
 import 'callback.dart';
 import 'future.dart';
-import 'stream_sink.dart';
+import 'stream.dart';
 import 'subtask.dart';
 import 'timer.dart';
 import 'waitable.dart';

@@ -1,6 +1,7 @@
 import 'dart:async';
 // ignore: import_internal_library
 import 'dart:_wasm';
+import 'dart:math';
 
 import 'package:meta/meta.dart';
 
@@ -67,6 +68,21 @@ int newReadableStream<T extends List<Object?>>(
   return readable;
 }
 
+/// Turns the readable end of a component model stream into a Dart stream.
+Stream<T> readStream<T extends List<Object?>>(
+  int handle,
+  StreamVtable<T> vtable, {
+  int bufferSizeInBytes = 1024,
+}) {
+  final state = StreamReadState(
+    vtable,
+    .forCurrentZone(),
+    handle,
+    bufferSizeInBytes,
+  );
+  return state._controller.stream;
+}
+
 @internal
 final class StreamSinkState<T extends List<Object?>> {
   final StreamVtable<T> _vtable;
@@ -78,7 +94,7 @@ final class StreamSinkState<T extends List<Object?>> {
   var _otherEndDropped = false;
   var _dropped = false;
 
-  _PendingStreamWrite? _pendingWrite;
+  _PendingStreamBuffer? _pendingWrite;
 
   new(this._vtable, this._task, this._subscription, this._id)
     : _elementSize = _vtable.elementSize {
@@ -89,7 +105,7 @@ final class StreamSinkState<T extends List<Object?>> {
     _subscription.onData(_onData);
     _subscription.onDone(_onDone);
 
-    dispatchEvent(_startWrite(_PendingStreamWrite(0, 0)));
+    dispatchEvent(_startWrite(_PendingStreamBuffer(0, 0)));
   }
 
   void _onData(T data) {
@@ -101,7 +117,7 @@ final class StreamSinkState<T extends List<Object?>> {
 
     final start = _vtable.allocateBuffer(data.length);
     _vtable.writeToBuffer(start, data);
-    final buffer = _PendingStreamWrite(start, data.length);
+    final buffer = _PendingStreamBuffer(start, data.length);
     dispatchEvent(_startWrite(buffer));
   }
 
@@ -110,7 +126,7 @@ final class StreamSinkState<T extends List<Object?>> {
     drop();
   }
 
-  int _startWrite(_PendingStreamWrite write) {
+  int _startWrite(_PendingStreamBuffer write) {
     assert(_pendingWrite == null);
     _pendingWrite = write;
     return _vtable.write(_id, write.startPointer, write.totalLength);
@@ -190,7 +206,7 @@ final class StreamSinkState<T extends List<Object?>> {
   }
 }
 
-class _PendingStreamWrite {
+class _PendingStreamBuffer {
   final int startPointer;
   final int totalLength;
   int acknowledged = 0;
@@ -200,4 +216,45 @@ class _PendingStreamWrite {
   void advance(int numCopied) {
     acknowledged += numCopied;
   }
+}
+
+@internal
+final class StreamReadState<T extends List<Object?>> {
+  final StreamController<T> _controller = StreamController(sync: true);
+  final StreamVtable<T> _vtable;
+  final Task _task;
+  final int _id;
+  final int _elementSize;
+  int _readBufferSize = -1;
+
+  _PendingStreamBuffer? _pendingRead;
+
+  new(this._vtable, this._task, this._id, int bufferSize)
+    : _elementSize = _vtable.elementSize {
+    _controller
+      ..onListen = _listenOrResume
+      ..onResume = _listenOrResume
+      ..onCancel = _cancel;
+
+    _readBufferSize = max(bufferSize ~/ _elementSize, 1);
+    throw 'todo: stream reads';
+  }
+
+  void _dropPendingReadBuffer() {
+    if (_pendingRead case final pending? when pending.totalLength > 0) {
+      _vtable.freeBuffer(
+        pending.startPointer,
+        pending.totalLength,
+        pending.acknowledged,
+      );
+    }
+  }
+
+  void _listenOrResume() {
+    if (_pendingRead == null) {}
+  }
+
+  void _cancel() {}
+
+  void dispatchEvent(int code) {}
 }

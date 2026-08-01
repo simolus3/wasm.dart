@@ -347,6 +347,22 @@ if ({is_err}.toBool()) {{
                 );
                 results.push(tmp);
             }
+            Instruction::StreamLift { payload: _, ty } => {
+                let tmp = self.temporary_variable();
+                let stream = operands.pop().unwrap();
+                uwrite!(self.definition, "final {tmp} = ");
+                self.definition.imported_identifier(
+                    self.dart,
+                    KnownDartUri::PkgWasmComponents,
+                    "readStream",
+                );
+                let vtable = self.dart.stream_future_vtables.get(ty).unwrap().clone();
+                uwriteln!(
+                    self.definition,
+                    "(const {vtable}(), {stream}.toIntUnsigned());"
+                );
+                results.push(stream)
+            }
             Instruction::EnumLift { enum_, name: _, ty } => {
                 let index = operands.pop().unwrap();
                 let enum_class = self.dart.define_enum(*ty, &resolve.types[*ty], *enum_);
