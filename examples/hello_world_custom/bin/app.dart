@@ -18,6 +18,8 @@ final class _Run implements Run {
     final stdoutDone = importedInstance1.writeViaStream(data: out.stream);
 
     out.add(utf8.encode('Hello world!\n'));
+    await Future<void>.delayed(const Duration(seconds: 1));
+    out.add(utf8.encode('This is running Dart!'));
     out.close();
 
     await stdoutDone;

@@ -89,7 +89,7 @@ final class StreamSinkState<T extends List<Object?>> {
     _subscription.onData(_onData);
     _subscription.onDone(_onDone);
 
-    _startWrite(_PendingStreamWrite(0, 0));
+    dispatchEvent(_startWrite(_PendingStreamWrite(0, 0)));
   }
 
   void _onData(T data) {
@@ -102,7 +102,7 @@ final class StreamSinkState<T extends List<Object?>> {
     final start = _vtable.allocateBuffer(data.length);
     _vtable.writeToBuffer(start, data);
     final buffer = _PendingStreamWrite(start, data.length);
-    _startWrite(buffer);
+    dispatchEvent(_startWrite(buffer));
   }
 
   void _onDone() {
@@ -110,10 +110,10 @@ final class StreamSinkState<T extends List<Object?>> {
     drop();
   }
 
-  void _startWrite(_PendingStreamWrite write) {
+  int _startWrite(_PendingStreamWrite write) {
     assert(_pendingWrite == null);
     _pendingWrite = write;
-    _vtable.write(_id, write.startPointer, write.totalLength);
+    return _vtable.write(_id, write.startPointer, write.totalLength);
   }
 
   void _dropPendingWriteBuffer() {

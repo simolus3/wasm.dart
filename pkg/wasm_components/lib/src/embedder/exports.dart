@@ -6,6 +6,7 @@ library;
 // ignore: import_internal_library
 import 'dart:_wasm';
 
+import '../runtime/async/task.dart';
 import 'clock.dart';
 import 'constants.dart';
 import 'number_format.dart';
@@ -42,6 +43,19 @@ WasmVoid queueMicrotask(
   WasmFunction<WasmVoid Function(WasmAnyRef)> callback,
   WasmAnyRef arg,
 ) {
+  // Ideally, this should not get called as all async work happens in a task
+  // zone overriding scheduleMicrotask.
+  // However, the Dart SDK uses a null future instance used in some cases:
+  // https: //github.com/dart-lang/sdk/blob/f300393bdf6136f4be35d877763ab73c7c715647/sdk/lib/internal/internal.dart#L140-L160
+  // To support that, schedule that on the last that ran.
+  final task = Task.forCurrentThreadUnchecked();
+  if (task != null) {
+    task.scheduleRawMicrotask(() {
+      callback.call(arg);
+    });
+    return WasmVoid();
+  }
+
   _unsupportedAsyncSchedule();
 }
 

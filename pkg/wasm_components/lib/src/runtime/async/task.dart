@@ -149,24 +149,31 @@ final class Task {
         return OneShotTimer(subtask, zone.bindCallbackGuarded(f));
       },
       scheduleMicrotask: (self, parent, zone, f) {
-        _microtaskQueue.add(_MicrotaskEntry(zone.bindCallbackGuarded(f)));
-
-        if (!_isRunning && !_microtaskScheduled) {
-          final (read, writable) = WritableFuture.create(
-            FutureVtable.voidVtable,
-            this,
-          );
-          _microtaskScheduled = true;
-
-          // We don't have to await the future, completing it will trigger an
-          // event loop iteration which then runs microtasks.
-          unawaited(readFutureInternal(FutureVtable.voidVtable, read, this));
-
-          // Immediately complete the future to wake up the task.
-          unawaited(writable.writeValue(null));
-        }
+        scheduleRawMicrotask(zone.bindCallbackGuarded(f));
       },
     );
+  }
+
+  /// Schedules a microtask callback in this task.
+  ///
+  /// The callback is not bound to the task's zone.
+  void scheduleRawMicrotask(void Function() callback) {
+    _microtaskQueue.add(_MicrotaskEntry(callback));
+
+    if (!_isRunning && !_microtaskScheduled) {
+      final (read, writable) = WritableFuture.create(
+        FutureVtable.voidVtable,
+        this,
+      );
+      _microtaskScheduled = true;
+
+      // We don't have to await the future, completing it will trigger an
+      // event loop iteration which then runs microtasks.
+      unawaited(readFutureInternal(FutureVtable.voidVtable, read, this));
+
+      // Immediately complete the future to wake up the task.
+      unawaited(writable.writeValue(null));
+    }
   }
 
   SubtaskImpl trackSubtask(WasmI32 createCode) {
@@ -196,8 +203,12 @@ final class Task {
 
   static const _currentTaskKey = #_currentTask;
 
+  static Task? forCurrentThreadUnchecked() {
+    return _activeTasks[_contextGet().toIntUnsigned()];
+  }
+
   static Task forCurrentThread() {
-    final task = _activeTasks[_contextGet().toIntUnsigned()]!;
+    final task = forCurrentThreadUnchecked()!;
     assert(
       !task._isRunning,
       'Task.forCurrentThread should only be called in async entrypoints',
