@@ -342,7 +342,7 @@ impl DartDefinition {
                 uwrite!(self, "({{");
                 for element in &record.fields {
                     self.write_dart_type(dart, resolve, &element.ty);
-                    let _ = write!(self, " {},", element.name);
+                    let _ = write!(self, " {},", AsLowerCamelCase(&element.name));
                 }
                 uwrite!(self, "}})");
             }

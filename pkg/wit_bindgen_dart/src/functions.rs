@@ -770,6 +770,15 @@ if ({is_err}.toBool()) {{
                 uwriteln!(self.definition, ");");
                 results.push(tmp);
             }
+            Instruction::RecordLower { record, name, ty } => {
+                let instance = operands.pop().unwrap();
+                for field in &record.fields {
+                    results.push(Rc::new(format!(
+                        "{instance}.{}",
+                        AsLowerCamelCase(&field.name)
+                    )));
+                }
+            }
             Instruction::TupleLift { tuple, ty: _ } => {
                 let tmp = self.temporary_variable();
                 uwrite!(self.definition, "  final {tmp} = (");
@@ -781,6 +790,12 @@ if ({is_err}.toBool()) {{
 
                 uwriteln!(self.definition, ");");
                 results.push(tmp);
+            }
+            Instruction::TupleLower { tuple, ty: _ } => {
+                let instance = operands.pop().unwrap();
+                for (i, _) in tuple.types.iter().enumerate() {
+                    results.push(Rc::new(format!("{instance}.${}", i + 1)));
+                }
             }
             Instruction::AsyncTaskReturn { name: _, params } => {
                 let args = operands.split_off(operands.len() - params.len());
@@ -813,6 +828,7 @@ if ({is_err}.toBool()) {{
                 }
                 uwrite!(self.definition, ");");
             }
+
             Instruction::IterElem { element: _ } => {
                 results.push(Rc::new("element".to_string()));
             }
