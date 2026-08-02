@@ -3,7 +3,7 @@ use std::{fmt::Write, mem};
 
 use heck::{AsLowerCamelCase, AsUpperCamelCase, ToLowerCamelCase};
 use wit_bindgen_core::abi::WasmType;
-use wit_bindgen_core::wit_parser::{Alignment, ArchitectureSize, Handle};
+use wit_bindgen_core::wit_parser::{Alignment, ArchitectureSize, FlagsRepr, Handle};
 use wit_bindgen_core::{
     abi::{Bindgen, Instruction},
     wit_parser::{Function, Resolve, SizeAlign, Type},
@@ -24,7 +24,7 @@ pub struct DartFunctionGenerator<'a> {
     block_storage: Vec<DartDefinition>,
     blocks: Vec<(String, Vec<Rc<String>>)>,
     mode: FunctionMode<'a>,
-    cleanup: String,
+    pub cleanup: String,
     next_temporary: usize,
     pub options: CanonicalOptions,
     pub additional_imports: Vec<ImportedFunction>,
@@ -72,7 +72,7 @@ impl<'a> DartFunctionGenerator<'a> {
         }
     }
 
-    fn temporary_variable(&mut self) -> Rc<String> {
+    pub fn temporary_variable(&mut self) -> Rc<String> {
         let rc = Rc::new(format!("tmp{}", self.next_temporary));
         self.next_temporary += 1;
         rc
@@ -127,6 +127,18 @@ impl<'a> DartFunctionGenerator<'a> {
             uwrite!(self.definition, "{}", cleanup);
         }
     }
+
+    pub fn get_arg(&self, nth: usize) -> String {
+        let function = match &self.mode {
+            FunctionMode::Imported(import) => import.function,
+            FunctionMode::Exported(_) | FunctionMode::PostReturn(_) => {
+                return format!("p{nth}");
+            }
+            FunctionMode::Standalone => panic!("Standalone mode has no arguments"),
+        };
+
+        function.params[nth].name.to_lower_camel_case()
+    }
 }
 
 impl<'a> Bindgen for DartFunctionGenerator<'a> {
@@ -141,30 +153,16 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
     ) {
         match inst {
             Instruction::GetArg { nth } => {
-                let function = match &self.mode {
-                    FunctionMode::Imported(import) => import.function,
-                    FunctionMode::Exported(_) | FunctionMode::PostReturn(_) => {
-                        results.push(Rc::new(format!("p{nth}")));
-                        return;
-                    }
-                    FunctionMode::Standalone => panic!("Standalone mode has no arguments"),
-                };
-
-                results.push(Rc::new(function.params[*nth].name.to_lower_camel_case()));
+                results.push(Rc::new(self.get_arg(*nth)));
             }
             Instruction::CallWasm { name: _, sig } => {
                 let has_results = !sig.results.is_empty();
-                let (core_name, is_async) = match &self.mode {
-                    FunctionMode::Imported(i) => (i.core_name, i.function.kind.is_async()),
+                let core_name = match &self.mode {
+                    FunctionMode::Imported(i) => i.core_name,
                     _ => {
                         panic!("Can't generate call instruction in export mode")
                     }
                 };
-
-                if is_async {
-                    let import = self.dart.import(KnownDartUri::PkgWasmComponents);
-                    uwrite!(self.definition, "await {import}.createSubtask(")
-                }
 
                 if has_results {
                     let temp = self.temporary_variable();
@@ -182,12 +180,7 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
 
                     uwrite!(self.definition, "{}", operand);
                 }
-                uwrite!(self.definition, ")");
-                if is_async {
-                    uwrite!(self.definition, ").completion")
-                }
-
-                uwriteln!(self.definition, ";");
+                uwrite!(self.definition, ");");
             }
             Instruction::CallInterface { func, async_ } => {
                 if func.result.is_some() {
@@ -908,6 +901,34 @@ final {list} = List.generate({length}.toIntUnsigned(), growable: false, (i) {{
                 );
 
                 results.push(list);
+            }
+            Instruction::FlagsLift { flags, name: _, ty } => {
+                let lower_bytes = operands.pop().unwrap();
+                let inner_int = if let FlagsRepr::U32(2) = flags.repr() {
+                    let upper_bytes = operands.pop().unwrap();
+                    format!("{lower_bytes}.toIntUnsigned() | ({upper_bytes}.toIntUnsigned() << 32)")
+                } else {
+                    format!("{lower_bytes}.toIntUnsigned()")
+                };
+
+                let tmp = self.temporary_variable();
+                uwrite!(&mut self.definition, "final {tmp} = ");
+                self.definition
+                    .write_dart_type(self.dart, resolve, &Type::Id(*ty));
+                uwriteln!(&mut self.definition, "({inner_int})");
+                results.push(tmp);
+            }
+            Instruction::FlagsLower {
+                flags,
+                name: _,
+                ty: _,
+            } => {
+                let flag_instance = operands.pop().unwrap();
+
+                results.push(Rc::new(format!("{flag_instance}.toWasmI32()")));
+                if let FlagsRepr::U32(2) = flags.repr() {
+                    results.push(Rc::new(format!("({flag_instance} >>> 32).toWasmI32()")));
+                }
             }
             Instruction::Flush { amt } => {
                 let operands = operands.split_off(operands.len() - *amt);

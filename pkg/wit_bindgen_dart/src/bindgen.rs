@@ -15,6 +15,7 @@ use crate::{
         CanonicalOptions, ImportedFromInstance, ImportedFunction, ImportedFunctionDefinition,
         LiftedFunction, PackageAbiWithWorld,
     },
+    call_async::call_async_import,
     dart_source::{DartDefinition, DartSource, KnownDartUri},
     functions::{
         DartFunctionGenerator, ExportedFunctionMode, FunctionMode, ImportedFunctionMode, PostReturn,
@@ -464,20 +465,18 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
                 );
 
                 if function.kind.is_async() {
-                    bail!(
-                        "Async imports are not supported yet (function {name} at {}).",
-                        interface.name.as_deref().unwrap_or("unknown interface")
-                    )
+                    call_async_import(resolve, variant, &core_name, function, &mut generator);
+                } else {
+                    call(
+                        resolve,
+                        variant,
+                        LiftLower::LowerArgsLiftResults,
+                        function,
+                        &mut generator,
+                        false,
+                    );
                 }
 
-                call(
-                    resolve,
-                    variant,
-                    LiftLower::LowerArgsLiftResults,
-                    function,
-                    &mut generator,
-                    false,
-                );
                 generator.write_cleanup();
                 let _ = writeln!(def, "{}\n}}", generator.definition.take_code());
                 self.io.imports.extend(generator.additional_imports);

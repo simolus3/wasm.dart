@@ -8,6 +8,7 @@ use crate::bindgen::{DartWorldGenerator, ImportsAndExports};
 
 mod abi;
 mod bindgen;
+mod call_async;
 mod dart_source;
 mod functions;
 
@@ -205,6 +206,26 @@ package wasi:cli@0.3.0 {
   interface run {
     run: async func() -> result;
   }
+}
+",
+        )
+        .expect("Could not generate definitions")
+    }
+
+    #[test]
+    fn async_imports() {
+        print_definitions(
+            "
+package root:component;
+
+world root {
+  import imports;
+}
+
+interface imports {
+  no-args: async func() -> result;
+  inline-args: async func(a: u32, b: u32, c: u32);
+  allocated-args: async func(a: u32, b: u32, c: u32, d: u32, e: u32);
 }
 ",
         )
