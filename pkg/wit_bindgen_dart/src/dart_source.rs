@@ -7,8 +7,8 @@ use std::{
 use heck::{AsLowerCamelCase, AsUpperCamelCase, ToLowerCamelCase, ToUpperCamelCase};
 use wit_bindgen_core::abi::{WasmSignature, WasmType};
 use wit_bindgen_core::wit_parser::{
-    Docs, Enum, Flags, Function, Handle, InterfaceId, PackageId, Resolve, Type, TypeDef,
-    TypeDefKind, TypeId, TypeOwner, Variant,
+    Docs, Enum, Flags, Function, Handle, InterfaceId, PackageId, Resolve, Type, TypeDefKind,
+    TypeId, TypeOwner, Variant,
 };
 use wit_bindgen_core::{uwrite, uwriteln};
 
@@ -85,6 +85,36 @@ impl<'a> DartSource<'a> {
         (import_alias.is_some(), Rc::new(name))
     }
 
+    fn interface_type_name(
+        &mut self,
+        owner: &TypeOwner,
+        resolve: &Resolve,
+        name: Option<&str>,
+        fallback_prefix: &str,
+        idx: usize,
+    ) -> (bool, Rc<String>) {
+        match owner {
+            TypeOwner::Interface(id) => {
+                let interface = &resolve.interfaces[*id];
+
+                let name = name.and_then(|e| {
+                    interface
+                        .name
+                        .as_ref()
+                        .map(|iname| format!("{}-{e}", &iname))
+                });
+
+                self.type_name(
+                    interface.package.as_ref(),
+                    name.as_deref(),
+                    fallback_prefix,
+                    idx,
+                )
+            }
+            _ => self.type_name(None, name, fallback_prefix, idx),
+        }
+    }
+
     pub fn define_interface(&mut self, resolve: &Resolve, iface: InterfaceId) -> Rc<String> {
         if let Some(name) = self.interface_names.get(&iface) {
             return name.clone();
@@ -131,14 +161,9 @@ impl<'a> DartSource<'a> {
         }
 
         let resolved = &resolve.types[id];
-        let (imported, name) = self.type_name(
-            match &resolved.owner {
-                TypeOwner::Interface(id) => {
-                    let interface = &resolve.interfaces[*id];
-                    interface.package.as_ref()
-                }
-                _ => None,
-            },
+        let (imported, name) = self.interface_type_name(
+            &resolved.owner,
+            resolve,
             resolved.name.as_deref(),
             "UnnamedEnum",
             id.index(),
@@ -167,14 +192,9 @@ impl<'a> DartSource<'a> {
         }
 
         let resolved = &resolve.types[id];
-        let (imported, name) = self.type_name(
-            match &resolved.owner {
-                TypeOwner::Interface(id) => {
-                    let interface = &resolve.interfaces[*id];
-                    interface.package.as_ref()
-                }
-                _ => None,
-            },
+        let (imported, name) = self.interface_type_name(
+            &resolved.owner,
+            &resolve,
             resolved.name.as_deref(),
             "Resource",
             id.index(),
@@ -202,14 +222,9 @@ impl<'a> DartSource<'a> {
         }
 
         let resolved = &resolve.types[id];
-        let (imported, name) = self.type_name(
-            match &resolved.owner {
-                TypeOwner::Interface(id) => {
-                    let interface = &resolve.interfaces[*id];
-                    interface.package.as_ref()
-                }
-                _ => None,
-            },
+        let (imported, name) = self.interface_type_name(
+            &resolved.owner,
+            resolve,
             resolved.name.as_deref(),
             "Variant",
             id.index(),
@@ -268,51 +283,54 @@ impl<'a> DartSource<'a> {
         name
     }
 
-    pub fn define_flags(&mut self, id: TypeId, resolved: &TypeDef, flags: &Flags) -> Rc<String> {
-        match self.type_definitions.entry(id) {
-            Entry::Occupied(e) => e.get().clone(),
-            Entry::Vacant(e) => {
-                let name = Rc::new(
-                    resolved
-                        .name
-                        .as_ref()
-                        .map(|e| e.to_upper_camel_case())
-                        .unwrap_or_else(|| format!("Flags{}", id.index())),
-                );
-                e.insert_entry(name.clone());
-
-                let mut definition = DartDefinition::default();
-                definition.write_docs(&resolved.docs);
-                uwriteln!(
-                    &mut definition,
-                    "extension type {name}(int representation) implements int {{"
-                );
-
-                for (i, flag) in flags.flags.iter().enumerate() {
-                    let mask = 1usize << i;
-
-                    definition.write_docs(&flag.docs);
-                    uwriteln!(
-                        &mut definition,
-                        "  bool get {} => representation & {mask:#x} == {mask:#x};",
-                        AsLowerCamelCase(&flag.name)
-                    );
-                    uwriteln!(
-                        &mut definition,
-                        "  {name} with{}(bool value) {{",
-                        AsUpperCamelCase(&flag.name)
-                    );
-                    uwriteln!(
-                        &mut definition,
-                        "  return MyFlags(value ? representation | {mask:#x} : representation & ~{mask:#x});\n}}",
-                    );
-                }
-
-                uwriteln!(&mut definition, "}}");
-                self.consume_definition(definition);
-                name
-            }
+    pub fn define_flags(&mut self, id: TypeId, resolve: &Resolve, flags: &Flags) -> Rc<String> {
+        if let Some(name) = self.type_definitions.get(&id) {
+            return name.clone();
         }
+
+        let resolved = &resolve.types[id];
+        let (imported, name) = self.interface_type_name(
+            &resolved.owner,
+            resolve,
+            resolved.name.as_deref(),
+            "Variant",
+            id.index(),
+        );
+        self.type_definitions.insert(id, name.clone());
+        if imported {
+            return name;
+        }
+
+        let mut definition = DartDefinition::default();
+        definition.write_docs(&resolved.docs);
+        uwriteln!(
+            &mut definition,
+            "extension type {name}(int representation) implements int {{"
+        );
+
+        for (i, flag) in flags.flags.iter().enumerate() {
+            let mask = 1usize << i;
+
+            definition.write_docs(&flag.docs);
+            uwriteln!(
+                &mut definition,
+                "  bool get {} => representation & {mask:#x} == {mask:#x};",
+                AsLowerCamelCase(&flag.name)
+            );
+            uwriteln!(
+                &mut definition,
+                "  {name} with{}(bool value) {{",
+                AsUpperCamelCase(&flag.name)
+            );
+            uwriteln!(
+                &mut definition,
+                "  return {name}(value ? representation | {mask:#x} : representation & ~{mask:#x});\n}}",
+            );
+        }
+
+        uwriteln!(&mut definition, "}}");
+        self.consume_definition(definition);
+        name
     }
 }
 
@@ -477,7 +495,7 @@ impl DartDefinition {
                 uwrite!(self, ">");
             }
             TypeDefKind::Flags(flags) => {
-                let name = dart.define_flags(*def_type, &resolved_type, flags);
+                let name = dart.define_flags(*def_type, resolve, flags);
                 self.0.push_str(&name);
             }
             TypeDefKind::Tuple(tuple) => {

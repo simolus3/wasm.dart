@@ -6,3 +6,6 @@ repository: https://github.com/simolus3/wasm.dart/
 
 environment:
   sdk: ^3.13.0-0
+
+dependencies:
+  wasm_components:

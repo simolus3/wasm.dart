@@ -510,8 +510,8 @@ if ({is_err}.toBool()) {{
                 ty: _,
                 results: result_types,
             } => {
-                let (none, none_results) = self.blocks.pop().unwrap();
                 let (some, some_results) = self.blocks.pop().unwrap();
+                let (none, none_results) = self.blocks.pop().unwrap();
                 let value = operands.pop().unwrap();
 
                 let result_names = (0..result_types.len())
@@ -523,9 +523,10 @@ if ({is_err}.toBool()) {{
                     uwriteln!(self.definition, " {};", name);
                 }
 
+                let tmp = self.temporary_variable();
                 uwrite!(
                     self.definition,
-                    "if ({value}.hasValue) {{\n  final value = {value}.requireValue();{some}"
+                    "final {tmp} = {value};\nif ({tmp}.hasValue) {{\n  final value = {tmp}.requireValue();{some}"
                 );
                 for (value, name) in some_results.iter().zip(&result_names) {
                     uwriteln!(self.definition, "{name} = {value};");
@@ -762,10 +763,10 @@ if ({is_err}.toBool()) {{
             } => {
                 let tmp = self.temporary_variable();
                 uwrite!(self.definition, "  final {tmp} = (");
+                let operands = operands.split_off(operands.len() - record.fields.len());
 
-                for f in &record.fields {
-                    let op = operands.pop().unwrap();
-                    uwrite!(self.definition, "{}: {op}, ", f.name);
+                for (f, op) in record.fields.iter().zip(&operands) {
+                    uwrite!(self.definition, "{}: {op}, ", AsLowerCamelCase(&f.name));
                 }
 
                 uwriteln!(self.definition, ");");
@@ -788,9 +789,8 @@ if ({is_err}.toBool()) {{
                 let tmp = self.temporary_variable();
                 uwrite!(self.definition, "  final {tmp} = (");
 
-                for _ in &tuple.types {
-                    let op = operands.pop().unwrap();
-                    uwrite!(self.definition, "{op}, ");
+                for operand in operands.split_off(operands.len() - tuple.types.len()) {
+                    uwrite!(self.definition, "{operand}, ");
                 }
 
                 uwriteln!(self.definition, ");");
@@ -863,11 +863,11 @@ if ({is_err}.toBool()) {{
                     "
 final {total_length} = {dart}.WasmI32.fromInt({size} * {list}.length);
 final {ptr} = {runtime}.mallocAligned(const {dart}.WasmI32({align}), {total_length});
-var {base_ptr} = {ptr}.toIntUnsigned();
+var {base_ptr} = {ptr};
 for (final element in {list}) {{
   final elementPtr = {base_ptr};
   {body}
-  {base_ptr} += {size};
+  {base_ptr} += const {dart}.WasmI32({size});
 }}
 "
                 );
@@ -919,7 +919,7 @@ final {list} = List.generate({length}.toIntUnsigned(), growable: false, (i) {{
                 uwrite!(&mut self.definition, "final {tmp} = ");
                 self.definition
                     .write_dart_type(self.dart, resolve, &Type::Id(*ty));
-                uwriteln!(&mut self.definition, "({inner_int})");
+                uwriteln!(&mut self.definition, "({inner_int});");
                 results.push(tmp);
             }
             Instruction::FlagsLower {
