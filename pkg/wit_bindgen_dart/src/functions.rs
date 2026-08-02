@@ -264,7 +264,7 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
                     "{import}.AllocatedString.read({ptr}, {length})"
                 )));
             }
-            Instruction::OptionLift { payload, ty: _ } => {
+            Instruction::OptionLift { payload: _, ty } => {
                 let tmp = self.temporary_variable();
 
                 let (some, some_results) = self.blocks.pop().unwrap();
@@ -272,7 +272,8 @@ impl<'a> Bindgen for DartFunctionGenerator<'a> {
 
                 let has_value = operands.pop().unwrap();
                 uwrite!(self.definition, "final ");
-                self.definition.write_dart_type(self.dart, resolve, payload);
+                self.definition
+                    .write_dart_type(self.dart, resolve, &Type::Id(*ty));
                 uwriteln!(
                     self.definition,
                     " {tmp};
@@ -286,10 +287,6 @@ if ({has_value}.toBool()) {{
                     ",
                     some_results[0]
                 );
-                uwriteln!(self.definition, " {tmp};");
-                uwriteln!(self.definition, "if ({has_value}.toBool()) {{");
-                uwriteln!(self.definition, "}} else {{");
-                uwriteln!(self.definition, "}}");
 
                 results.push(tmp);
             }
@@ -299,23 +296,24 @@ if ({has_value}.toBool()) {{
                 ty,
             } => {
                 let tmp = self.temporary_variable();
-                uwrite!(self.definition, "final ");
-                self.definition
-                    .write_dart_type(self.dart, resolve, &Type::Id(*ty));
+                let variant_name = self.dart.define_variant(*ty, resolve, variant);
+                uwriteln!(self.definition, "final {variant_name} {tmp};");
+
                 let discriminant = operands.pop().unwrap();
 
                 let cases = self
                     .blocks
                     .split_off(self.blocks.len() - variant.cases.len());
-                uwriteln!(
-                    self.definition,
-                    " {tmp};\nswitch({discriminant}.toIntUnsigned()) {{"
-                );
+                uwriteln!(self.definition, "switch({discriminant}.toIntUnsigned()) {{");
 
                 for ((i, case), (block, results)) in variant.cases.iter().enumerate().zip(cases) {
                     uwriteln!(self.definition, "case {i}:\n{block}");
 
-                    uwrite!(self.definition, "return {}(", AsUpperCamelCase(&case.name));
+                    uwrite!(
+                        self.definition,
+                        "{tmp} = {variant_name}{}(",
+                        AsUpperCamelCase(&case.name)
+                    );
                     if case.ty.is_some() {
                         uwrite!(self.definition, "{}", results[0]);
                     }
@@ -326,7 +324,7 @@ if ({has_value}.toBool()) {{
                     self.definition,
                     "
 default:
-  throw ArgumentValue('Invalid discrimant value for variant');
+  throw ArgumentError('Invalid discrimant value for variant');
 }}",
                 );
                 results.push(tmp);
@@ -390,9 +388,9 @@ if ({is_err}.toBool()) {{
                 let vtable = self.dart.stream_future_vtables.get(ty).unwrap().clone();
                 uwriteln!(
                     self.definition,
-                    "(const {vtable}(), {stream}.toIntUnsigned());"
+                    "({stream}.toIntUnsigned(), const {vtable}());"
                 );
-                results.push(stream)
+                results.push(tmp)
             }
             Instruction::EnumLift { enum_, name: _, ty } => {
                 let index = operands.pop().unwrap();
@@ -421,7 +419,8 @@ if ({is_err}.toBool()) {{
                 );
                 uwrite!(self.definition, "<");
                 self.definition.write_def_type(self.dart, resolve, id);
-                uwrite!(self.definition, ">({tmp}.toIntUnsigned());");
+                let handle_id = operands.pop().unwrap();
+                uwrite!(self.definition, ">({handle_id}.toIntUnsigned());");
 
                 results.push(tmp);
             }
@@ -542,7 +541,7 @@ if ({is_err}.toBool()) {{
             Instruction::VariantLower {
                 variant,
                 name: _,
-                ty: _,
+                ty,
                 results: result_types,
             } => {
                 let result_names = (0..result_types.len())
@@ -553,6 +552,7 @@ if ({is_err}.toBool()) {{
                     uwriteln!(self.definition, " {};", name);
                 }
 
+                let variant_name = self.dart.define_variant(*ty, resolve, variant);
                 let variant_expr = operands.pop().unwrap();
                 let variant_blocks = self
                     .blocks
@@ -564,11 +564,15 @@ if ({is_err}.toBool()) {{
                     if case.ty.is_some() {
                         uwriteln!(
                             self.definition,
-                            "case {}(payload: final value):",
+                            "case {variant_name}{}(payload: final value):",
                             AsUpperCamelCase(&case.name)
                         );
                     } else {
-                        uwriteln!(self.definition, "case {}():", AsUpperCamelCase(&case.name));
+                        uwriteln!(
+                            self.definition,
+                            "case {variant_name}{}():",
+                            AsUpperCamelCase(&case.name)
+                        );
                     }
                     uwrite!(self.definition, "{block}");
 
@@ -761,7 +765,7 @@ if ({is_err}.toBool()) {{
 
                 for f in &record.fields {
                     let op = operands.pop().unwrap();
-                    uwrite!(self.definition, "{} {op}, ", f.name);
+                    uwrite!(self.definition, "{}: {op}, ", f.name);
                 }
 
                 uwriteln!(self.definition, ");");

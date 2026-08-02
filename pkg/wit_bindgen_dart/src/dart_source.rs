@@ -160,14 +160,18 @@ impl DartSource {
                 for case in &variant.cases {
                     uwrite!(
                         &mut definition,
-                        "  const {name}.{}(",
+                        "  const factory {name}.{}(",
                         AsLowerCamelCase(&case.name)
                     );
                     if let Some(ty) = &case.ty {
                         definition.write_dart_type(self, resolve, ty);
                         uwrite!(&mut definition, " payload");
                     }
-                    uwriteln!(&mut definition, ") = {};", AsUpperCamelCase(&case.name));
+                    uwriteln!(
+                        &mut definition,
+                        ") = {name}{};",
+                        AsUpperCamelCase(&case.name)
+                    );
                 }
 
                 uwriteln!(&mut definition, "}}");
@@ -175,19 +179,19 @@ impl DartSource {
                 for case in &variant.cases {
                     let case_name = case.name.to_upper_camel_case();
 
-                    uwriteln!(&mut definition, "final class {case_name} extends {name} {{");
+                    uwriteln!(
+                        &mut definition,
+                        "final class {name}{case_name} extends {name} {{"
+                    );
                     if let Some(ty) = &case.ty {
                         uwrite!(&mut definition, "final ");
                         definition.write_dart_type(self, resolve, ty);
                         uwriteln!(
                             &mut definition,
-                            " payload;\n  const {case_name}(this.payload): super._();"
+                            " payload;\n  const {name}{case_name}(this.payload): super._();"
                         );
                     } else {
-                        uwriteln!(
-                            &mut definition,
-                            " payload;\n  const {case_name}(): super._();"
-                        );
+                        uwriteln!(&mut definition, "  const {name}{case_name}(): super._();");
                     }
                     uwriteln!(&mut definition, "}}");
                 }
@@ -381,9 +385,6 @@ impl DartDefinition {
 
     pub fn write_def_type(&mut self, dart: &mut DartSource, resolve: &Resolve, def_type: &TypeId) {
         let resolved_type = &resolve.types[*def_type];
-
-        // TODO: Some of these will need classes (e.g. enums, also we should use sealed classes for
-        // variants). Finally, we should introduce typedefs if the TypeDefs has a name.
 
         match &resolved_type.kind {
             TypeDefKind::Record(record) => {
