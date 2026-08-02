@@ -17,9 +17,9 @@ use crate::{
     dart_source::{DartDefinition, KnownDartUri},
 };
 
-pub struct DartFunctionGenerator<'a> {
+pub struct DartFunctionGenerator<'a, 'd> {
     size_align: &'a SizeAlign,
-    pub dart: &'a mut DartSource,
+    pub dart: &'a mut DartSource<'d>,
     pub definition: DartDefinition,
     block_storage: Vec<DartDefinition>,
     blocks: Vec<(String, Vec<Rc<String>>)>,
@@ -52,10 +52,10 @@ pub struct ExportedFunctionMode<'a> {
 
 pub struct PostReturn {}
 
-impl<'a> DartFunctionGenerator<'a> {
+impl<'a, 'd> DartFunctionGenerator<'a, 'd> {
     pub fn new(
         size_align: &'a SizeAlign,
-        dart: &'a mut DartSource,
+        dart: &'a mut DartSource<'d>,
         mode: FunctionMode<'a>,
     ) -> Self {
         Self {
@@ -141,7 +141,7 @@ impl<'a> DartFunctionGenerator<'a> {
     }
 }
 
-impl<'a> Bindgen for DartFunctionGenerator<'a> {
+impl<'a, 'd> Bindgen for DartFunctionGenerator<'a, 'd> {
     type Operand = Rc<String>;
 
     fn emit(
@@ -394,7 +394,7 @@ if ({is_err}.toBool()) {{
             }
             Instruction::EnumLift { enum_, name: _, ty } => {
                 let index = operands.pop().unwrap();
-                let enum_class = self.dart.define_enum(*ty, &resolve.types[*ty], *enum_);
+                let enum_class = self.dart.define_enum(*ty, resolve, *enum_);
 
                 results.push(Rc::new(format!(
                     "{enum_class}.values[{index}.toIntUnsigned()]"

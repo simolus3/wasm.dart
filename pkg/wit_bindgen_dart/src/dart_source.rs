@@ -7,14 +7,14 @@ use std::{
 use heck::{AsLowerCamelCase, AsUpperCamelCase, ToLowerCamelCase, ToUpperCamelCase};
 use wit_bindgen_core::abi::{WasmSignature, WasmType};
 use wit_bindgen_core::wit_parser::{
-    Docs, Enum, Flags, Function, Handle, InterfaceId, Resolve, Type, TypeDef, TypeDefKind, TypeId,
-    Variant,
+    Docs, Enum, Flags, Function, Handle, InterfaceId, PackageId, Resolve, Type, TypeDef,
+    TypeDefKind, TypeId, TypeOwner, Variant,
 };
 use wit_bindgen_core::{uwrite, uwriteln};
 
-#[derive(Default)]
-pub struct DartSource {
+pub struct DartSource<'a> {
     pub header: String,
+    pub import_map: &'a ImportMap,
     definitions: String,
     import_aliases: HashMap<KnownDartUri, Rc<String>>,
     interface_names: HashMap<InterfaceId, Rc<String>>,
@@ -22,7 +22,19 @@ pub struct DartSource {
     pub stream_future_vtables: HashMap<TypeId, Rc<String>>,
 }
 
-impl DartSource {
+impl<'a> DartSource<'a> {
+    pub fn new(map: &'a ImportMap) -> Self {
+        Self {
+            header: Default::default(),
+            import_map: map,
+            definitions: Default::default(),
+            import_aliases: Default::default(),
+            interface_names: Default::default(),
+            type_definitions: Default::default(),
+            stream_future_vtables: Default::default(),
+        }
+    }
+
     pub fn import(&mut self, uri: KnownDartUri) -> Rc<String> {
         let length = self.import_aliases.len();
 
@@ -45,90 +57,138 @@ impl DartSource {
         }
     }
 
-    pub fn define_interface(&mut self, resolve: &Resolve, iface: InterfaceId) -> Rc<String> {
-        match self.interface_names.entry(iface) {
-            Entry::Occupied(e) => e.get().clone(),
-            Entry::Vacant(vacant) => {
-                let interface = &resolve.interfaces[iface];
-                let class_name = Rc::new(match &interface.name {
-                    Some(name) => name.to_upper_camel_case(),
-                    None => format!("UnnamedInterface{}", iface.index()),
-                });
-                vacant.insert(class_name.clone());
+    /// Generates a type name for an interface, variant, flag, resource or other definition.
+    ///
+    /// If the element is from an imported package, generates a package import instead.
+    ///
+    /// Returns whether a package import was crated and the generated name,
+    fn type_name(
+        &mut self,
+        package: Option<&PackageId>,
+        name: Option<&str>,
+        fallback_prefix: &str,
+        idx: usize,
+    ) -> (bool, Rc<String>) {
+        let import_alias = package
+            .and_then(|pkg| self.import_map.map.get(pkg).cloned())
+            .map(|uri| self.import(KnownDartUri::Custom(uri)));
+        let mut name = match name {
+            Some(name) => name.to_upper_camel_case(),
+            None => format!("{fallback_prefix}{idx}"),
+        };
 
-                let mut definition = DartDefinition::default();
-
-                definition.write_docs(&interface.docs);
-                let _ = writeln!(
-                    &mut definition,
-                    "abstract interface class {} {{",
-                    class_name
-                );
-                for (name, function) in &interface.functions {
-                    definition.write_docs(&function.docs);
-                    definition.write_function_signature(self, resolve, name, function);
-                    let _ = writeln!(&mut definition, ";");
-                }
-                let _ = writeln!(&mut definition, "}}");
-                self.consume_definition(definition);
-
-                class_name
-            }
+        if let Some(ref import) = import_alias {
+            name.insert_str(0, &import);
+            name.insert_str(import.len(), ".");
         }
+
+        (import_alias.is_some(), Rc::new(name))
+    }
+
+    pub fn define_interface(&mut self, resolve: &Resolve, iface: InterfaceId) -> Rc<String> {
+        if let Some(name) = self.interface_names.get(&iface) {
+            return name.clone();
+        }
+
+        let interface = &resolve.interfaces[iface];
+        let (imported, class_name) = self.type_name(
+            interface.package.as_ref(),
+            interface.name.as_deref(),
+            "UnnamedInterface",
+            iface.index(),
+        );
+        self.interface_names.insert(iface, class_name.clone());
+        if imported {
+            return class_name;
+        }
+
+        let mut definition = DartDefinition::default();
+
+        definition.write_docs(&interface.docs);
+        let _ = writeln!(
+            &mut definition,
+            "abstract interface class {} {{",
+            class_name
+        );
+        for (name, function) in &interface.functions {
+            definition.write_docs(&function.docs);
+            definition.write_function_signature(self, resolve, name, function);
+            let _ = writeln!(&mut definition, ";");
+        }
+        let _ = writeln!(&mut definition, "}}");
+        self.consume_definition(definition);
+
+        class_name
     }
 
     pub fn consume_definition(&mut self, definition: DartDefinition) {
         self.definitions.push_str(&definition.0);
     }
 
-    pub fn define_enum(&mut self, id: TypeId, resolved: &TypeDef, def: &Enum) -> Rc<String> {
-        match self.type_definitions.entry(id) {
-            Entry::Occupied(e) => e.get().clone(),
-            Entry::Vacant(e) => {
-                let name = Rc::new(
-                    resolved
-                        .name
-                        .as_ref()
-                        .map(|e| e.to_upper_camel_case())
-                        .unwrap_or_else(|| format!("Enum{}", id.index())),
-                );
-                e.insert_entry(name.clone());
-
-                let mut definition = DartDefinition::default();
-                definition.write_docs(&resolved.docs);
-                uwriteln!(&mut definition, "enum {name} {{");
-                for case in &def.cases {
-                    definition.write_docs(&case.docs);
-                    uwriteln!(&mut definition, "{},", case.name.to_lower_camel_case())
-                }
-                uwriteln!(&mut definition, "}}");
-
-                self.consume_definition(definition);
-                name
-            }
+    pub fn define_enum(&mut self, id: TypeId, resolve: &Resolve, def: &Enum) -> Rc<String> {
+        if let Some(name) = self.type_definitions.get(&id) {
+            return name.clone();
         }
+
+        let resolved = &resolve.types[id];
+        let (imported, name) = self.type_name(
+            match &resolved.owner {
+                TypeOwner::Interface(id) => {
+                    let interface = &resolve.interfaces[*id];
+                    interface.package.as_ref()
+                }
+                _ => None,
+            },
+            resolved.name.as_deref(),
+            "UnnamedEnum",
+            id.index(),
+        );
+        self.type_definitions.insert(id, name.clone());
+        if imported {
+            return name;
+        }
+
+        let mut definition = DartDefinition::default();
+        definition.write_docs(&resolved.docs);
+        uwriteln!(&mut definition, "enum {name} {{");
+        for case in &def.cases {
+            definition.write_docs(&case.docs);
+            uwriteln!(&mut definition, "{},", case.name.to_lower_camel_case())
+        }
+        uwriteln!(&mut definition, "}}");
+
+        self.consume_definition(definition);
+        name
     }
 
-    pub fn define_resource(&mut self, id: TypeId, resolved: &TypeDef) -> Rc<String> {
-        match self.type_definitions.entry(id) {
-            Entry::Occupied(e) => e.get().clone(),
-            Entry::Vacant(e) => {
-                let name = Rc::new(
-                    resolved
-                        .name
-                        .as_ref()
-                        .map(|e| e.to_upper_camel_case())
-                        .unwrap_or_else(|| format!("Resource{}", id.index())),
-                );
-                e.insert_entry(name.clone());
-
-                let mut definition = DartDefinition::default();
-                definition.write_docs(&resolved.docs);
-                uwriteln!(&mut definition, "final class {name} {{}}");
-                self.consume_definition(definition);
-                name
-            }
+    pub fn define_resource(&mut self, id: TypeId, resolve: &Resolve) -> Rc<String> {
+        if let Some(name) = self.type_definitions.get(&id) {
+            return name.clone();
         }
+
+        let resolved = &resolve.types[id];
+        let (imported, name) = self.type_name(
+            match &resolved.owner {
+                TypeOwner::Interface(id) => {
+                    let interface = &resolve.interfaces[*id];
+                    interface.package.as_ref()
+                }
+                _ => None,
+            },
+            resolved.name.as_deref(),
+            "Resource",
+            id.index(),
+        );
+        self.type_definitions.insert(id, name.clone());
+        if imported {
+            return name;
+        }
+
+        let mut definition = DartDefinition::default();
+        definition.write_docs(&resolved.docs);
+        uwriteln!(&mut definition, "final class {name} {{}}");
+        self.consume_definition(definition);
+        name
     }
 
     pub fn define_variant(
@@ -137,69 +197,75 @@ impl DartSource {
         resolve: &Resolve,
         variant: &Variant,
     ) -> Rc<String> {
-        match self.type_definitions.entry(id) {
-            Entry::Occupied(e) => e.get().clone(),
-            Entry::Vacant(e) => {
-                let resolved = &resolve.types[id];
-
-                let name = Rc::new(
-                    resolved
-                        .name
-                        .as_ref()
-                        .map(|e| e.to_upper_camel_case())
-                        .unwrap_or_else(|| format!("Variant{}", id.index())),
-                );
-                e.insert_entry(name.clone());
-
-                let mut definition = DartDefinition::default();
-                definition.write_docs(&resolved.docs);
-                uwriteln!(&mut definition, "sealed class {name} {{");
-                uwriteln!(&mut definition, "  const {name}._();");
-
-                // Create generative factories for subtypes
-                for case in &variant.cases {
-                    uwrite!(
-                        &mut definition,
-                        "  const factory {name}.{}(",
-                        AsLowerCamelCase(&case.name)
-                    );
-                    if let Some(ty) = &case.ty {
-                        definition.write_dart_type(self, resolve, ty);
-                        uwrite!(&mut definition, " payload");
-                    }
-                    uwriteln!(
-                        &mut definition,
-                        ") = {name}{};",
-                        AsUpperCamelCase(&case.name)
-                    );
-                }
-
-                uwriteln!(&mut definition, "}}");
-
-                for case in &variant.cases {
-                    let case_name = case.name.to_upper_camel_case();
-
-                    uwriteln!(
-                        &mut definition,
-                        "final class {name}{case_name} extends {name} {{"
-                    );
-                    if let Some(ty) = &case.ty {
-                        uwrite!(&mut definition, "final ");
-                        definition.write_dart_type(self, resolve, ty);
-                        uwriteln!(
-                            &mut definition,
-                            " payload;\n  const {name}{case_name}(this.payload): super._();"
-                        );
-                    } else {
-                        uwriteln!(&mut definition, "  const {name}{case_name}(): super._();");
-                    }
-                    uwriteln!(&mut definition, "}}");
-                }
-
-                self.consume_definition(definition);
-                name
-            }
+        if let Some(name) = self.type_definitions.get(&id) {
+            return name.clone();
         }
+
+        let resolved = &resolve.types[id];
+        let (imported, name) = self.type_name(
+            match &resolved.owner {
+                TypeOwner::Interface(id) => {
+                    let interface = &resolve.interfaces[*id];
+                    interface.package.as_ref()
+                }
+                _ => None,
+            },
+            resolved.name.as_deref(),
+            "Variant",
+            id.index(),
+        );
+        self.type_definitions.insert(id, name.clone());
+        if imported {
+            return name;
+        }
+
+        let mut definition = DartDefinition::default();
+        definition.write_docs(&resolved.docs);
+        uwriteln!(&mut definition, "sealed class {name} {{");
+        uwriteln!(&mut definition, "  const {name}._();");
+
+        // Create generative factories for subtypes
+        for case in &variant.cases {
+            uwrite!(
+                &mut definition,
+                "  const factory {name}.{}(",
+                AsLowerCamelCase(&case.name)
+            );
+            if let Some(ty) = &case.ty {
+                definition.write_dart_type(self, resolve, ty);
+                uwrite!(&mut definition, " payload");
+            }
+            uwriteln!(
+                &mut definition,
+                ") = {name}{};",
+                AsUpperCamelCase(&case.name)
+            );
+        }
+
+        uwriteln!(&mut definition, "}}");
+
+        for case in &variant.cases {
+            let case_name = case.name.to_upper_camel_case();
+
+            uwriteln!(
+                &mut definition,
+                "final class {name}{case_name} extends {name} {{"
+            );
+            if let Some(ty) = &case.ty {
+                uwrite!(&mut definition, "final ");
+                definition.write_dart_type(self, resolve, ty);
+                uwriteln!(
+                    &mut definition,
+                    " payload;\n  const {name}{case_name}(this.payload): super._();"
+                );
+            } else {
+                uwriteln!(&mut definition, "  const {name}{case_name}(): super._();");
+            }
+            uwriteln!(&mut definition, "}}");
+        }
+
+        self.consume_definition(definition);
+        name
     }
 
     pub fn define_flags(&mut self, id: TypeId, resolved: &TypeDef, flags: &Flags) -> Rc<String> {
@@ -250,7 +316,7 @@ impl DartSource {
     }
 }
 
-impl Display for DartSource {
+impl Display for DartSource<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("// ignore_for_file: type=warning\n")?;
         f.write_str(&self.header)?;
@@ -396,7 +462,7 @@ impl DartDefinition {
                 uwrite!(self, "}})");
             }
             TypeDefKind::Resource => {
-                let name = dart.define_resource(*def_type, &resolved_type);
+                let name = dart.define_resource(*def_type, resolve);
                 self.0.push_str(&name);
             }
             TypeDefKind::Handle(handle) => {
@@ -427,7 +493,7 @@ impl DartDefinition {
                 uwrite!(self, "{name}")
             }
             TypeDefKind::Enum(enum_def) => {
-                let name = dart.define_enum(*def_type, &resolved_type, enum_def);
+                let name = dart.define_enum(*def_type, resolve, enum_def);
                 self.0.push_str(&name);
             }
             TypeDefKind::Option(inner) => {
@@ -527,6 +593,7 @@ pub enum KnownDartUri {
     DartTypedData,
     /// `package:wasm_components/component.dart`
     PkgWasmComponents,
+    Custom(Rc<String>),
 }
 
 impl KnownDartUri {
@@ -535,6 +602,7 @@ impl KnownDartUri {
             KnownDartUri::DartWasm => "dart:_wasm",
             KnownDartUri::DartTypedData => "dart:typed_data",
             KnownDartUri::PkgWasmComponents => "package:wasm_components/wasm_components.dart",
+            KnownDartUri::Custom(uri) => uri,
         }
     }
 }
@@ -544,4 +612,15 @@ pub fn push_dart_string_literal(target: &mut String, contents: &str) {
     target.push_str("r'");
     target.push_str(contents);
     target.push('\'');
+}
+
+#[derive(Default)]
+pub struct ImportMap {
+    map: HashMap<PackageId, Rc<String>>,
+}
+
+impl ImportMap {
+    pub fn define_package_import(&mut self, package: PackageId, import: Rc<String>) {
+        self.map.insert(package, import);
+    }
 }

@@ -16,7 +16,7 @@ use crate::{
         LiftedFunction, PackageAbiWithWorld,
     },
     call_async::call_async_import,
-    dart_source::{DartDefinition, DartSource, KnownDartUri},
+    dart_source::{DartDefinition, DartSource, ImportMap, KnownDartUri},
     functions::{
         DartFunctionGenerator, ExportedFunctionMode, FunctionMode, ImportedFunctionMode, PostReturn,
     },
@@ -58,7 +58,7 @@ pub struct ExportedCoreFunction {
 
 pub struct DartWorldGenerator<'a> {
     pub size_align: SizeAlign,
-    pub main: DartSource,
+    pub main: DartSource<'a>,
     pub io: &'a mut ImportsAndExports,
     pub local_exports: Vec<ExportedInstance>,
 }
@@ -70,10 +70,10 @@ pub struct ImportsAndExports {
 }
 
 impl<'a> DartWorldGenerator<'a> {
-    pub fn new(io: &'a mut ImportsAndExports) -> Self {
+    pub fn new(io: &'a mut ImportsAndExports, map: &'a ImportMap) -> Self {
         Self {
             size_align: Default::default(),
-            main: Default::default(),
+            main: DartSource::new(map),
             io,
             local_exports: Default::default(),
         }
@@ -428,18 +428,18 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
         _files: &mut wit_bindgen_core::Files,
     ) -> Result<()> {
         self.generate_stream_or_future_vtables(resolve, iface);
+        let interface = &resolve.interfaces[iface];
         let class_name = self.main.define_interface(&resolve, iface);
         let mut def = DartDefinition::default();
+        let impl_name = format!("_Imported${}", iface.index());
 
         {
             let def = &mut def;
             let _ = writeln!(
                 def,
-                "final class _Imported${} implements {} {{\n  const _Imported${}();",
-                class_name, class_name, class_name
+                "final class {impl_name} implements {class_name} {{\n  const {impl_name}();",
             );
 
-            let interface = &resolve.interfaces[iface];
             for (name, function) in &interface.functions {
                 let variant = if function.kind.is_async() {
                     AbiVariant::GuestImportAsync
@@ -512,7 +512,7 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
                 WorldKey::Name(name) => name.into(),
                 WorldKey::Interface(id) => format!("importedInstance{}", id.index()).into(),
             };
-            let _ = writeln!(def, "const {} = _Imported${}();", import_name, class_name);
+            let _ = writeln!(def, "const {class_name} {import_name} = {impl_name}();",);
         }
         self.main.consume_definition(def);
 

@@ -68,9 +68,11 @@ final class GenerateWitInteropCommand extends Command<void> {
       languageVersion: DartFormatter.latestLanguageVersion,
     );
     final outputDirectory = Directory(results.option('output')!);
-    if (!await outputDirectory.exists()) {
-      await outputDirectory.create();
+
+    if (await outputDirectory.exists()) {
+      await outputDirectory.delete(recursive: true);
     }
+    await outputDirectory.create();
 
     for (final file in generated) {
       switch (file) {
@@ -84,16 +86,14 @@ final class GenerateWitInteropCommand extends Command<void> {
             JsonEncoder.withIndent('  ').convert(jsonDecode(contents)),
           );
           logger.fine('Wrote abi to ${file.path}.');
-        case GeneratedPackage(:final package, :var contents):
+        case GeneratedDartFile(:final name, :var contents):
           try {
             contents = formatter.format(contents);
           } on FormatterException catch (e, s) {
             logger.warning('Could not format Dart sources', e, s);
           }
 
-          final file = File.fromUri(
-            outputDirectory.uri.resolve('$package.dart'),
-          );
+          final file = File.fromUri(outputDirectory.uri.resolve(name));
           await file.writeAsString(contents);
           logger.fine('Wrote component to ${file.path}.');
       }

@@ -56,8 +56,8 @@ sealed class GeneratedFile {
     if (kind == 'AbiJson') {
       return AbiJsonFile(contents);
     } else {
-      final package = (kind as Map<String, Object?>)['Package'] as String;
-      return GeneratedPackage(package, contents);
+      final package = (kind as Map<String, Object?>)['Dart'] as String;
+      return GeneratedDartFile(package, contents);
     }
   }
 }
@@ -66,9 +66,9 @@ final class AbiJsonFile extends GeneratedFile {
   AbiJsonFile(super.contents);
 }
 
-final class GeneratedPackage extends GeneratedFile {
-  final String package;
-  GeneratedPackage(this.package, super.contents);
+final class GeneratedDartFile extends GeneratedFile {
+  final String name;
+  GeneratedDartFile(this.name, super.contents);
 }
 
 final class WitGenerateException implements Exception {

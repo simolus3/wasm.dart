@@ -1,10 +1,13 @@
-use std::{mem::MaybeUninit, slice};
+use std::{fmt::Write, mem::MaybeUninit, rc::Rc, slice};
 
-use heck::AsSnakeCase;
+use heck::{AsSnakeCase, ToSnakeCase};
 use serde::{Deserialize, Serialize};
-use wit_bindgen_core::{Files, WorldGenerator, wit_parser::Resolve};
+use wit_bindgen_core::{Files, WorldGenerator, uwriteln, wit_parser::Resolve};
 
-use crate::bindgen::{DartWorldGenerator, ImportsAndExports};
+use crate::{
+    bindgen::{DartWorldGenerator, ImportsAndExports},
+    dart_source::{DartDefinition, DartSource, ImportMap},
+};
 
 mod abi;
 mod bindgen;
@@ -45,7 +48,7 @@ pub struct GeneratedFile {
 #[derive(Serialize, Debug)]
 pub enum GeneratedFileKind {
     AbiJson,
-    Package(String),
+    Dart(Rc<String>),
 }
 
 #[repr(C)]
@@ -104,29 +107,63 @@ fn wit_bindgen_dart_internal(input: GenerateDartOptions) -> anyhow::Result<Vec<G
     }
 
     let mut abi = ImportsAndExports::default();
+    let mut import_map = ImportMap::default();
     let mut outputs = vec![];
+
+    // To avoid name conflicts between names across packages, generate interfaces and types on a
+    // per-package basis.
+    for package_id in resolve.topological_packages() {
+        let package = &resolve.packages[package_id];
+        if package.interfaces.is_empty() {
+            continue;
+        }
+
+        let mut dart = DartSource::new(&import_map);
+        if !package.docs.is_empty() {
+            let mut library_directive = DartDefinition::default();
+            library_directive.write_docs(&package.docs);
+            uwriteln!(&mut library_directive, "library;");
+            dart.consume_definition(library_directive);
+        }
+
+        for (_, interface) in &package.interfaces {
+            dart.define_interface(&resolve, *interface);
+        }
+
+        let name = Rc::new(format!(
+            "{}_{}.dart",
+            AsSnakeCase(&package.name.namespace),
+            AsSnakeCase(&package.name.name)
+        ));
+        outputs.push(GeneratedFile {
+            kind: GeneratedFileKind::Dart(name.clone()),
+            contents: dart.to_string(),
+        });
+        import_map.define_package_import(package_id, name);
+    }
 
     for run in input.runs {
         let world = resolve.select_world(&main_packages, run.main.as_deref())?;
 
-        let mut generator = DartWorldGenerator::new(&mut abi);
+        let mut generator = DartWorldGenerator::new(&mut abi, &import_map);
         let mut files = Files::default();
         generator.generate(&mut resolve, world, &mut files)?;
 
         let world = &resolve.worlds[world];
         outputs.push(GeneratedFile {
-            kind: GeneratedFileKind::Package(match world.package.as_ref() {
+            kind: GeneratedFileKind::Dart(Rc::new(match world.package.as_ref() {
                 Some(package) => {
                     let package = &resolve.packages[*package];
 
                     format!(
-                        "{}_{}",
+                        "{}_{}_{}.dart",
                         AsSnakeCase(&package.name.namespace),
-                        AsSnakeCase(&package.name.name)
+                        AsSnakeCase(&package.name.name),
+                        AsSnakeCase(&world.name)
                     )
                 }
-                None => "default".to_string(),
-            }),
+                None => world.name.to_snake_case(),
+            })),
             contents: generator.main.to_string(),
         });
     }
@@ -145,6 +182,7 @@ mod test {
     use crate::{
         GenerateDartOptions, GenerationRun, InputFile,
         bindgen::{DartWorldGenerator, ImportsAndExports},
+        dart_source::ImportMap,
         wit_bindgen_dart_internal,
     };
 
@@ -155,7 +193,8 @@ mod test {
         let world = resolve.select_world(&[package], Some("root"))?;
 
         let mut abi = ImportsAndExports::default();
-        let mut generator = DartWorldGenerator::new(&mut abi);
+        let map = ImportMap::default();
+        let mut generator = DartWorldGenerator::new(&mut abi, &map);
         let mut files = Files::default();
         generator.generate(&mut resolve, world, &mut files)?;
 
