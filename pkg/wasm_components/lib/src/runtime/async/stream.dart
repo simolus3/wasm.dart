@@ -77,29 +77,49 @@ int newReadableStream<T extends List<Object?>>(
   return readable;
 }
 
-/// Turns the readable end of a component model stream into a Dart stream.
-Stream<T> readStream<T extends List<Object?>>(
-  int handle,
-  StreamVtable<T> vtable, {
-  int bufferSizeInBytes = 1024,
-}) {
-  var didListen = false;
+/// A readable stream in the WebAssembly component model.
+///
+/// Its [listen] method provides the `bufferSizeInBytes` parameter, which can be
+/// used to control the size of buffers requested for the underlying stream
+/// reads.
+final class ReadableStream<T extends List<Object?>> extends Stream<T> {
+  final int _handle;
+  final StreamVtable<T> _vtable;
+  var _didListen = false;
 
-  return Stream.multi((listener) {
-    if (didListen) {
+  new(this._handle, this._vtable);
+
+  @override
+  bool get isBroadcast => false;
+
+  @override
+  StreamSubscription<T> listen(
+    void Function(T event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+    int bufferSizeInBytes = 1024,
+  }) {
+    if (_didListen) {
       throw StateError('Can only listen to component model streams once');
     }
+    _didListen = true;
 
-    didListen = true;
-
-    StreamReadState(
-      listener,
-      vtable,
-      .forCurrentZone(),
-      handle,
-      bufferSizeInBytes,
+    return Stream<T>.multi((controller) {
+      StreamReadState(
+        controller,
+        _vtable,
+        .forCurrentZone(),
+        _handle,
+        bufferSizeInBytes,
+      );
+    }).listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
     );
-  });
+  }
 }
 
 @internal

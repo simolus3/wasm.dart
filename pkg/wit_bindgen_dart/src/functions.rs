@@ -383,7 +383,7 @@ if ({is_err}.toBool()) {{
                 self.definition.imported_identifier(
                     self.dart,
                     KnownDartUri::PkgWasmComponents,
-                    "readStream",
+                    "ReadableStream",
                 );
                 let vtable = self.dart.stream_future_vtables.get(ty).unwrap().clone();
                 uwriteln!(

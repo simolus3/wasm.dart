@@ -329,7 +329,7 @@ final class _Imported$15 implements i0.Stdin {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(8));
     _import15(tmp0);
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
-    final tmp2 = i2.readStream(tmp1.toIntUnsigned(), const _Vtable89());
+    final tmp2 = i2.ReadableStream(tmp1.toIntUnsigned(), const _Vtable89());
     final tmp3 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
     final tmp4 = i2.readFuture(const _Vtable91(), tmp3.toIntUnsigned());
     final tmp5 = (tmp2, tmp4);
@@ -1593,7 +1593,7 @@ final class _Imported$4 implements i5.Types {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(8));
     _import52(self.handle.toWasmI32(), i1.WasmI64.fromInt(offset), tmp0);
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
-    final tmp2 = i2.readStream(tmp1.toIntUnsigned(), const _Vtable25());
+    final tmp2 = i2.ReadableStream(tmp1.toIntUnsigned(), const _Vtable25());
     final tmp3 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
     final tmp4 = i2.readFuture(const _Vtable27(), tmp3.toIntUnsigned());
     final tmp5 = (tmp2, tmp4);
@@ -2432,7 +2432,7 @@ final class _Imported$4 implements i5.Types {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(8));
     _import61(self.handle.toWasmI32(), tmp0);
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
-    final tmp2 = i2.readStream(tmp1.toIntUnsigned(), const _Vtable31());
+    final tmp2 = i2.ReadableStream(tmp1.toIntUnsigned(), const _Vtable31());
     final tmp3 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
     final tmp4 = i2.readFuture(const _Vtable27(), tmp3.toIntUnsigned());
     final tmp5 = (tmp2, tmp4);
@@ -5602,7 +5602,7 @@ final class _Imported$6 implements i6.Types {
       tmp10 = .error(tmp9);
     } else {
       final tmp2 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
-      final tmp3 = i2.readStream(tmp2.toIntUnsigned(), const _Vtable58());
+      final tmp3 = i2.ReadableStream(tmp2.toIntUnsigned(), const _Vtable58());
 
       tmp10 = .ok(tmp3);
     }
@@ -5628,7 +5628,7 @@ final class _Imported$6 implements i6.Types {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(8));
     _import98(self.handle.toWasmI32(), tmp0);
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
-    final tmp2 = i2.readStream(tmp1.toIntUnsigned(), const _Vtable60());
+    final tmp2 = i2.ReadableStream(tmp1.toIntUnsigned(), const _Vtable60());
     final tmp3 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
     final tmp4 = i2.readFuture(const _Vtable61(), tmp3.toIntUnsigned());
     final tmp5 = (tmp2, tmp4);
