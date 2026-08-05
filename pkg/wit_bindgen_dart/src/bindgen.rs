@@ -1,10 +1,10 @@
 use anyhow::{Result, bail};
-use std::{borrow::Cow, collections::HashMap, fmt::Write, mem, rc::Rc};
+use std::{borrow::Cow, collections::HashMap, fmt::Write, mem, rc::Rc, slice};
 use wit_bindgen_core::{
     WorldGenerator,
     abi::{
-        AbiVariant, LiftLower, WasmSignature, call, guest_export_needs_post_return,
-        lift_from_memory, lower_to_memory, post_return,
+        AbiVariant, LiftLower, WasmSignature, call, deallocate_lists_and_own_in_types,
+        guest_export_needs_post_return, lift_from_memory, lower_to_memory, post_return,
     },
     uwrite, uwriteln,
     wit_parser::{InterfaceId, Resolve, SizeAlign, Type, TypeDefKind, TypeId, WorldKey},
@@ -150,6 +150,36 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
             let size = self.size_align.size(inner).size_wasm32();
             let align = self.size_align.align(inner).align_wasm32();
 
+            let drop_elements = {
+                let mut generator = DartFunctionGenerator::new(
+                    &self.size_align,
+                    &mut self.main,
+                    FunctionMode::Standalone,
+                );
+
+                deallocate_lists_and_own_in_types(
+                    resolve,
+                    slice::from_ref(inner),
+                    &[Rc::new("ptr".to_string())],
+                    true,
+                    &mut generator,
+                );
+                let mut code = generator.definition.take_code();
+
+                if !code.is_empty() {
+                    code = format!(
+                        "
+for (var i = start; i < end; i++) {{
+  final ptr = {wasm_import}.WasmI32.fromInt(address + i * {size});
+  {code}
+}}
+"
+                    );
+                }
+
+                code
+            };
+
             uwrite!(
                 &mut definition,
                 "
@@ -160,7 +190,8 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
     return {rt_import}.mallocAligned(const {wasm_import}.WasmI32({align}), (size * {size}).toWasmI32()).toIntUnsigned();
   }}
   @override
-  void freeBuffer(int address, int totalSize, int start, int amount) {{
+  void freeBuffer(int address, int totalSize, int start, int end) {{
+    {drop_elements}
     {rt_import}.dartFree(address.toWasmI32(), (totalSize * {size}).toWasmI32(), const {wasm_import}.WasmI32({align}));
   }}
   @override
@@ -215,7 +246,7 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
                     "
 final typedList = {typed_list}(count);
 for (var i = 0; i < count; i++) {{
-  final ptr = {wasm_import}.WasmI32(address + i * {size});
+  final ptr = {wasm_import}.WasmI32.fromInt(address + i * {size});
   {code}
   typedList[i] = {lifted};
 }}
@@ -225,7 +256,7 @@ return typedList;"
                 uwriteln!(
                     &mut definition,
                     "return List.generate(count, (i) {{
-  final ptr = {wasm_import}.WasmI32(address + i * {size});
+  final ptr = {wasm_import}.WasmI32.fromInt(address + i * {size});
   {code}
   return {lifted};
 }});"
@@ -243,7 +274,7 @@ return typedList;"
   @override
   int allocateBuffer(int size) => 0;
   @override
-  void freeBuffer(int address, int totalSize, int start, int amount) {{}}
+  void freeBuffer(int address, int totalSize, int start, int end) {{}}
   @override
   List<void> readFromBuffer(int address, int count) {{
     return List.filled(count, null);
@@ -368,6 +399,33 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
         let size = self.size_align.size(&inner_type).size_wasm32();
         let align = self.size_align.align(&inner_type).align_wasm32();
 
+        let drop = {
+            let mut generator = DartFunctionGenerator::new(
+                &self.size_align,
+                &mut self.main,
+                FunctionMode::Standalone,
+            );
+
+            deallocate_lists_and_own_in_types(
+                resolve,
+                slice::from_ref(&inner_type),
+                &[Rc::new("ptr".to_string())],
+                true,
+                &mut generator,
+            );
+            let mut code = generator.definition.take_code();
+
+            if !code.is_empty() {
+                code = format!(
+                    "if (containsValue) {{
+  final ptr = {wasm_import}.WasmI32.fromInt(address);
+  {code}
+}}"
+                );
+            }
+            code
+        };
+
         uwrite!(
                 &mut definition,
                 "> {{
@@ -403,6 +461,7 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
 
   @override
   void freeBuffer(int address, {{required bool containsValue}}) {{
+    {drop}
     {rt_import}.dartFree(address.toWasmI32(), const {wasm_import}.WasmI32({size}), const {wasm_import}.WasmI32({align}));
   }}
 

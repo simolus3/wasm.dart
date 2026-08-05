@@ -154,7 +154,7 @@ final class _Vtable89 implements i2.StreamVtable<i3.Uint8List> {
   }
 
   @override
-  void freeBuffer(int address, int totalSize, int start, int amount) {
+  void freeBuffer(int address, int totalSize, int start, int end) {
     i2.dartFree(
       address.toWasmI32(),
       (totalSize * 1).toWasmI32(),
@@ -179,7 +179,7 @@ final class _Vtable89 implements i2.StreamVtable<i3.Uint8List> {
   i3.Uint8List readFromBuffer(int address, int count) {
     final typedList = i3.Uint8List(count);
     for (var i = 0; i < count; i++) {
-      final ptr = i1.WasmI32(address + i * 1);
+      final ptr = i1.WasmI32.fromInt(address + i * 1);
       final tmp0 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
 
       typedList[i] = tmp0.toIntUnsigned();
@@ -768,7 +768,7 @@ final class _Vtable25 implements i2.StreamVtable<i3.Uint8List> {
   }
 
   @override
-  void freeBuffer(int address, int totalSize, int start, int amount) {
+  void freeBuffer(int address, int totalSize, int start, int end) {
     i2.dartFree(
       address.toWasmI32(),
       (totalSize * 1).toWasmI32(),
@@ -793,7 +793,7 @@ final class _Vtable25 implements i2.StreamVtable<i3.Uint8List> {
   i3.Uint8List readFromBuffer(int address, int count) {
     final typedList = i3.Uint8List(count);
     for (var i = 0; i < count; i++) {
-      final ptr = i1.WasmI32(address + i * 1);
+      final ptr = i1.WasmI32.fromInt(address + i * 1);
       final tmp0 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
 
       typedList[i] = tmp0.toIntUnsigned();
@@ -885,6 +885,109 @@ final class _Vtable27
 
   @override
   void freeBuffer(int address, {required bool containsValue}) {
+    if (containsValue) {
+      final ptr = i1.WasmI32.fromInt(address);
+      final tmp0 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
+      switch (tmp0) {
+        case 0:
+          break;
+        case 1:
+          final tmp1 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 4);
+          switch (tmp1) {
+            case 0:
+              break;
+            case 1:
+              break;
+            case 2:
+              break;
+            case 3:
+              break;
+            case 4:
+              break;
+            case 5:
+              break;
+            case 6:
+              break;
+            case 7:
+              break;
+            case 8:
+              break;
+            case 9:
+              break;
+            case 10:
+              break;
+            case 11:
+              break;
+            case 12:
+              break;
+            case 13:
+              break;
+            case 14:
+              break;
+            case 15:
+              break;
+            case 16:
+              break;
+            case 17:
+              break;
+            case 18:
+              break;
+            case 19:
+              break;
+            case 20:
+              break;
+            case 21:
+              break;
+            case 22:
+              break;
+            case 23:
+              break;
+            case 24:
+              break;
+            case 25:
+              break;
+            case 26:
+              break;
+            case 27:
+              break;
+            case 28:
+              break;
+            case 29:
+              break;
+            case 30:
+              break;
+            case 31:
+              break;
+            case 32:
+              break;
+            case 33:
+              break;
+            case 34:
+              break;
+            case 35:
+              break;
+            case 36:
+              final tmp2 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 8);
+              switch (tmp2) {
+                case 0:
+                  break;
+                case 1:
+                  final tmp3 = i2.memory.loadInt32(
+                    ptr.toIntUnsigned(),
+                    offset: 12,
+                  );
+                  final tmp4 = i2.memory.loadInt32(
+                    ptr.toIntUnsigned(),
+                    offset: 16,
+                  );
+                  i2.AllocatedString(tmp3, tmp4).free();
+                  break;
+              }
+              break;
+          }
+          break;
+      }
+    }
     i2.dartFree(address.toWasmI32(), const i1.WasmI32(20), const i1.WasmI32(4));
   }
 
@@ -1311,7 +1414,43 @@ final class _Vtable31
   }
 
   @override
-  void freeBuffer(int address, int totalSize, int start, int amount) {
+  void freeBuffer(int address, int totalSize, int start, int end) {
+    for (var i = start; i < end; i++) {
+      final ptr = i1.WasmI32.fromInt(address + i * 24);
+      final tmp0 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
+      switch (tmp0) {
+        case 0:
+          break;
+        case 1:
+          break;
+        case 2:
+          break;
+        case 3:
+          break;
+        case 4:
+          break;
+        case 5:
+          break;
+        case 6:
+          break;
+        case 7:
+          final tmp1 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 4);
+          switch (tmp1) {
+            case 0:
+              break;
+            case 1:
+              final tmp2 = i2.memory.loadInt32(ptr.toIntUnsigned(), offset: 8);
+              final tmp3 = i2.memory.loadInt32(ptr.toIntUnsigned(), offset: 12);
+              i2.AllocatedString(tmp2, tmp3).free();
+              break;
+          }
+          break;
+      }
+      final tmp4 = i2.memory.loadInt32(ptr.toIntUnsigned(), offset: 16);
+      final tmp5 = i2.memory.loadInt32(ptr.toIntUnsigned(), offset: 20);
+      i2.AllocatedString(tmp4, tmp5).free();
+    }
+
     i2.dartFree(
       address.toWasmI32(),
       (totalSize * 24).toWasmI32(),
@@ -1419,7 +1558,7 @@ final class _Vtable31
     int count,
   ) {
     return List.generate(count, (i) {
-      final ptr = i1.WasmI32(address + i * 24);
+      final ptr = i1.WasmI32.fromInt(address + i * 24);
       final tmp0 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
       final i5.TypesDescriptorType tmp5;
       switch (tmp0.toIntUnsigned()) {
@@ -4617,7 +4756,15 @@ final class _Vtable58
   }
 
   @override
-  void freeBuffer(int address, int totalSize, int start, int amount) {
+  void freeBuffer(int address, int totalSize, int start, int end) {
+    for (var i = start; i < end; i++) {
+      final ptr = i1.WasmI32.fromInt(address + i * 4);
+      final tmp0 = i2.memory.loadInt32(ptr.toIntUnsigned(), offset: 0);
+      final tmp1 = i2.Owned<i6.TypesTcpSocket>(
+        tmp0.toIntUnsigned(),
+      ); // TODO: i6.TypesTcpSocket.drop(tmp1);
+    }
+
     i2.dartFree(
       address.toWasmI32(),
       (totalSize * 4).toWasmI32(),
@@ -4641,7 +4788,7 @@ final class _Vtable58
   @override
   List<i2.Owned<i6.TypesTcpSocket>> readFromBuffer(int address, int count) {
     return List.generate(count, (i) {
-      final ptr = i1.WasmI32(address + i * 4);
+      final ptr = i1.WasmI32.fromInt(address + i * 4);
       final tmp0 = i2.memory.loadInt32(ptr.toIntUnsigned(), offset: 0);
       final tmp1 = i2.Owned<i6.TypesTcpSocket>(tmp0.toIntUnsigned());
       return tmp1;
@@ -4711,7 +4858,7 @@ final class _Vtable60 implements i2.StreamVtable<i3.Uint8List> {
   }
 
   @override
-  void freeBuffer(int address, int totalSize, int start, int amount) {
+  void freeBuffer(int address, int totalSize, int start, int end) {
     i2.dartFree(
       address.toWasmI32(),
       (totalSize * 1).toWasmI32(),
@@ -4736,7 +4883,7 @@ final class _Vtable60 implements i2.StreamVtable<i3.Uint8List> {
   i3.Uint8List readFromBuffer(int address, int count) {
     final typedList = i3.Uint8List(count);
     for (var i = 0; i < count; i++) {
-      final ptr = i1.WasmI32(address + i * 1);
+      final ptr = i1.WasmI32.fromInt(address + i * 1);
       final tmp0 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
 
       typedList[i] = tmp0.toIntUnsigned();
@@ -4828,6 +4975,65 @@ final class _Vtable61
 
   @override
   void freeBuffer(int address, {required bool containsValue}) {
+    if (containsValue) {
+      final ptr = i1.WasmI32.fromInt(address);
+      final tmp0 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
+      switch (tmp0) {
+        case 0:
+          break;
+        case 1:
+          final tmp1 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 4);
+          switch (tmp1) {
+            case 0:
+              break;
+            case 1:
+              break;
+            case 2:
+              break;
+            case 3:
+              break;
+            case 4:
+              break;
+            case 5:
+              break;
+            case 6:
+              break;
+            case 7:
+              break;
+            case 8:
+              break;
+            case 9:
+              break;
+            case 10:
+              break;
+            case 11:
+              break;
+            case 12:
+              break;
+            case 13:
+              break;
+            case 14:
+              final tmp2 = i2.memory.loadUint8(ptr.toIntUnsigned(), offset: 8);
+              switch (tmp2) {
+                case 0:
+                  break;
+                case 1:
+                  final tmp3 = i2.memory.loadInt32(
+                    ptr.toIntUnsigned(),
+                    offset: 12,
+                  );
+                  final tmp4 = i2.memory.loadInt32(
+                    ptr.toIntUnsigned(),
+                    offset: 16,
+                  );
+                  i2.AllocatedString(tmp3, tmp4).free();
+                  break;
+              }
+              break;
+          }
+          break;
+      }
+    }
     i2.dartFree(address.toWasmI32(), const i1.WasmI32(20), const i1.WasmI32(4));
   }
 

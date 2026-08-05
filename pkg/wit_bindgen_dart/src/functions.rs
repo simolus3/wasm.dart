@@ -3,7 +3,7 @@ use std::{fmt::Write, mem};
 
 use heck::{AsLowerCamelCase, AsUpperCamelCase, ToLowerCamelCase};
 use wit_bindgen_core::abi::WasmType;
-use wit_bindgen_core::wit_parser::{Alignment, ArchitectureSize, FlagsRepr, Handle};
+use wit_bindgen_core::wit_parser::{Alignment, ArchitectureSize, FlagsRepr, Handle, TypeDefKind};
 use wit_bindgen_core::{
     abi::{Bindgen, Instruction},
     wit_parser::{Function, Resolve, SizeAlign, Type},
@@ -585,6 +585,16 @@ if ({is_err}.toBool()) {{
                 uwriteln!(self.definition, "}}");
                 results.extend(result_names);
             }
+            Instruction::GuestDeallocateVariant { blocks } => {
+                let discriminant = operands.pop().unwrap();
+                let blocks = self.blocks.split_off(self.blocks.len() - *blocks);
+
+                uwriteln!(self.definition, "switch ({discriminant}) {{");
+                for (i, (code, _)) in blocks.iter().enumerate() {
+                    uwriteln!(self.definition, "case {i}: {code}break;");
+                }
+                uwriteln!(self.definition, "}}");
+            }
             Instruction::StreamLower { payload: _, ty } => {
                 let vtable = self.dart.stream_future_vtables.get(ty).cloned().unwrap();
                 let tmp = self.temporary_variable();
@@ -937,6 +947,20 @@ final {list} = List.generate({length}.toIntUnsigned(), growable: false, (i) {{
             Instruction::Flush { amt } => {
                 let operands = operands.split_off(operands.len() - *amt);
                 results.extend_from_slice(&operands);
+            }
+            Instruction::DropHandle { ty } => {
+                let handle = operands.pop().unwrap();
+
+                let Type::Id(id) = **ty else {
+                    panic!("Dropped handle must be a resource");
+                };
+                let resolved = &resolve.types[id];
+                let TypeDefKind::Handle(Handle::Own(id)) = resolved.kind else {
+                    panic!("Dropped handle must be a resource");
+                };
+
+                let name = self.dart.define_resource(id, resolve);
+                uwriteln!(&mut self.definition, "// TODO: {name}.drop({handle});");
             }
             _ => todo!("Instruction: {inst:?}"),
         }

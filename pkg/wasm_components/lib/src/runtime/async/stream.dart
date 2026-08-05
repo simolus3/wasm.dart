@@ -44,9 +44,9 @@ abstract interface class StreamVtable<T extends List<Object?>> {
     /// of the buffer (hasn't been written or read out of).
     int start,
 
-    /// From `start`, the size of the span of elements still owned by the
-    /// buffer.
-    int amount,
+    /// The exclusive end offset for the region of the buffer containing
+    /// elements that need to be dropped.
+    int end,
   );
 
   void writeToBuffer(int address, T elements);
@@ -200,8 +200,8 @@ final class StreamSinkState<T extends List<Object?>> {
                 _vtable.freeBuffer(
                   pending.startPointer,
                   pending.totalLength,
-                  0,
-                  0,
+                  pending.totalLength,
+                  pending.totalLength,
                 );
               }
 
@@ -399,7 +399,7 @@ final class StreamReadState<T extends List<Object?>> {
         pending.startPointer,
         pending.totalLength,
         pending.acknowledged,
-        pending.remaining,
+        pending.totalLength,
       );
     }
 
