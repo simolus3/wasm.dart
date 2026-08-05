@@ -332,6 +332,26 @@ impl<'a> DartSource<'a> {
         self.consume_definition(definition);
         name
     }
+
+    /// If the given type has a specialized list implementation for stream, returns the associated
+    /// type.
+    pub fn stream_element_type_typed_list(&mut self, wit_type: &Type) -> Option<String> {
+        let typed_list = match wit_type {
+            Type::U8 => "Uint8List",
+            Type::S8 => "Int8List",
+            Type::U16 => "Uint16List",
+            Type::S16 => "Int16List",
+            Type::U32 => "Uint32List",
+            Type::S32 => "Int32List",
+            Type::U64 | Type::S64 => "Int64List",
+            Type::F32 => "Float32List",
+            Type::F64 => "Float64List",
+            _ => return None,
+        };
+
+        let import = self.import(KnownDartUri::DartTypedData);
+        return Some(format!("{import}.{typed_list}"));
+    }
 }
 
 impl Display for DartSource<'_> {
@@ -354,7 +374,7 @@ impl DartDefinition {
         id: I,
     ) {
         let name = dart.import(import);
-        let _ = write!(self, "{}.{}", name, id);
+        uwrite!(self, "{}.{}", name, id);
     }
 
     pub fn write_docs(&mut self, docs: &Docs) {
@@ -362,7 +382,7 @@ impl DartDefinition {
             return;
         };
         for line in content.lines() {
-            let _ = writeln!(self, "/// {}", line);
+            uwriteln!(self, "/// {}", line);
         }
     }
 
@@ -447,24 +467,14 @@ impl DartDefinition {
             return;
         };
 
-        match wit_type {
-            Type::U8 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Uint8List"),
-            Type::S8 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Int8List"),
-            Type::U16 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Uint16List"),
-            Type::S16 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Int16List"),
-            Type::U32 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Uint32List"),
-            Type::S32 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Int32List"),
-            Type::U64 | Type::S64 => {
-                self.imported_identifier(dart, KnownDartUri::DartTypedData, "Int64List")
-            }
-            Type::F32 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Float32List"),
-            Type::F64 => self.imported_identifier(dart, KnownDartUri::DartTypedData, "Float64List"),
-            _ => {
-                self.0.push_str("List<");
-                self.write_dart_type(dart, resolve, wit_type);
-                self.0.push_str(">");
-            }
-        };
+        if let Some(optimized) = dart.stream_element_type_typed_list(wit_type) {
+            self.0.push_str(&optimized);
+            return;
+        }
+
+        self.0.push_str("List<");
+        self.write_dart_type(dart, resolve, wit_type);
+        self.0.push_str(">");
     }
 
     pub fn write_def_type(&mut self, dart: &mut DartSource, resolve: &Resolve, def_type: &TypeId) {

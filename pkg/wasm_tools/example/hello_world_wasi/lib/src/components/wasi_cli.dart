@@ -5,7 +5,7 @@ import r'dart:typed_data' as i1;
 
 abstract interface class Types {}
 
-enum ErrorCode {
+enum TypesErrorCode {
   /// Input/output error
   io,
 
@@ -17,7 +17,7 @@ enum ErrorCode {
 }
 
 abstract interface class Stdout {
-  Future<i0.Result<void, ErrorCode>> writeViaStream({
+  Future<i0.Result<void, TypesErrorCode>> writeViaStream({
     required Stream<i1.Uint8List> data,
   });
 }

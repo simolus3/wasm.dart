@@ -91,8 +91,12 @@ impl<'a> DartWorldGenerator<'a> {
             "
 @pragma('wasm:import', 'component.stream{id_str}.new')
 external {wasm_import}.WasmI64 _streamNew{id_str}();
+@pragma('wasm:import', 'component.stream{id_str}.read')
+external {wasm_import}.WasmI32 _streamRead{id_str}({wasm_import}.WasmI32 stream, {wasm_import}.WasmI32 ptr, {wasm_import}.WasmI32 n);
 @pragma('wasm:import', 'component.stream{id_str}.write')
 external {wasm_import}.WasmI32 _streamWrite{id_str}({wasm_import}.WasmI32 stream, {wasm_import}.WasmI32 ptr, {wasm_import}.WasmI32 n);
+@pragma('wasm:import', 'component.stream{id_str}.drop-readable')
+external {wasm_import}.WasmVoid _streamDropReadable{id_str}({wasm_import}.WasmI32 stream);
 @pragma('wasm:import', 'component.stream{id_str}.drop-writable')
 external {wasm_import}.WasmVoid _streamDropWritable{id_str}({wasm_import}.WasmI32 stream);
 
@@ -110,11 +114,25 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
         read_write_options.uses_memory = inner_type.is_some();
 
         self.io.imports.push(ImportedFunction {
+            import_name: format!("stream{id_str}.read"),
+            definition: ImportedFunctionDefinition::StreamRead {
+                stream_type: id.index(),
+            },
+            lower_options: read_write_options.clone(),
+        });
+        self.io.imports.push(ImportedFunction {
             import_name: format!("stream{id_str}.write"),
             definition: ImportedFunctionDefinition::StreamWrite {
                 stream_type: id.index(),
             },
             lower_options: read_write_options.clone(),
+        });
+        self.io.imports.push(ImportedFunction {
+            import_name: format!("stream{id_str}.drop-readable"),
+            definition: ImportedFunctionDefinition::StreamDropReadable {
+                stream_type: id.index(),
+            },
+            lower_options: Default::default(),
         });
         self.io.imports.push(ImportedFunction {
             import_name: format!("stream{id_str}.drop-writable"),
@@ -142,7 +160,7 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
     return {rt_import}.mallocAligned(const {wasm_import}.WasmI32({align}), (size * {size}).toWasmI32()).toIntUnsigned();
   }}
   @override
-  void freeBuffer(int address, int totalSize, int nonTransferredOffset) {{
+  void freeBuffer(int address, int totalSize, int start, int amount) {{
     {rt_import}.dartFree(address.toWasmI32(), (totalSize * {size}).toWasmI32(), const {wasm_import}.WasmI32({align}));
   }}
   @override
@@ -173,6 +191,48 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
                 "{}    }}\n  }}",
                 generator.definition.take_code()
             );
+
+            uwriteln!(&mut definition, "@override\n");
+            definition.write_stream_element_type(&mut self.main, resolve, Some(inner));
+            uwriteln!(
+                &mut definition,
+                " readFromBuffer(int address, int count) {{"
+            );
+            let (lifted, code) = {
+                let mut generator = DartFunctionGenerator::new(
+                    &self.size_align,
+                    &mut self.main,
+                    FunctionMode::Standalone,
+                );
+                let lifted =
+                    lift_from_memory(resolve, &mut generator, Rc::new("ptr".to_string()), inner);
+                (lifted, generator.definition.take_code())
+            };
+
+            if let Some(typed_list) = self.main.stream_element_type_typed_list(inner) {
+                uwriteln!(
+                    &mut definition,
+                    "
+final typedList = {typed_list}(count);
+for (var i = 0; i < count; i++) {{
+  final ptr = {wasm_import}.WasmI32(address + i * {size});
+  {code}
+  typedList[i] = {lifted};
+}}
+return typedList;"
+                );
+            } else {
+                uwriteln!(
+                    &mut definition,
+                    "return List.generate(count, (i) {{
+  final ptr = {wasm_import}.WasmI32(address + i * {size});
+  {code}
+  return {lifted};
+}});"
+                );
+            }
+
+            uwriteln!(&mut definition, "}}")
         } else {
             // Stream<void>. This means that elementSize is zero, and that allocateBuffer is a noop.
             uwriteln!(
@@ -183,7 +243,11 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
   @override
   int allocateBuffer(int size) => 0;
   @override
-  void freeBuffer(int address, int totalSize, int nonTransferredOffset) {{}}
+  void freeBuffer(int address, int totalSize, int start, int amount) {{}}
+  @override
+  List<void> readFromBuffer(int address, int count) {{
+    return List.filled(count, null);
+  }}
   @override
   void writeToBuffer(int address, List<Object?> elements) {{}}
 "
@@ -196,8 +260,20 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
   @override
   int newStream() => _streamNew{id_str}().toInt();
   @override
+  void dropReadable(int stream) {{
+    _streamDropReadable{id_str}({wasm_import}.WasmI32.fromInt(stream));
+  }}
+  @override
   void dropWritable(int stream) {{
     _streamDropWritable{id_str}({wasm_import}.WasmI32.fromInt(stream));
+  }}
+  @override
+  int read(int stream, int ptr, int n) {{
+    return _streamRead{id_str}(
+      {wasm_import}.WasmI32.fromInt(stream),
+      {wasm_import}.WasmI32.fromInt(ptr),
+      {wasm_import}.WasmI32.fromInt(n)
+    ).toIntUnsigned();
   }}
   @override
   int write(int stream, int ptr, int n) {{

@@ -229,6 +229,19 @@ final class StreamNew extends CanonPrimitive {
   }
 }
 
+final class StreamRead extends CanonPrimitive with CanonicalHasOptions {
+  final ModelTypeReference streamType;
+
+  new(super.createdCoreFunction, this.streamType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x0f);
+    s.writeUnsigned(streamType.index.index);
+    _serializeOptions(s);
+  }
+}
+
 final class StreamWrite extends CanonPrimitive with CanonicalHasOptions {
   final ModelTypeReference streamType;
 

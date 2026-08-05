@@ -41,6 +41,7 @@ final class Task {
   final Map<int, SubtaskImpl> _subtasks = {};
   final Map<int, FutureEventHandler> pendingFutureWrites = {};
   final Map<int, FutureEventHandler> pendingFutureReads = {};
+  final Map<int, StreamReadState<void>> readStreams = {};
   final Map<int, StreamSinkState<void>> writeStreams = {};
 
   var _isRunning = false;
@@ -70,7 +71,7 @@ final class Task {
         final state = SubtaskState.values[p2.toIntUnsigned()];
         _subtasks[index]!.dispatchEvent(state);
       case EventCode.streamRead:
-        throw UnimplementedError();
+        readStreams[index]!.dispatchEvent(p2.toIntUnsigned());
       case EventCode.streamWrite:
         writeStreams[index]!.dispatchEvent(p2.toIntUnsigned());
       case EventCode.futureRead:

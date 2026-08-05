@@ -16,6 +16,21 @@
       }
     },
     {
+      "import_name": "stream2.read",
+      "definition": {
+        "StreamRead": {
+          "stream_type": 2
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": true,
+        "uses_callback": false
+      }
+    },
+    {
       "import_name": "stream2.write",
       "definition": {
         "StreamWrite": {
@@ -27,6 +42,21 @@
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": true,
+        "uses_callback": false
+      }
+    },
+    {
+      "import_name": "stream2.drop-readable",
+      "definition": {
+        "StreamDropReadable": {
+          "stream_type": 2
+        }
+      },
+      "lower_options": {
+        "uses_memory": false,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": false,
         "uses_callback": false
       }
     },
@@ -121,7 +151,7 @@
       }
     },
     {
-      "import_name": "_import8",
+      "import_name": "_import10",
       "definition": {
         "Instance": {
           "interface": 1,

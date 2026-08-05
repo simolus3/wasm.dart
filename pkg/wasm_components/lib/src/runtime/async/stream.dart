@@ -19,6 +19,12 @@ abstract interface class StreamVtable<T extends List<Object?>> {
   /// Calls `canon stream.drop-writable` on the stream.
   void dropWritable(int stream);
 
+  /// Calls `canon stream.drop-readable` on the stream.
+  void dropReadable(int stream);
+
+  /// Calls `canon stream.read` on the stream.
+  int read(int stream, int ptr, int n);
+
   int get elementSize;
 
   /// Allocates a buffer holding the given amount of elements.
@@ -34,15 +40,18 @@ abstract interface class StreamVtable<T extends List<Object?>> {
     /// This is always equal to the size of elements passed to [allocateBuffer].
     int totalSize,
 
-    /// The amount of elements that have been transferred through the stream
-    /// (acknowledged by the other component).
-    ///
-    /// Remaining items in the buffer at this offset are still owned by this
-    /// component and we may have to run their destructors.
-    int nonTransferredOffset,
+    /// The index of the first element in the buffer that is owned by our side
+    /// of the buffer (hasn't been written or read out of).
+    int start,
+
+    /// From `start`, the size of the span of elements still owned by the
+    /// buffer.
+    int amount,
   );
 
   void writeToBuffer(int address, T elements);
+
+  T readFromBuffer(int address, int count);
 }
 
 /// Creates a stream from the Dart [stream].
@@ -74,13 +83,23 @@ Stream<T> readStream<T extends List<Object?>>(
   StreamVtable<T> vtable, {
   int bufferSizeInBytes = 1024,
 }) {
-  final state = StreamReadState(
-    vtable,
-    .forCurrentZone(),
-    handle,
-    bufferSizeInBytes,
-  );
-  return state._controller.stream;
+  var didListen = false;
+
+  return Stream.multi((listener) {
+    if (didListen) {
+      throw StateError('Can only listen to component model streams once');
+    }
+
+    didListen = true;
+
+    StreamReadState(
+      listener,
+      vtable,
+      .forCurrentZone(),
+      handle,
+      bufferSizeInBytes,
+    );
+  });
 }
 
 @internal
@@ -138,6 +157,7 @@ final class StreamSinkState<T extends List<Object?>> {
         pending.startPointer,
         pending.totalLength,
         pending.acknowledged,
+        pending.totalLength,
       );
     }
   }
@@ -160,7 +180,8 @@ final class StreamSinkState<T extends List<Object?>> {
                 _vtable.freeBuffer(
                   pending.startPointer,
                   pending.totalLength,
-                  pending.totalLength,
+                  0,
+                  0,
                 );
               }
 
@@ -216,45 +237,154 @@ class _PendingStreamBuffer {
   void advance(int numCopied) {
     acknowledged += numCopied;
   }
+
+  int get remaining => totalLength - acknowledged;
 }
 
+/// ## State machine
+///
+/// Reading streams can be in one of these states:
+///
+///  1. Waiting: There's an outstanding read to the stream.
+///  2. Dropped: The other stream end has been dropped,
+///     [StreamSubscription.onDone] was called and the stream is done.
+///  3. Idle: After forwarding an event, the stream was paused. We'll resume
+///     waiting when the subscription resumes.
+///  4. Cancelled: If the subscription was cancelled and we're not currently
+///     waiting for an event, we cna drop the stream.
+///
+/// We don't currently support cancelling a pending wait, so the state machine
+/// is as follows:
+///
+///  - We start by calling `stream.read` after [Stream.listen], in the waiting
+///    state. Then,
+///     - if we receive a copy complete event, call [StreamSubscription.onData].
+///       - if the subscription still has a listener, call `stream.read` again
+///         and transition to waiting.
+///       - if it's paused, transition to idle.
+///       - if it's cancelled, drop the readable end and transition to
+///         cancelled.
+///     - if we receive a dropped event, call [StreamSubscription.onDone] and
+///       transition to dropped.
+///  - In the idle state: Once the subscription is resumed, call `stream.read`
+///    and transition to waiting. If it's cancelled, drop the readable and
+///    transition to cancelled.
+///
+/// We don't currently support cancelling an in-progress read.
 @internal
 final class StreamReadState<T extends List<Object?>> {
-  final StreamController<T> _controller = StreamController(sync: true);
+  final MultiStreamController<T> _controller;
   final StreamVtable<T> _vtable;
   final Task _task;
   final int _id;
   final int _elementSize;
   int _readBufferSize = -1;
 
+  // If we're in the waiting state, a pending read.
   _PendingStreamBuffer? _pendingRead;
+  var _dropped = false;
 
-  new(this._vtable, this._task, this._id, int bufferSize)
+  new(this._controller, this._vtable, this._task, this._id, int bufferSize)
     : _elementSize = _vtable.elementSize {
-    _controller
-      ..onListen = _listenOrResume
-      ..onResume = _listenOrResume
-      ..onCancel = _cancel;
-
     _readBufferSize = max(bufferSize ~/ _elementSize, 1);
-    throw 'todo: stream reads';
+
+    _task.readStreams[_id] = this;
+    _controller.onResume = _resume;
+    _startReading();
   }
 
-  void _dropPendingReadBuffer() {
+  void _startReading() {
+    _dispatchEvent(_readCode(), false);
+  }
+
+  int _readCode() {
+    assert(_controller.hasListener && !_controller.isPaused);
+
+    if (_pendingRead case final existing?) {
+      return _vtable.read(
+        _id,
+        existing.startPointer + _elementSize * existing.acknowledged,
+        existing.remaining,
+      );
+    } else {
+      final start = _vtable.allocateBuffer(_readBufferSize);
+      _pendingRead = _PendingStreamBuffer(start, _readBufferSize);
+      return _vtable.read(_id, start, _readBufferSize);
+    }
+  }
+
+  void _resume() {
+    if (!_dropped) {
+      _startReading();
+    }
+  }
+
+  void dispatchEvent(int code) {
+    _dispatchEvent(code, true);
+  }
+
+  void _dispatchEvent(int code, bool async) {
+    readLoop:
+    while (true) {
+      if (code == blockedCode) break;
+
+      final eventCode = CopyResult.values[code & 0x0f];
+      final elementsRead = code >>> 4;
+      switch (eventCode) {
+        case CopyResult.completed:
+          _forwardData(async, elementsRead);
+
+          if (!_controller.hasListener) {
+            _completeClose();
+          } else if (_controller.isPaused) {
+            // Nothing to do! We'll resume when the subscription is resumed.
+          } else {
+            // Keep reading.
+            code = _readCode();
+            continue readLoop;
+          }
+        case CopyResult.dropped:
+          _forwardData(async, elementsRead);
+
+          async ? _controller.closeSync() : _controller.close();
+          _completeClose();
+        case CopyResult.cancelled:
+          // Cancelled means that we tried to cancel an in-progress read, which
+          // is something we don't currently do.
+          throw UnimplementedError();
+      }
+
+      break readLoop;
+    }
+  }
+
+  void _forwardData(bool forwardSynchronously, int elementsRead) {
+    if (_pendingRead case final pending?) {
+      final chunk = _vtable.readFromBuffer(
+        pending.startPointer + pending.acknowledged * _elementSize,
+        elementsRead,
+      );
+      pending.advance(elementsRead);
+      if (pending.remaining == 0) _pendingRead = null;
+
+      forwardSynchronously
+          ? _controller.addSync(chunk)
+          : _controller.add(chunk);
+    }
+  }
+
+  void _completeClose() {
     if (_pendingRead case final pending? when pending.totalLength > 0) {
       _vtable.freeBuffer(
         pending.startPointer,
         pending.totalLength,
         pending.acknowledged,
+        pending.remaining,
       );
     }
+
+    _vtable.dropReadable(_id);
+    _task.readStreams.remove(_id);
+    _dropped = true;
   }
-
-  void _listenOrResume() {
-    if (_pendingRead == null) {}
-  }
-
-  void _cancel() {}
-
-  void dispatchEvent(int code) {}
 }

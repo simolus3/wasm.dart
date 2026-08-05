@@ -259,6 +259,11 @@ extension type _ImportedFunction(_JsonObject json) implements _JsonObject {
         parsedDefinition = withPrimitive(
           (i, linker, options) => StreamNew(i, type(linker)),
         );
+      case 'StreamRead':
+        final type = readType('stream_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => StreamRead(i, type(linker)),
+        );
       case 'StreamWrite':
         final type = readType('stream_type');
         parsedDefinition = withPrimitive(

@@ -15,12 +15,20 @@ const i0.Types importedInstance0 = _Imported$0();
 
 @pragma('wasm:import', 'component.stream2.new')
 external i2.WasmI64 _streamNew2();
+@pragma('wasm:import', 'component.stream2.read')
+external i2.WasmI32 _streamRead2(
+  i2.WasmI32 stream,
+  i2.WasmI32 ptr,
+  i2.WasmI32 n,
+);
 @pragma('wasm:import', 'component.stream2.write')
 external i2.WasmI32 _streamWrite2(
   i2.WasmI32 stream,
   i2.WasmI32 ptr,
   i2.WasmI32 n,
 );
+@pragma('wasm:import', 'component.stream2.drop-readable')
+external i2.WasmVoid _streamDropReadable2(i2.WasmI32 stream);
 @pragma('wasm:import', 'component.stream2.drop-writable')
 external i2.WasmVoid _streamDropWritable2(i2.WasmI32 stream);
 
@@ -37,7 +45,7 @@ final class _Vtable2 implements i1.StreamVtable<i3.Uint8List> {
   }
 
   @override
-  void freeBuffer(int address, int totalSize, int nonTransferredOffset) {
+  void freeBuffer(int address, int totalSize, int start, int amount) {
     i1.dartFree(
       address.toWasmI32(),
       (totalSize * 1).toWasmI32(),
@@ -59,10 +67,36 @@ final class _Vtable2 implements i1.StreamVtable<i3.Uint8List> {
   }
 
   @override
+  i3.Uint8List readFromBuffer(int address, int count) {
+    final typedList = i3.Uint8List(count);
+    for (var i = 0; i < count; i++) {
+      final ptr = i2.WasmI32(address + i * 1);
+      final tmp0 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
+
+      typedList[i] = tmp0.toIntUnsigned();
+    }
+    return typedList;
+  }
+
+  @override
   int newStream() => _streamNew2().toInt();
+  @override
+  void dropReadable(int stream) {
+    _streamDropReadable2(i2.WasmI32.fromInt(stream));
+  }
+
   @override
   void dropWritable(int stream) {
     _streamDropWritable2(i2.WasmI32.fromInt(stream));
+  }
+
+  @override
+  int read(int stream, int ptr, int n) {
+    return _streamRead2(
+      i2.WasmI32.fromInt(stream),
+      i2.WasmI32.fromInt(ptr),
+      i2.WasmI32.fromInt(n),
+    ).toIntUnsigned();
   }
 
   @override
@@ -86,7 +120,8 @@ external i2.WasmVoid _futureDropReadable4(i2.WasmI32 future);
 @pragma('wasm:import', 'component.future4.drop-writable')
 external i2.WasmVoid _futureDropWritable4(i2.WasmI32 future);
 
-final class _Vtable4 implements i1.FutureVtable<i1.Result<void, i0.ErrorCode>> {
+final class _Vtable4
+    implements i1.FutureVtable<i1.Result<void, i0.TypesErrorCode>> {
   const _Vtable4();
 
   @override
@@ -131,7 +166,7 @@ final class _Vtable4 implements i1.FutureVtable<i1.Result<void, i0.ErrorCode>> {
   }
 
   @override
-  void store(int address, i1.Result<void, i0.ErrorCode> value) {
+  void store(int address, i1.Result<void, i0.TypesErrorCode> value) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
     switch (value) {
@@ -157,15 +192,15 @@ final class _Vtable4 implements i1.FutureVtable<i1.Result<void, i0.ErrorCode>> {
   }
 
   @override
-  i1.Result<void, i0.ErrorCode> load(int address) {
+  i1.Result<void, i0.TypesErrorCode> load(int address) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
     final tmp0 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i0.ErrorCode> tmp2;
+    final i1.Result<void, i0.TypesErrorCode> tmp2;
     if (tmp0.toBool()) {
       final tmp1 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 1);
 
-      tmp2 = .error(i0.ErrorCode.values[tmp1.toIntUnsigned()]);
+      tmp2 = .error(i0.TypesErrorCode.values[tmp1.toIntUnsigned()]);
     } else {
       tmp2 = .ok(null);
     }
@@ -174,17 +209,17 @@ final class _Vtable4 implements i1.FutureVtable<i1.Result<void, i0.ErrorCode>> {
   }
 }
 
-@pragma("wasm:import", r"component._import8")
-external i2.WasmI32 _import8(i2.WasmI32 p0);
+@pragma("wasm:import", r"component._import10")
+external i2.WasmI32 _import10(i2.WasmI32 p0);
 
 final class _Imported$1 implements i0.Stdout {
   const _Imported$1();
   @override
-  Future<i1.Result<void, i0.ErrorCode>> writeViaStream({
+  Future<i1.Result<void, i0.TypesErrorCode>> writeViaStream({
     required Stream<i3.Uint8List> data,
   }) {
     final tmp0 = i1.newReadableStream(const _Vtable2(), data).toWasmI32();
-    final tmp1 = _import8(tmp0);
+    final tmp1 = _import10(tmp0);
     final tmp2 = i1.readFuture(const _Vtable4(), tmp1.toIntUnsigned());
     return tmp2;
   }
