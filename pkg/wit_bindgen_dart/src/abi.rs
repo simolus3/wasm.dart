@@ -79,6 +79,9 @@ pub enum ImportedFunctionDefinition {
     FutureDropWritable {
         future_type: usize,
     },
+    ResourceDrop {
+        resource_type: usize,
+    },
 }
 
 #[derive(Debug, Serialize)]

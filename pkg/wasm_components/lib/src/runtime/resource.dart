@@ -5,7 +5,13 @@ sealed class ResourceHandle<T> {
 }
 
 final class Owned<T> extends ResourceHandle<T> {
-  new(super.handle);
+  final void Function(int) _drop;
+
+  new(super.handle, this._drop);
+
+  void drop() {
+    _drop(handle);
+  }
 }
 
 final class Borrowed<T> extends ResourceHandle<T> {

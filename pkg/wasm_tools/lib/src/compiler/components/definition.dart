@@ -184,6 +184,18 @@ sealed class CanonPrimitive extends CanonicalDefinition
   new(this.createdCoreFunction);
 }
 
+final class ResourceDrop extends CanonPrimitive {
+  final ModelTypeReference resourceType;
+
+  new(super.createdCoreFunction, this.resourceType);
+
+  @override
+  void serialize(w.Serializer s) {
+    s.writeByte(0x03);
+    s.writeUnsigned(resourceType.index.index);
+  }
+}
+
 final class TaskReturn extends CanonPrimitive with CanonicalHasOptions {
   final ModelTypeReference? returnType;
 

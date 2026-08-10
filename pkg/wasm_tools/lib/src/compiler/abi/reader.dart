@@ -304,6 +304,11 @@ extension type _ImportedFunction(_JsonObject json) implements _JsonObject {
         parsedDefinition = withPrimitive(
           (i, linker, options) => FutureDropWritable(i, type(linker)),
         );
+      case 'ResourceDrop':
+        final type = readType('resource_type');
+        parsedDefinition = withPrimitive(
+          (i, linker, options) => ResourceDrop(i, type(linker)),
+        );
       default:
         throw ArgumentError.value(
           key,

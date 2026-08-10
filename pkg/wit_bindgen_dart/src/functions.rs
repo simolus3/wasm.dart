@@ -3,7 +3,7 @@ use std::{fmt::Write, mem};
 
 use heck::{AsLowerCamelCase, AsUpperCamelCase, ToLowerCamelCase};
 use wit_bindgen_core::abi::WasmType;
-use wit_bindgen_core::wit_parser::{Alignment, ArchitectureSize, FlagsRepr, Handle, TypeDefKind};
+use wit_bindgen_core::wit_parser::{Alignment, ArchitectureSize, FlagsRepr, Handle, TypeId};
 use wit_bindgen_core::{
     abi::{Bindgen, Instruction},
     wit_parser::{Function, Resolve, SizeAlign, Type},
@@ -27,7 +27,7 @@ pub struct DartFunctionGenerator<'a, 'd> {
     pub cleanup: String,
     next_temporary: usize,
     pub options: CanonicalOptions,
-    pub additional_imports: Vec<ImportedFunction>,
+    additional_imports: Vec<ImportedFunction>,
 }
 
 pub enum FunctionMode<'a> {
@@ -76,6 +76,13 @@ impl<'a, 'd> DartFunctionGenerator<'a, 'd> {
         let rc = Rc::new(format!("tmp{}", self.next_temporary));
         self.next_temporary += 1;
         rc
+    }
+
+    pub fn take_code(&mut self, imports: &mut Vec<ImportedFunction>) -> String {
+        let code = mem::take(&mut self.definition).take_code();
+        imports.extend(mem::take(&mut self.additional_imports));
+
+        code
     }
 
     fn mem_store(
@@ -138,6 +145,42 @@ impl<'a, 'd> DartFunctionGenerator<'a, 'd> {
         };
 
         function.params[nth].name.to_lower_camel_case()
+    }
+
+    fn drop_function(&mut self, resource_id: &TypeId) -> Rc<String> {
+        if let Some(fun) = self.dart.stream_future_vtables.get(resource_id).cloned() {
+            return fun;
+        }
+
+        let name = Rc::new(format!("_drop${}", resource_id.index()));
+
+        let mut definition = DartDefinition::default();
+        let import = self.dart.import(KnownDartUri::DartWasm);
+        uwriteln!(
+            &mut definition,
+            "
+@pragma('wasm:import', r'component.{name}')
+external {import}.WasmVoid {name}Raw({import}.WasmI32 handle);
+
+void {name}(int handle) {{
+  {name}Raw({import}.WasmI32.fromInt(handle));
+}}
+"
+        );
+
+        self.additional_imports.push(ImportedFunction {
+            import_name: (*name).clone(),
+            definition: ImportedFunctionDefinition::ResourceDrop {
+                resource_type: resource_id.index(),
+            },
+            lower_options: CanonicalOptions::default(),
+        });
+
+        self.dart.consume_definition(definition);
+        self.dart
+            .stream_future_vtables
+            .insert(*resource_id, name.clone());
+        name
     }
 }
 
@@ -406,9 +449,9 @@ if ({is_err}.toBool()) {{
                 ty: _,
             } => {
                 let tmp = self.temporary_variable();
-                let (class, id) = match handle {
-                    Handle::Own(id) => ("Owned", id),
-                    Handle::Borrow(id) => ("Borrowed", id),
+                let (class, id, is_owned) = match handle {
+                    Handle::Own(id) => ("Owned", id, true),
+                    Handle::Borrow(id) => ("Borrowed", id, false),
                 };
 
                 uwrite!(self.definition, "final {tmp} = ");
@@ -420,7 +463,12 @@ if ({is_err}.toBool()) {{
                 uwrite!(self.definition, "<");
                 self.definition.write_def_type(self.dart, resolve, id);
                 let handle_id = operands.pop().unwrap();
-                uwrite!(self.definition, ">({handle_id}.toIntUnsigned());");
+                uwrite!(self.definition, ">({handle_id}.toIntUnsigned()");
+                if is_owned {
+                    let drop_import = self.drop_function(id);
+                    uwrite!(self.definition, ", {drop_import}");
+                }
+                uwrite!(self.definition, ");");
 
                 results.push(tmp);
             }
@@ -948,19 +996,9 @@ final {list} = List.generate({length}.toIntUnsigned(), growable: false, (i) {{
                 let operands = operands.split_off(operands.len() - *amt);
                 results.extend_from_slice(&operands);
             }
-            Instruction::DropHandle { ty } => {
+            Instruction::DropHandle { ty: _ } => {
                 let handle = operands.pop().unwrap();
-
-                let Type::Id(id) = **ty else {
-                    panic!("Dropped handle must be a resource");
-                };
-                let resolved = &resolve.types[id];
-                let TypeDefKind::Handle(Handle::Own(id)) = resolved.kind else {
-                    panic!("Dropped handle must be a resource");
-                };
-
-                let name = self.dart.define_resource(id, resolve);
-                uwriteln!(&mut self.definition, "// TODO: {name}.drop({handle});");
+                uwriteln!(&mut self.definition, "{handle}.drop();");
             }
             _ => todo!("Instruction: {inst:?}"),
         }

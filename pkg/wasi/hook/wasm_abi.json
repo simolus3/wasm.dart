@@ -429,6 +429,21 @@
       }
     },
     {
+      "import_name": "_drop$101",
+      "definition": {
+        "ResourceDrop": {
+          "resource_type": 101
+        }
+      },
+      "lower_options": {
+        "uses_memory": false,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": false,
+        "uses_callback": false
+      }
+    },
+    {
       "import_name": "_import28",
       "definition": {
         "Instance": {
@@ -445,7 +460,22 @@
       }
     },
     {
-      "import_name": "_import29",
+      "import_name": "_drop$104",
+      "definition": {
+        "ResourceDrop": {
+          "resource_type": 104
+        }
+      },
+      "lower_options": {
+        "uses_memory": false,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": false,
+        "uses_callback": false
+      }
+    },
+    {
+      "import_name": "_import30",
       "definition": {
         "Instance": {
           "interface": 21,
@@ -461,7 +491,22 @@
       }
     },
     {
-      "import_name": "_import30",
+      "import_name": "_drop$107",
+      "definition": {
+        "ResourceDrop": {
+          "resource_type": 107
+        }
+      },
+      "lower_options": {
+        "uses_memory": false,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": false,
+        "uses_callback": false
+      }
+    },
+    {
+      "import_name": "_import32",
       "definition": {
         "Instance": {
           "interface": 22,
@@ -477,7 +522,7 @@
       }
     },
     {
-      "import_name": "_import31",
+      "import_name": "_import34",
       "definition": {
         "Instance": {
           "interface": 1,
@@ -493,7 +538,7 @@
       }
     },
     {
-      "import_name": "_import32",
+      "import_name": "_import35",
       "definition": {
         "Instance": {
           "interface": 1,
@@ -509,7 +554,7 @@
       }
     },
     {
-      "import_name": "_import33",
+      "import_name": "_import36",
       "definition": {
         "Instance": {
           "interface": 1,
@@ -525,7 +570,7 @@
       }
     },
     {
-      "import_name": "_import34",
+      "import_name": "_import37",
       "definition": {
         "Instance": {
           "interface": 1,
@@ -541,7 +586,7 @@
       }
     },
     {
-      "import_name": "_import35",
+      "import_name": "_import38",
       "definition": {
         "Instance": {
           "interface": 2,
@@ -557,7 +602,7 @@
       }
     },
     {
-      "import_name": "_import36",
+      "import_name": "_import39",
       "definition": {
         "Instance": {
           "interface": 2,
@@ -798,7 +843,7 @@
       }
     },
     {
-      "import_name": "_import52",
+      "import_name": "_import55",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -814,7 +859,7 @@
       }
     },
     {
-      "import_name": "_import53",
+      "import_name": "_import56",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -830,7 +875,7 @@
       }
     },
     {
-      "import_name": "_import54",
+      "import_name": "_import57",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -846,7 +891,7 @@
       }
     },
     {
-      "import_name": "_import55",
+      "import_name": "_import58",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -862,7 +907,7 @@
       }
     },
     {
-      "import_name": "_import56",
+      "import_name": "_import59",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -878,7 +923,7 @@
       }
     },
     {
-      "import_name": "_import57",
+      "import_name": "_import60",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -894,7 +939,7 @@
       }
     },
     {
-      "import_name": "_import58",
+      "import_name": "_import61",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -910,7 +955,7 @@
       }
     },
     {
-      "import_name": "_import59",
+      "import_name": "_import62",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -926,7 +971,7 @@
       }
     },
     {
-      "import_name": "_import60",
+      "import_name": "_import63",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -942,7 +987,7 @@
       }
     },
     {
-      "import_name": "_import61",
+      "import_name": "_import64",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -958,7 +1003,7 @@
       }
     },
     {
-      "import_name": "_import62",
+      "import_name": "_import65",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -974,7 +1019,7 @@
       }
     },
     {
-      "import_name": "_import63",
+      "import_name": "_import66",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -990,7 +1035,7 @@
       }
     },
     {
-      "import_name": "_import64",
+      "import_name": "_import67",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1006,7 +1051,7 @@
       }
     },
     {
-      "import_name": "_import65",
+      "import_name": "_import68",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1022,7 +1067,7 @@
       }
     },
     {
-      "import_name": "_import66",
+      "import_name": "_import69",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1038,7 +1083,7 @@
       }
     },
     {
-      "import_name": "_import67",
+      "import_name": "_import70",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1054,7 +1099,22 @@
       }
     },
     {
-      "import_name": "_import68",
+      "import_name": "_drop$23",
+      "definition": {
+        "ResourceDrop": {
+          "resource_type": 23
+        }
+      },
+      "lower_options": {
+        "uses_memory": false,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": false,
+        "uses_callback": false
+      }
+    },
+    {
+      "import_name": "_import71",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1070,7 +1130,7 @@
       }
     },
     {
-      "import_name": "_import69",
+      "import_name": "_import73",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1086,7 +1146,7 @@
       }
     },
     {
-      "import_name": "_import70",
+      "import_name": "_import74",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1102,7 +1162,7 @@
       }
     },
     {
-      "import_name": "_import71",
+      "import_name": "_import75",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1118,7 +1178,7 @@
       }
     },
     {
-      "import_name": "_import72",
+      "import_name": "_import76",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1134,7 +1194,7 @@
       }
     },
     {
-      "import_name": "_import73",
+      "import_name": "_import77",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1150,7 +1210,7 @@
       }
     },
     {
-      "import_name": "_import74",
+      "import_name": "_import78",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1166,7 +1226,7 @@
       }
     },
     {
-      "import_name": "_import75",
+      "import_name": "_import79",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1182,7 +1242,7 @@
       }
     },
     {
-      "import_name": "_import76",
+      "import_name": "_import80",
       "definition": {
         "Instance": {
           "interface": 4,
@@ -1198,7 +1258,22 @@
       }
     },
     {
-      "import_name": "_import77",
+      "import_name": "_drop$38",
+      "definition": {
+        "ResourceDrop": {
+          "resource_type": 38
+        }
+      },
+      "lower_options": {
+        "uses_memory": false,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": false,
+        "uses_callback": false
+      }
+    },
+    {
+      "import_name": "_import81",
       "definition": {
         "Instance": {
           "interface": 5,
@@ -1278,6 +1353,21 @@
       "definition": {
         "StreamDropWritable": {
           "stream_type": 58
+        }
+      },
+      "lower_options": {
+        "uses_memory": false,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": false,
+        "uses_callback": false
+      }
+    },
+    {
+      "import_name": "_drop$52",
+      "definition": {
+        "ResourceDrop": {
+          "resource_type": 52
         }
       },
       "lower_options": {
@@ -1439,7 +1529,7 @@
       }
     },
     {
-      "import_name": "_import93",
+      "import_name": "_import99",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1455,7 +1545,7 @@
       }
     },
     {
-      "import_name": "_import94",
+      "import_name": "_import100",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1471,7 +1561,7 @@
       }
     },
     {
-      "import_name": "_import95",
+      "import_name": "_import101",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1487,7 +1577,7 @@
       }
     },
     {
-      "import_name": "_import96",
+      "import_name": "_import102",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1503,7 +1593,7 @@
       }
     },
     {
-      "import_name": "_import97",
+      "import_name": "_import103",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1519,7 +1609,7 @@
       }
     },
     {
-      "import_name": "_import98",
+      "import_name": "_import104",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1535,7 +1625,7 @@
       }
     },
     {
-      "import_name": "_import99",
+      "import_name": "_import105",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1551,7 +1641,7 @@
       }
     },
     {
-      "import_name": "_import100",
+      "import_name": "_import106",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1567,7 +1657,7 @@
       }
     },
     {
-      "import_name": "_import101",
+      "import_name": "_import107",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1583,7 +1673,7 @@
       }
     },
     {
-      "import_name": "_import102",
+      "import_name": "_import108",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1599,7 +1689,7 @@
       }
     },
     {
-      "import_name": "_import103",
+      "import_name": "_import109",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1615,7 +1705,7 @@
       }
     },
     {
-      "import_name": "_import104",
+      "import_name": "_import110",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1631,7 +1721,7 @@
       }
     },
     {
-      "import_name": "_import105",
+      "import_name": "_import111",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1647,7 +1737,7 @@
       }
     },
     {
-      "import_name": "_import106",
+      "import_name": "_import112",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1663,7 +1753,7 @@
       }
     },
     {
-      "import_name": "_import107",
+      "import_name": "_import113",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1679,7 +1769,7 @@
       }
     },
     {
-      "import_name": "_import108",
+      "import_name": "_import114",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1695,7 +1785,7 @@
       }
     },
     {
-      "import_name": "_import109",
+      "import_name": "_import115",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1711,7 +1801,7 @@
       }
     },
     {
-      "import_name": "_import110",
+      "import_name": "_import116",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1727,7 +1817,7 @@
       }
     },
     {
-      "import_name": "_import111",
+      "import_name": "_import117",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1743,7 +1833,7 @@
       }
     },
     {
-      "import_name": "_import112",
+      "import_name": "_import118",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1759,7 +1849,7 @@
       }
     },
     {
-      "import_name": "_import113",
+      "import_name": "_import119",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1775,7 +1865,7 @@
       }
     },
     {
-      "import_name": "_import114",
+      "import_name": "_import120",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1791,7 +1881,7 @@
       }
     },
     {
-      "import_name": "_import115",
+      "import_name": "_import121",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1807,7 +1897,7 @@
       }
     },
     {
-      "import_name": "_import116",
+      "import_name": "_import122",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1823,7 +1913,7 @@
       }
     },
     {
-      "import_name": "_import117",
+      "import_name": "_import123",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1839,7 +1929,22 @@
       }
     },
     {
-      "import_name": "_import118",
+      "import_name": "_drop$53",
+      "definition": {
+        "ResourceDrop": {
+          "resource_type": 53
+        }
+      },
+      "lower_options": {
+        "uses_memory": false,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": false,
+        "uses_callback": false
+      }
+    },
+    {
+      "import_name": "_import124",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1855,7 +1960,7 @@
       }
     },
     {
-      "import_name": "_import119",
+      "import_name": "_import126",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1871,7 +1976,7 @@
       }
     },
     {
-      "import_name": "_import120",
+      "import_name": "_import127",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1887,7 +1992,7 @@
       }
     },
     {
-      "import_name": "_import121",
+      "import_name": "_import128",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1903,7 +2008,7 @@
       }
     },
     {
-      "import_name": "_import122",
+      "import_name": "_import129",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1919,7 +2024,7 @@
       }
     },
     {
-      "import_name": "_import123",
+      "import_name": "_import130",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1935,7 +2040,7 @@
       }
     },
     {
-      "import_name": "_import124",
+      "import_name": "_import131",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1951,7 +2056,7 @@
       }
     },
     {
-      "import_name": "_import125",
+      "import_name": "_import132",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1967,7 +2072,7 @@
       }
     },
     {
-      "import_name": "_import126",
+      "import_name": "_import133",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1983,7 +2088,7 @@
       }
     },
     {
-      "import_name": "_import127",
+      "import_name": "_import134",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -1999,7 +2104,7 @@
       }
     },
     {
-      "import_name": "_import128",
+      "import_name": "_import135",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -2015,7 +2120,7 @@
       }
     },
     {
-      "import_name": "_import129",
+      "import_name": "_import136",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -2031,7 +2136,7 @@
       }
     },
     {
-      "import_name": "_import130",
+      "import_name": "_import137",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -2047,7 +2152,7 @@
       }
     },
     {
-      "import_name": "_import131",
+      "import_name": "_import138",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -2063,7 +2168,7 @@
       }
     },
     {
-      "import_name": "_import132",
+      "import_name": "_import139",
       "definition": {
         "Instance": {
           "interface": 6,
@@ -2079,7 +2184,7 @@
       }
     },
     {
-      "import_name": "_import133",
+      "import_name": "_import140",
       "definition": {
         "Instance": {
           "interface": 7,
@@ -2095,7 +2200,7 @@
       }
     },
     {
-      "import_name": "_import134",
+      "import_name": "_import141",
       "definition": {
         "Instance": {
           "interface": 8,
@@ -2111,7 +2216,7 @@
       }
     },
     {
-      "import_name": "_import135",
+      "import_name": "_import142",
       "definition": {
         "Instance": {
           "interface": 8,
@@ -2127,7 +2232,7 @@
       }
     },
     {
-      "import_name": "_import136",
+      "import_name": "_import143",
       "definition": {
         "Instance": {
           "interface": 9,
@@ -2143,7 +2248,7 @@
       }
     },
     {
-      "import_name": "_import137",
+      "import_name": "_import144",
       "definition": {
         "Instance": {
           "interface": 9,
@@ -2159,7 +2264,7 @@
       }
     },
     {
-      "import_name": "_import138",
+      "import_name": "_import145",
       "definition": {
         "Instance": {
           "interface": 10,

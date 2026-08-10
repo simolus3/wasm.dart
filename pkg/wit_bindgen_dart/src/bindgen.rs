@@ -164,7 +164,7 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
                     true,
                     &mut generator,
                 );
-                let mut code = generator.definition.take_code();
+                let mut code = generator.take_code(&mut self.io.imports);
 
                 if !code.is_empty() {
                     code = format!(
@@ -220,7 +220,7 @@ for (var i = start; i < end; i++) {{
             uwriteln!(
                 &mut definition,
                 "{}    }}\n  }}",
-                generator.definition.take_code()
+                generator.take_code(&mut self.io.imports)
             );
 
             uwriteln!(&mut definition, "@override\n");
@@ -237,7 +237,7 @@ for (var i = start; i < end; i++) {{
                 );
                 let lifted =
                     lift_from_memory(resolve, &mut generator, Rc::new("ptr".to_string()), inner);
-                (lifted, generator.definition.take_code())
+                (lifted, generator.take_code(&mut self.io.imports))
             };
 
             if let Some(typed_list) = self.main.stream_element_type_typed_list(inner) {
@@ -413,7 +413,7 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
                 true,
                 &mut generator,
             );
-            let mut code = generator.definition.take_code();
+            let mut code = generator.take_code(&mut self.io.imports);
 
             if !code.is_empty() {
                 code = format!(
@@ -491,7 +491,7 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
 
   @override
   ",
-            generator.definition.take_code()
+            generator.take_code(&mut self.io.imports)
         );
         definition.write_dart_type(&mut self.main, resolve, &inner_type);
         uwriteln!(
@@ -512,7 +512,7 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
         uwriteln!(
             &mut definition,
             "{}\n    return {lifted};\n  }}\n}}",
-            generator.definition.take_code()
+            generator.take_code(&mut self.io.imports)
         );
 
         self.main.consume_definition(definition);
@@ -613,8 +613,7 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
                 }
 
                 generator.write_cleanup();
-                let _ = writeln!(def, "{}\n}}", generator.definition.take_code());
-                self.io.imports.extend(generator.additional_imports);
+                let _ = writeln!(def, "{}\n}}", generator.take_code(&mut self.io.imports));
 
                 {
                     let options = generator.options;
@@ -794,8 +793,7 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
                     &mut generator,
                     is_async,
                 );
-                let body = generator.definition.take_code();
-                self.io.imports.extend(generator.additional_imports);
+                let body = generator.take_code(&mut self.io.imports);
 
                 if is_async {
                     let components = generator.dart.import(KnownDartUri::PkgWasmComponents);
@@ -844,7 +842,7 @@ return asyncExitCode.toWasmI32();
                         FunctionMode::PostReturn(PostReturn {}),
                     );
                     post_return(resolve, function, &mut generator);
-                    let code = generator.definition.take_code();
+                    let code = generator.take_code(&mut self.io.imports);
                     options.post_return = Some(format!("component_{this_export_id}_postreturn"));
 
                     uwriteln!(
