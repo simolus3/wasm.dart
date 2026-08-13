@@ -88,7 +88,6 @@ final class _Imported$11 implements i0.Environment {
   }
 }
 
-const i0.Environment importedInstance11 = _Imported$11();
 @pragma("wasm:import", r"component._import3")
 external i1.WasmVoid _import3(i1.WasmI32 p0);
 @pragma("wasm:import", r"component._import4")
@@ -114,13 +113,9 @@ final class _Imported$12 implements i0.Exit {
   }
 }
 
-const i0.Exit importedInstance12 = _Imported$12();
-
 final class _Imported$14 implements i0.Types {
   const _Imported$14();
 }
-
-const i0.Types importedInstance14 = _Imported$14();
 
 @pragma('wasm:import', 'component.stream89.new')
 external i1.WasmI64 _streamNew89();
@@ -338,8 +333,6 @@ final class _Imported$15 implements i0.Stdin {
   }
 }
 
-const i0.Stdin importedInstance15 = _Imported$15();
-
 @pragma('wasm:import', 'component.future95.new')
 external i1.WasmI64 _futureNew95();
 @pragma('wasm:import', 'component.future95.write')
@@ -455,8 +448,6 @@ final class _Imported$16 implements i0.Stdout {
     return tmp2;
   }
 }
-
-const i0.Stdout importedInstance16 = _Imported$16();
 
 @pragma('wasm:import', 'component.future98.new')
 external i1.WasmI64 _futureNew98();
@@ -574,19 +565,13 @@ final class _Imported$17 implements i0.Stderr {
   }
 }
 
-const i0.Stderr importedInstance17 = _Imported$17();
-
 final class _Imported$18 implements i0.TerminalInput {
   const _Imported$18();
 }
 
-const i0.TerminalInput importedInstance18 = _Imported$18();
-
 final class _Imported$19 implements i0.TerminalOutput {
   const _Imported$19();
 }
-
-const i0.TerminalOutput importedInstance19 = _Imported$19();
 
 @pragma('wasm:import', r'component._drop$101')
 external i1.WasmVoid _drop$101Raw(i1.WasmI32 handle);
@@ -622,8 +607,6 @@ final class _Imported$20 implements i0.TerminalStdin {
   }
 }
 
-const i0.TerminalStdin importedInstance20 = _Imported$20();
-
 @pragma('wasm:import', r'component._drop$104')
 external i1.WasmVoid _drop$104Raw(i1.WasmI32 handle);
 
@@ -657,8 +640,6 @@ final class _Imported$21 implements i0.TerminalStdout {
     return tmp4;
   }
 }
-
-const i0.TerminalStdout importedInstance21 = _Imported$21();
 
 @pragma('wasm:import', r'component._drop$107')
 external i1.WasmVoid _drop$107Raw(i1.WasmI32 handle);
@@ -694,13 +675,10 @@ final class _Imported$22 implements i0.TerminalStderr {
   }
 }
 
-const i0.TerminalStderr importedInstance22 = _Imported$22();
-
 final class _Imported$0 implements i4.Types {
   const _Imported$0();
 }
 
-const i4.Types importedInstance0 = _Imported$0();
 @pragma("wasm:import", r"component._import34")
 external i1.WasmI64 _import34();
 @pragma("wasm:import", r"component._import35")
@@ -735,7 +713,6 @@ final class _Imported$1 implements i4.MonotonicClock {
   }
 }
 
-const i4.MonotonicClock importedInstance1 = _Imported$1();
 @pragma("wasm:import", r"component._import38")
 external i1.WasmVoid _import38(i1.WasmI32 p0);
 @pragma("wasm:import", r"component._import39")
@@ -760,8 +737,6 @@ final class _Imported$2 implements i4.SystemClock {
     return tmp0.toInt();
   }
 }
-
-const i4.SystemClock importedInstance2 = _Imported$2();
 
 @pragma('wasm:import', 'component.stream25.new')
 external i1.WasmI64 _streamNew25();
@@ -4726,8 +4701,6 @@ final class _Imported$4 implements i5.Types {
   }
 }
 
-const i5.Types importedInstance4 = _Imported$4();
-
 @pragma('wasm:import', r'component._drop$38')
 external i1.WasmVoid _drop$38Raw(i1.WasmI32 handle);
 
@@ -4763,8 +4736,6 @@ final class _Imported$5 implements i5.Preopens {
     return tmp8;
   }
 }
-
-const i5.Preopens importedInstance5 = _Imported$5();
 
 @pragma('wasm:import', r'component._drop$52')
 external i1.WasmVoid _drop$52Raw(i1.WasmI32 handle);
@@ -8584,7 +8555,6 @@ final class _Imported$6 implements i6.Types {
   }
 }
 
-const i6.Types importedInstance6 = _Imported$6();
 @pragma("wasm:import", r"component._import140")
 external i1.WasmI32 _import140(i1.WasmI32 p0, i1.WasmI32 p1, i1.WasmI32 p2);
 
@@ -8730,7 +8700,6 @@ final class _Imported$7 implements i6.IpNameLookup {
   }
 }
 
-const i6.IpNameLookup importedInstance7 = _Imported$7();
 @pragma("wasm:import", r"component._import141")
 external i1.WasmVoid _import141(i1.WasmI64 p0, i1.WasmI32 p1);
 @pragma("wasm:import", r"component._import142")
@@ -8764,7 +8733,6 @@ final class _Imported$8 implements i7.Random {
   }
 }
 
-const i7.Random importedInstance8 = _Imported$8();
 @pragma("wasm:import", r"component._import143")
 external i1.WasmVoid _import143(i1.WasmI64 p0, i1.WasmI32 p1);
 @pragma("wasm:import", r"component._import144")
@@ -8798,7 +8766,6 @@ final class _Imported$9 implements i7.Insecure {
   }
 }
 
-const i7.Insecure importedInstance9 = _Imported$9();
 @pragma("wasm:import", r"component._import145")
 external i1.WasmVoid _import145(i1.WasmI32 p0);
 
@@ -8816,10 +8783,33 @@ final class _Imported$10 implements i7.InsecureSeed {
   }
 }
 
-const i7.InsecureSeed importedInstance10 = _Imported$10();
 late i0.Run _unnamedExport13;
-void defineInstanceExport({required i0.Run unnamedExport13}) {
-  _unnamedExport13 = unnamedExport13;
+
+final class CommandImports {
+  const CommandImports._();
+
+  i0.Environment get cliEnvironment => const _Imported$11();
+  i0.Exit get cliExit => const _Imported$12();
+  i0.Stdin get cliStdin => const _Imported$15();
+  i0.Stdout get cliStdout => const _Imported$16();
+  i0.Stderr get cliStderr => const _Imported$17();
+  i0.TerminalStdin get cliTerminalStdin => const _Imported$20();
+  i0.TerminalStdout get cliTerminalStdout => const _Imported$21();
+  i0.TerminalStderr get cliTerminalStderr => const _Imported$22();
+  i4.MonotonicClock get clocksMonotonicClock => const _Imported$1();
+  i4.SystemClock get clocksSystemClock => const _Imported$2();
+  i5.Types get filesystemTypes => const _Imported$4();
+  i5.Preopens get filesystemPreopens => const _Imported$5();
+  i6.Types get socketsTypes => const _Imported$6();
+  i6.IpNameLookup get socketsIpNameLookup => const _Imported$7();
+  i7.Random get randomRandom => const _Imported$8();
+  i7.Insecure get randomInsecure => const _Imported$9();
+  i7.InsecureSeed get randomInsecureSeed => const _Imported$10();
+}
+
+void commandComponent(i0.Run Function(CommandImports) defineComponent) {
+  final res = defineComponent(const CommandImports._());
+  _unnamedExport13 = res;
 }
 
 @pragma('wasm:export', r'component_0')

@@ -11,8 +11,6 @@ final class _Imported$0 implements i0.Types {
   const _Imported$0();
 }
 
-const i0.Types importedInstance0 = _Imported$0();
-
 @pragma('wasm:import', 'component.stream2.new')
 external i2.WasmI64 _streamNew2();
 @pragma('wasm:import', 'component.stream2.read')
@@ -45,7 +43,7 @@ final class _Vtable2 implements i1.StreamVtable<i3.Uint8List> {
   }
 
   @override
-  void freeBuffer(int address, int totalSize, int start, int amount) {
+  void freeBuffer(int address, int totalSize, int start, int end) {
     i1.dartFree(
       address.toWasmI32(),
       (totalSize * 1).toWasmI32(),
@@ -70,7 +68,7 @@ final class _Vtable2 implements i1.StreamVtable<i3.Uint8List> {
   i3.Uint8List readFromBuffer(int address, int count) {
     final typedList = i3.Uint8List(count);
     for (var i = 0; i < count; i++) {
-      final ptr = i2.WasmI32(address + i * 1);
+      final ptr = i2.WasmI32.fromInt(address + i * 1);
       final tmp0 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
 
       typedList[i] = tmp0.toIntUnsigned();
@@ -225,10 +223,17 @@ final class _Imported$1 implements i0.Stdout {
   }
 }
 
-const i0.Stdout importedInstance1 = _Imported$1();
 late i0.Run _unnamedExport2;
-void defineInstanceExport({required i0.Run unnamedExport2}) {
-  _unnamedExport2 = unnamedExport2;
+
+final class RootImports {
+  const RootImports._();
+
+  i0.Stdout get cliStdout => const _Imported$1();
+}
+
+void rootComponent(i0.Run Function(RootImports) defineComponent) {
+  final res = defineComponent(const RootImports._());
+  _unnamedExport2 = res;
 }
 
 @pragma('wasm:export', r'component_0')

@@ -7,16 +7,18 @@ import 'package:hello_world_wasi/src/components/wasi_cli.dart';
 import 'package:wasm_components/wasm_components.dart';
 
 void main() {
-  defineInstanceExport(unnamedExport2: _Run());
+  rootComponent((imports) => _Run(imports.cliStdout));
 }
 
 final class _Run implements Run {
-  _Run();
+  final Stdout stdout;
+
+  _Run(this.stdout);
 
   @override
   Future<Result<void, void>> run() async {
     final out = StreamController<Uint8List>();
-    final stdoutDone = importedInstance1.writeViaStream(data: out.stream);
+    final stdoutDone = stdout.writeViaStream(data: out.stream);
 
     out.add(utf8.encode('Hello world!\n'));
     await Future<void>.delayed(const Duration(seconds: 1));

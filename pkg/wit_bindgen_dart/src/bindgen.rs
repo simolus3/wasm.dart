@@ -1,5 +1,6 @@
 use anyhow::{Result, bail};
-use std::{borrow::Cow, collections::HashMap, fmt::Write, mem, rc::Rc, slice};
+use heck::{AsLowerCamelCase, AsUpperCamelCase, ToLowerCamelCase};
+use std::{collections::HashMap, fmt::Write, mem, rc::Rc, slice};
 use wit_bindgen_core::{
     WorldGenerator,
     abi::{
@@ -7,7 +8,7 @@ use wit_bindgen_core::{
         guest_export_needs_post_return, lift_from_memory, lower_to_memory, post_return,
     },
     uwrite, uwriteln,
-    wit_parser::{InterfaceId, Resolve, SizeAlign, Type, TypeDefKind, TypeId, WorldKey},
+    wit_parser::{InterfaceId, Resolve, SizeAlign, Type, TypeDefKind, TypeId, WorldItem, WorldKey},
 };
 
 use crate::{
@@ -558,7 +559,7 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
     fn import_interface(
         &mut self,
         resolve: &wit_bindgen_core::wit_parser::Resolve,
-        name: &wit_bindgen_core::wit_parser::WorldKey,
+        _name: &wit_bindgen_core::wit_parser::WorldKey,
         iface: wit_bindgen_core::wit_parser::InterfaceId,
         _files: &mut wit_bindgen_core::Files,
     ) -> Result<()> {
@@ -641,12 +642,6 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
             }
 
             let _ = writeln!(def, "}}");
-
-            let import_name: Cow<str> = match name {
-                WorldKey::Name(name) => name.into(),
-                WorldKey::Interface(id) => format!("importedInstance{}", id.index()).into(),
-            };
-            let _ = writeln!(def, "const {class_name} {import_name} = {impl_name}();",);
         }
         self.main.consume_definition(def);
 
@@ -713,37 +708,119 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
     fn finish(
         &mut self,
         resolve: &wit_bindgen_core::wit_parser::Resolve,
-        _world: wit_bindgen_core::wit_parser::WorldId,
+        world: wit_bindgen_core::wit_parser::WorldId,
         _files: &mut wit_bindgen_core::Files,
     ) -> Result<()> {
         if self.local_exports.is_empty() {
             return Ok(());
         }
 
+        let resolved_world = &resolve.worlds[world];
+
+        let imports = {
+            // Generate a class defining imports.
+            let imports = Rc::new(format!("{}Imports", AsUpperCamelCase(&resolved_world.name)));
+            let mut def = DartDefinition::default();
+
+            uwriteln!(
+                &mut def,
+                "final class {imports} {{
+  const {imports}._();
+  "
+            );
+
+            for (key, item) in &resolved_world.imports {
+                let interface_id = *match item {
+                    WorldItem::Interface { id, .. } => id,
+                    _ => continue,
+                };
+                let resolved_interface = &resolve.interfaces[interface_id];
+                if resolved_interface.functions.is_empty() {
+                    continue;
+                }
+
+                let interface_name = self.main.define_interface(&resolve, interface_id);
+
+                let getter_name = match key {
+                    WorldKey::Name(name) => name.to_lower_camel_case(),
+                    WorldKey::Interface(_) => {
+                        if let Some(name) = &resolved_interface.name {
+                            if let Some(pkg) = resolved_interface.package {
+                                let pkg = &resolve.packages[pkg];
+                                format!(
+                                    "{}{}",
+                                    AsLowerCamelCase(&pkg.name.name),
+                                    AsUpperCamelCase(name)
+                                )
+                            } else {
+                                name.to_lower_camel_case()
+                            }
+                        } else {
+                            format!("unnamedImport{}", interface_id.index())
+                        }
+                    }
+                };
+
+                uwriteln!(
+                    &mut def,
+                    "  {interface_name} get {getter_name} => const _Imported${}();",
+                    interface_id.index()
+                );
+            }
+
+            uwriteln!(&mut def, "}}");
+            self.main.consume_definition(def);
+            imports
+        };
+
         // Generate defineInstanceExport to set instance fields, users are supposed to call it in
         // their main() function.
         let mut def = DartDefinition::default();
         {
             let def = &mut def;
-            let _ = write!(def, "void defineInstanceExport({{");
-            for export in &self.local_exports {
-                let _ = write!(
-                    def,
-                    "required {} {},",
-                    export.class_name,
-                    export.public_field_name()
-                );
+            let _ = write!(
+                def,
+                "void {}Component(",
+                AsLowerCamelCase(&resolved_world.name)
+            );
+
+            // The parameter is a function receiving imported components and returning exported
+            // components. It returns the interface directly if there is only one, a record
+            // otherwise.
+            if self.local_exports.len() == 1 {
+                uwrite!(def, "{}", self.local_exports[0].class_name);
+            } else {
+                uwrite!(def, "({{");
+                for (i, export) in self.local_exports.iter().enumerate() {
+                    if i != 0 {
+                        uwrite!(def, ", ");
+                    }
+
+                    uwrite!(def, "{} {}", export.class_name, export.public_field_name());
+                }
+                uwrite!(def, "}})");
             }
-            let _ = writeln!(def, "}}) {{");
-            for export in &self.local_exports {
-                let _ = writeln!(
-                    def,
-                    "  {} = {};",
-                    export.field_name,
-                    export.public_field_name()
-                );
+
+            uwriteln!(
+                def,
+                " Function({imports}) defineComponent) {{\n  final res = defineComponent(const {imports}._());"
+            );
+
+            if self.local_exports.len() == 1 {
+                let export = &self.local_exports[0];
+                uwriteln!(def, "  {} = res;", export.field_name);
+            } else {
+                for export in &self.local_exports {
+                    uwriteln!(
+                        def,
+                        "  {} = res.{};",
+                        export.field_name,
+                        export.public_field_name()
+                    );
+                }
             }
-            let _ = writeln!(def, "}}");
+
+            uwriteln!(def, "}}");
         }
 
         let mut export_id = 0usize;
