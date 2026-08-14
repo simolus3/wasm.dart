@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 
 import '../components/component.dart';
@@ -82,6 +83,22 @@ final class Linker {
         existing: _topLevelTypes,
         type: type,
         resolveImport: (type) => importType(type),
+        resolveResource: (res) {
+          final instance = importInstance(res.owner);
+          final name = res.owner.exportedTypes.entries.firstWhereOrNull(
+            (e) => e.value == res,
+          );
+          if (name == null) {
+            throw ArgumentError(
+              'Illegal reference to unexported resource type',
+            );
+          }
+
+          return component.alias(
+            .componentType,
+            .instanceExport(instance, name.key),
+          );
+        },
       ),
     );
   }
@@ -104,15 +121,26 @@ final class Linker {
           existing: typeEntries,
           type: type,
           resolveImport: (import) => importFromOuter(import),
+          resolveResource: (_) => throw UnsupportedError(
+            'Resources should have been defined here, or be represented as an '
+            'imported type.',
+          ),
         );
       }
 
       interface.exportedTypes.forEach((name, type) {
-        final existing = type is ImportedAbiType
-            ? importFromOuter(type)
-            : addType(type);
+        final ComponentTypeIndex exported;
 
-        final exported = mapped.exportTypeEq(name, existing);
+        if (type is ResourceAbiType) {
+          exported = mapped.exportTypeSubResource(name);
+        } else {
+          final existing = type is ImportedAbiType
+              ? importFromOuter(type)
+              : addType(type);
+
+          exported = mapped.exportTypeEq(name, existing);
+        }
+
         typeEntries[type] = exported;
       });
 
@@ -148,6 +176,7 @@ ComponentTypeIndex _addType({
   required Map<AbiType, ComponentTypeIndex> existing,
   required AbiType type,
   required ComponentTypeIndex Function(ImportedAbiType) resolveImport,
+  required ComponentTypeIndex Function(ResourceAbiType) resolveResource,
 }) {
   types.ModelTypeReference innerType(AbiType inner) {
     return types.ModelTypeReference(
@@ -156,6 +185,7 @@ ComponentTypeIndex _addType({
         existing: existing,
         type: inner,
         resolveImport: resolveImport,
+        resolveResource: resolveResource,
       ),
     );
   }
@@ -194,8 +224,11 @@ ComponentTypeIndex _addType({
         for (final field in fields) innerType(field),
       ]),
       FlagsAbiType(:final flags) => types.FlagsType(flags),
-      ResourceAbiType() ||
-      HandleAbiType() => throw UnimplementedError('resource types'),
+      ResourceAbiType() => types.ModelTypeReference(resolveResource(type)),
+      HandleAbiType(:final isOwned, :final resource) =>
+        isOwned
+            ? types.OwnType(innerType(resource).index)
+            : types.BorrowType(innerType(resource).index),
       ImportedAbiType() => throw AssertionError('handled above'),
     });
   });

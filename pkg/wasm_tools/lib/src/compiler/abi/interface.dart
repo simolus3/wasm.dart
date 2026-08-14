@@ -106,7 +106,10 @@ final class FlagsAbiType extends AbiType {
 }
 
 final class ResourceAbiType extends AbiType {
-  new({required super.owner});
+  @override
+  AbiInterface get owner => super.owner!;
+
+  new({required AbiInterface super.owner});
 }
 
 final class HandleAbiType extends AbiType {

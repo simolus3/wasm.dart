@@ -63,7 +63,9 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
           ),
         );
       case 'resource':
-        types.add(ResourceAbiType(owner: owner));
+        types.add(
+          ResourceAbiType(owner: ArgumentError.checkNotNull(owner, 'owner')),
+        );
       case 'handle':
         types.add(switch (definition) {
           {'own': final type} => HandleAbiType(
@@ -150,7 +152,7 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
       case 'type':
         final resolved = _deserializeType(types, definition);
         final originalOwner = resolved.owner;
-        if (originalOwner == null || resolved.owner == owner) {
+        if (originalOwner == null || originalOwner == owner) {
           types.add(resolved);
           break;
         }

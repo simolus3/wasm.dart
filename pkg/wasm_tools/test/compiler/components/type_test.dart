@@ -80,4 +80,46 @@ void main() {
 )
 ''');
   });
+
+  test('resources', () async {
+    final c = ComponentBuilder();
+    final types = c.addType(
+      InstanceType()..exportTypeSubResource('my-resource'),
+    );
+    final importedTypes = c.importInstance('foo:bar/types', types);
+    final resourceType = c.alias(
+      .componentType,
+      .instanceExport(importedTypes, 'my-resource'),
+    );
+    final otherType = InstanceType();
+    final aliased = otherType.alias(.componentType, .outer(1, resourceType));
+    otherType.exportTypeEq('my-resource', aliased);
+    otherType.exportFunction(
+      'get-my-resource',
+      otherType.addType(
+        FunctionType(async: false, parameters: [], result: null),
+      ),
+    );
+    c.importInstance('foo:bar/factory', c.addType(otherType));
+
+    expect(await componentToWat(c), r'''(component
+  (type (;0;)
+    (instance
+      (export (;0;) "my-resource" (type (sub resource)))
+    )
+  )
+  (import "foo:bar/types" (instance (;0;) (type 0)))
+  (alias export 0 "my-resource" (type (;1;)))
+  (type (;2;)
+    (instance
+      (alias outer 1 1 (type (;0;)))
+      (export (;1;) "my-resource" (type (eq 0)))
+      (type (;2;) (func))
+      (export (;0;) "get-my-resource" (func (type 2)))
+    )
+  )
+  (import "foo:bar/factory" (instance (;1;) (type 2)))
+)
+''');
+  });
 }
