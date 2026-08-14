@@ -1,10 +1,8 @@
 // ignore: import_internal_library
 import 'dart:_wasm';
-
-import 'package:meta/meta.dart';
+import 'dart:typed_data';
 
 import '../embedder/libc.dart';
-import '../embedder/string.dart';
 
 /// A string stored in linear memory.
 final class AllocatedString {
@@ -34,24 +32,17 @@ final class AllocatedString {
     return AllocatedString(ptr, packedLength);
   }
 
-  static String read(WasmI32 ptr, WasmI32 length) {
-    throw UnimplementedError();
-  }
-
-  @internal
-  WasmStringImplementation readRaw() {
+  static String read(WasmI32 ptr, WasmI32 packedLength) {
     final length = packedLength.toIntUnsigned();
-    final array = WasmArray<WasmI16>(length);
     final dartPtr = ptr.toIntUnsigned();
+    final array = Uint16List(length);
 
     for (var i = 0; i < length; i++) {
-      array.write(
-        i,
-        memory.loadInt16(dartPtr + 2 * i, align: 1).toIntUnsigned(),
-      );
+      array[i] = memory.loadInt16(dartPtr + 2 * i, align: 1).toIntUnsigned();
     }
 
-    return Utf16String.unsafeWrap(array);
+    AllocatedString(ptr, packedLength).free();
+    return String.fromCharCodes(array);
   }
 
   static const _alignment = WasmI32(2);

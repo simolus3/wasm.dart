@@ -76,6 +76,17 @@ WasmExternRef stringFromAsciiBytes(
 }
 
 @pragma('wasm:export')
+WasmExternRef stringFromCharCodeArray(
+  WasmArray<WasmI16> charCodes,
+  WasmI32 start,
+  WasmI32 length,
+) {
+  return WasmAnyRef.fromObject(
+    Utf16String.fromCharCodes(charCodes, start, length),
+  ).externalize();
+}
+
+@pragma('wasm:export')
 WasmExternRef i64ToString(WasmI64 value, WasmI32 radix) {
   return intToString(value.toInt(), radix.toIntUnsigned()).externalize();
 }

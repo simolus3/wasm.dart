@@ -29,8 +29,8 @@ final class _Imported$11 implements i0.Environment {
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
     final tmp2 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
 
-    final tmp9 = tmp2.toIntUnsigned();
-    final tmp8 = List.generate(tmp1.toIntUnsigned(), growable: false, (i) {
+    final tmp9 = tmp1.toIntUnsigned();
+    final tmp8 = List.generate(tmp2.toIntUnsigned(), growable: false, (i) {
       final elementPtr = i1.WasmI32.fromInt(tmp9 + i * 16);
       final tmp3 = i2.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 0);
       final tmp4 = i2.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 4);
@@ -55,8 +55,8 @@ final class _Imported$11 implements i0.Environment {
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
     final tmp2 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
 
-    final tmp6 = tmp2.toIntUnsigned();
-    final tmp5 = List.generate(tmp1.toIntUnsigned(), growable: false, (i) {
+    final tmp6 = tmp1.toIntUnsigned();
+    final tmp5 = List.generate(tmp2.toIntUnsigned(), growable: false, (i) {
       final elementPtr = i1.WasmI32.fromInt(tmp6 + i * 8);
       final tmp3 = i2.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 0);
       final tmp4 = i2.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 4);
@@ -2813,7 +2813,6 @@ final class _Imported$4 implements i5.Types {
       tmp9 = .ok(null);
     }
 
-    tmp0.free();
     i2.dartFree(tmp1, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp9;
   }
@@ -3275,7 +3274,6 @@ final class _Imported$4 implements i5.Types {
       tmp33 = .ok(tmp26);
     }
 
-    tmp0.free();
     i2.dartFree(tmp1, const i1.WasmI32(112), const i1.WasmI32(8));
     return tmp33;
   }
@@ -3474,7 +3472,6 @@ final class _Imported$4 implements i5.Types {
     }
 
     i2.dartFree(tmp0, const i1.WasmI32(64), const i1.WasmI32(8));
-    tmp1.free();
     i2.dartFree(tmp2, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp10;
   }
@@ -3629,8 +3626,6 @@ final class _Imported$4 implements i5.Types {
     }
 
     i2.dartFree(tmp0, const i1.WasmI32(28), const i1.WasmI32(4));
-    tmp1.free();
-    tmp2.free();
     i2.dartFree(tmp3, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp11;
   }
@@ -3782,7 +3777,6 @@ final class _Imported$4 implements i5.Types {
     }
 
     i2.dartFree(tmp0, const i1.WasmI32(20), const i1.WasmI32(4));
-    tmp1.free();
     i2.dartFree(tmp2, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp12;
   }
@@ -3903,7 +3897,6 @@ final class _Imported$4 implements i5.Types {
       tmp11 = .ok(i2.AllocatedString.read(tmp3, tmp4));
     }
 
-    tmp0.free();
     i2.dartFree(tmp1, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp11;
   }
@@ -4021,7 +4014,6 @@ final class _Imported$4 implements i5.Types {
       tmp9 = .ok(null);
     }
 
-    tmp0.free();
     i2.dartFree(tmp1, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp9;
   }
@@ -4170,8 +4162,6 @@ final class _Imported$4 implements i5.Types {
     }
 
     i2.dartFree(tmp0, const i1.WasmI32(24), const i1.WasmI32(4));
-    tmp1.free();
-    tmp2.free();
     i2.dartFree(tmp3, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp11;
   }
@@ -4314,8 +4304,6 @@ final class _Imported$4 implements i5.Types {
     }
 
     i2.dartFree(tmp0, const i1.WasmI32(20), const i1.WasmI32(4));
-    tmp1.free();
-    tmp2.free();
     i2.dartFree(tmp3, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp11;
   }
@@ -4433,7 +4421,6 @@ final class _Imported$4 implements i5.Types {
       tmp9 = .ok(null);
     }
 
-    tmp0.free();
     i2.dartFree(tmp1, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp9;
   }
@@ -4695,7 +4682,6 @@ final class _Imported$4 implements i5.Types {
       tmp12 = .ok(tmp5);
     }
 
-    tmp0.free();
     i2.dartFree(tmp1, const i1.WasmI32(24), const i1.WasmI32(8));
     return tmp12;
   }
@@ -4720,8 +4706,8 @@ final class _Imported$5 implements i5.Preopens {
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
     final tmp2 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
 
-    final tmp9 = tmp2.toIntUnsigned();
-    final tmp8 = List.generate(tmp1.toIntUnsigned(), growable: false, (i) {
+    final tmp9 = tmp1.toIntUnsigned();
+    final tmp8 = List.generate(tmp2.toIntUnsigned(), growable: false, (i) {
       final elementPtr = i1.WasmI32.fromInt(tmp9 + i * 12);
       final tmp3 = i2.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 0);
       final tmp4 = i2.Owned<i5.TypesDescriptor>(tmp3.toIntUnsigned(), _drop$38);
@@ -7754,7 +7740,6 @@ final class _Imported$6 implements i6.Types {
     }
 
     i2.dartFree(tmp0, const i1.WasmI32(48), const i1.WasmI32(4));
-    i2.dartFree(tmp2, tmp1, const i1.WasmI32(1));
     i2.dartFree(tmp5, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp13;
   }
@@ -7824,8 +7809,8 @@ final class _Imported$6 implements i6.Types {
       final tmp2 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
       final tmp3 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
 
-      final tmp6 = tmp3.toIntUnsigned();
-      final tmp5 = List.generate(tmp2.toIntUnsigned(), growable: false, (i) {
+      final tmp6 = tmp2.toIntUnsigned();
+      final tmp5 = List.generate(tmp3.toIntUnsigned(), growable: false, (i) {
         final elementPtr = i1.WasmI32.fromInt(tmp6 + i * 1);
         final tmp4 = i2.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
 
@@ -8607,8 +8592,8 @@ final class _Imported$7 implements i6.IpNameLookup {
       final tmp3 = i2.memory.loadInt32(tmp1.toIntUnsigned(), offset: 4);
       final tmp4 = i2.memory.loadInt32(tmp1.toIntUnsigned(), offset: 8);
 
-      final tmp22 = tmp4.toIntUnsigned();
-      final tmp21 = List.generate(tmp3.toIntUnsigned(), growable: false, (i) {
+      final tmp22 = tmp3.toIntUnsigned();
+      final tmp21 = List.generate(tmp4.toIntUnsigned(), growable: false, (i) {
         final elementPtr = i1.WasmI32.fromInt(tmp22 + i * 18);
         final tmp5 = i2.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
         final i6.TypesIpAddress tmp20;
@@ -8694,7 +8679,6 @@ final class _Imported$7 implements i6.IpNameLookup {
       tmp29 = .ok(tmp21);
     }
 
-    tmp0.free();
     i2.dartFree(tmp1, const i1.WasmI32(20), const i1.WasmI32(4));
     return tmp29;
   }
@@ -8714,8 +8698,8 @@ final class _Imported$8 implements i7.Random {
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
     final tmp2 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
 
-    final tmp5 = tmp2.toIntUnsigned();
-    final tmp4 = List.generate(tmp1.toIntUnsigned(), growable: false, (i) {
+    final tmp5 = tmp1.toIntUnsigned();
+    final tmp4 = List.generate(tmp2.toIntUnsigned(), growable: false, (i) {
       final elementPtr = i1.WasmI32.fromInt(tmp5 + i * 1);
       final tmp3 = i2.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
 
@@ -8747,8 +8731,8 @@ final class _Imported$9 implements i7.Insecure {
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
     final tmp2 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
 
-    final tmp5 = tmp2.toIntUnsigned();
-    final tmp4 = List.generate(tmp1.toIntUnsigned(), growable: false, (i) {
+    final tmp5 = tmp1.toIntUnsigned();
+    final tmp4 = List.generate(tmp2.toIntUnsigned(), growable: false, (i) {
       final elementPtr = i1.WasmI32.fromInt(tmp5 + i * 1);
       final tmp3 = i2.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
 

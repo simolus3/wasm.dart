@@ -279,7 +279,7 @@ impl<'a, 'd> Bindgen for DartFunctionGenerator<'a, 'd> {
                     todo!("Returning multiple parameters")
                 }
             }
-            Instruction::StringLower { realloc: _ } => {
+            Instruction::StringLower { realloc } => {
                 self.options.uses_memory = true;
                 self.options.uses_strings = true;
 
@@ -295,7 +295,9 @@ impl<'a, 'd> Bindgen for DartFunctionGenerator<'a, 'd> {
                     ".allocateUtf16({});",
                     operands.pop().unwrap()
                 );
-                let _ = writeln!(&mut self.cleanup, "{}.free();", temp);
+                if realloc.is_none() {
+                    let _ = writeln!(&mut self.cleanup, "{}.free();", temp);
+                }
                 results.push(Rc::new(format!("{}.ptr", temp)));
                 results.push(Rc::new(format!("{}.packedLength", temp)));
             }
@@ -903,10 +905,7 @@ if ({is_err}.toBool()) {{
             Instruction::IterBasePointer => {
                 results.push(Rc::new("elementPtr".to_string()));
             }
-            Instruction::ListLower {
-                element,
-                realloc: _,
-            } => {
+            Instruction::ListLower { element, realloc } => {
                 self.options.uses_memory = true;
                 self.options.uses_realloc = true;
                 let size = self.size_align.size(element).size_wasm32();
@@ -935,10 +934,14 @@ for (final element in {list}) {{
 "
                 );
 
-                uwriteln!(
-                    &mut self.cleanup,
-                    "{runtime}.dartFree({ptr}, {total_length}, const {dart}.WasmI32({align}));"
-                );
+                // If realloc is some, ownership of the list is transferred to another component.
+                // Otherwise, we need to free it.
+                if realloc.is_none() {
+                    uwriteln!(
+                        &mut self.cleanup,
+                        "{runtime}.dartFree({ptr}, {total_length}, const {dart}.WasmI32({align}));"
+                    );
+                }
 
                 results.push(ptr);
                 results.push(Rc::new(format!("{dart}.WasmI32.fromInt({list}.length)")));
@@ -951,8 +954,8 @@ for (final element in {list}) {{
 
                 let size = self.size_align.size(element).size_wasm32();
                 let dart = self.dart.import(KnownDartUri::DartWasm);
-                let ptr = operands.pop().unwrap();
                 let length = operands.pop().unwrap();
+                let ptr = operands.pop().unwrap();
                 let (body, mut elements) = self.blocks.pop().unwrap();
                 let value = elements.pop().unwrap();
 
