@@ -91,6 +91,8 @@ impl<'a, 'd> DartFunctionGenerator<'a, 'd> {
         method: &str,
         offset: &ArchitectureSize,
     ) {
+        self.options.uses_memory = true;
+
         let ptr = operands.pop().unwrap();
         let value = operands.pop().unwrap();
 
@@ -110,6 +112,8 @@ impl<'a, 'd> DartFunctionGenerator<'a, 'd> {
         method: &str,
         offset: &ArchitectureSize,
     ) {
+        self.options.uses_memory = true;
+
         let ptr = operands.pop().unwrap();
         let tmp = self.temporary_variable();
 
@@ -298,6 +302,7 @@ impl<'a, 'd> Bindgen for DartFunctionGenerator<'a, 'd> {
             Instruction::StringLift {} => {
                 self.options.uses_memory = true;
                 self.options.uses_strings = true;
+                self.options.uses_realloc = true;
 
                 let length = operands.pop().unwrap();
                 let ptr = operands.pop().unwrap();
@@ -940,6 +945,7 @@ for (final element in {list}) {{
             }
             Instruction::ListLift { element, ty: _ } => {
                 self.options.uses_memory = true;
+                self.options.uses_realloc = true;
                 let list = self.temporary_variable();
                 let start_ptr = self.temporary_variable();
 

@@ -11,7 +11,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -27,7 +27,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -43,7 +43,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -96,21 +96,6 @@
       }
     },
     {
-      "import_name": "stream89.read",
-      "definition": {
-        "StreamRead": {
-          "stream_type": 89
-        }
-      },
-      "lower_options": {
-        "uses_memory": true,
-        "uses_strings": false,
-        "uses_realloc": false,
-        "is_async": true,
-        "uses_callback": false
-      }
-    },
-    {
       "import_name": "stream89.write",
       "definition": {
         "StreamWrite": {
@@ -156,6 +141,21 @@
       }
     },
     {
+      "import_name": "stream89.read",
+      "definition": {
+        "StreamRead": {
+          "stream_type": 89
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": true,
+        "uses_callback": false
+      }
+    },
+    {
       "import_name": "future91.new",
       "definition": {
         "FutureNew": {
@@ -174,21 +174,6 @@
       "import_name": "future91.write",
       "definition": {
         "FutureWrite": {
-          "future_type": 91
-        }
-      },
-      "lower_options": {
-        "uses_memory": true,
-        "uses_strings": false,
-        "uses_realloc": false,
-        "is_async": true,
-        "uses_callback": false
-      }
-    },
-    {
-      "import_name": "future91.read",
-      "definition": {
-        "FutureRead": {
           "future_type": 91
         }
       },
@@ -231,6 +216,21 @@
       }
     },
     {
+      "import_name": "future91.read",
+      "definition": {
+        "FutureRead": {
+          "future_type": 91
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": true,
+        "uses_callback": false
+      }
+    },
+    {
       "import_name": "_import15",
       "definition": {
         "Instance": {
@@ -239,7 +239,7 @@
         }
       },
       "lower_options": {
-        "uses_memory": false,
+        "uses_memory": true,
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
@@ -265,21 +265,6 @@
       "import_name": "future95.write",
       "definition": {
         "FutureWrite": {
-          "future_type": 95
-        }
-      },
-      "lower_options": {
-        "uses_memory": true,
-        "uses_strings": false,
-        "uses_realloc": false,
-        "is_async": true,
-        "uses_callback": false
-      }
-    },
-    {
-      "import_name": "future95.read",
-      "definition": {
-        "FutureRead": {
           "future_type": 95
         }
       },
@@ -318,6 +303,21 @@
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
+        "uses_callback": false
+      }
+    },
+    {
+      "import_name": "future95.read",
+      "definition": {
+        "FutureRead": {
+          "future_type": 95
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -368,21 +368,6 @@
       }
     },
     {
-      "import_name": "future98.read",
-      "definition": {
-        "FutureRead": {
-          "future_type": 98
-        }
-      },
-      "lower_options": {
-        "uses_memory": true,
-        "uses_strings": false,
-        "uses_realloc": false,
-        "is_async": true,
-        "uses_callback": false
-      }
-    },
-    {
       "import_name": "future98.drop-readable",
       "definition": {
         "FutureDropReadable": {
@@ -409,6 +394,21 @@
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
+        "uses_callback": false
+      }
+    },
+    {
+      "import_name": "future98.read",
+      "definition": {
+        "FutureRead": {
+          "future_type": 98
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -452,7 +452,7 @@
         }
       },
       "lower_options": {
-        "uses_memory": false,
+        "uses_memory": true,
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
@@ -483,7 +483,7 @@
         }
       },
       "lower_options": {
-        "uses_memory": false,
+        "uses_memory": true,
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
@@ -514,7 +514,7 @@
         }
       },
       "lower_options": {
-        "uses_memory": false,
+        "uses_memory": true,
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
@@ -565,7 +565,7 @@
         "uses_memory": false,
         "uses_strings": false,
         "uses_realloc": false,
-        "is_async": false,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -581,7 +581,7 @@
         "uses_memory": false,
         "uses_strings": false,
         "uses_realloc": false,
-        "is_async": false,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -594,7 +594,7 @@
         }
       },
       "lower_options": {
-        "uses_memory": false,
+        "uses_memory": true,
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
@@ -629,21 +629,6 @@
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
-        "uses_callback": false
-      }
-    },
-    {
-      "import_name": "stream25.read",
-      "definition": {
-        "StreamRead": {
-          "stream_type": 25
-        }
-      },
-      "lower_options": {
-        "uses_memory": true,
-        "uses_strings": false,
-        "uses_realloc": false,
-        "is_async": true,
         "uses_callback": false
       }
     },
@@ -693,6 +678,21 @@
       }
     },
     {
+      "import_name": "stream25.read",
+      "definition": {
+        "StreamRead": {
+          "stream_type": 25
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": true,
+        "uses_callback": false
+      }
+    },
+    {
       "import_name": "future27.new",
       "definition": {
         "FutureNew": {
@@ -711,21 +711,6 @@
       "import_name": "future27.write",
       "definition": {
         "FutureWrite": {
-          "future_type": 27
-        }
-      },
-      "lower_options": {
-        "uses_memory": true,
-        "uses_strings": false,
-        "uses_realloc": false,
-        "is_async": true,
-        "uses_callback": false
-      }
-    },
-    {
-      "import_name": "future27.read",
-      "definition": {
-        "FutureRead": {
           "future_type": 27
         }
       },
@@ -768,6 +753,21 @@
       }
     },
     {
+      "import_name": "future27.read",
+      "definition": {
+        "FutureRead": {
+          "future_type": 27
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": true,
+        "uses_realloc": true,
+        "is_async": true,
+        "uses_callback": false
+      }
+    },
+    {
       "import_name": "stream31.new",
       "definition": {
         "StreamNew": {
@@ -779,21 +779,6 @@
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
-        "uses_callback": false
-      }
-    },
-    {
-      "import_name": "stream31.read",
-      "definition": {
-        "StreamRead": {
-          "stream_type": 31
-        }
-      },
-      "lower_options": {
-        "uses_memory": true,
-        "uses_strings": false,
-        "uses_realloc": false,
-        "is_async": true,
         "uses_callback": false
       }
     },
@@ -843,6 +828,21 @@
       }
     },
     {
+      "import_name": "stream31.read",
+      "definition": {
+        "StreamRead": {
+          "stream_type": 31
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": true,
+        "uses_realloc": true,
+        "is_async": true,
+        "uses_callback": false
+      }
+    },
+    {
       "import_name": "_import55",
       "definition": {
         "Instance": {
@@ -851,7 +851,7 @@
         }
       },
       "lower_options": {
-        "uses_memory": false,
+        "uses_memory": true,
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
@@ -901,8 +901,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -917,8 +917,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -933,8 +933,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -949,8 +949,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -965,8 +965,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -981,8 +981,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -995,7 +995,7 @@
         }
       },
       "lower_options": {
-        "uses_memory": false,
+        "uses_memory": true,
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
@@ -1013,8 +1013,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1029,8 +1029,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1045,8 +1045,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1061,8 +1061,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1077,8 +1077,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1093,8 +1093,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1124,8 +1124,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1140,8 +1140,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1156,8 +1156,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1172,8 +1172,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1188,8 +1188,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1204,8 +1204,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1218,10 +1218,10 @@
         }
       },
       "lower_options": {
-        "uses_memory": false,
+        "uses_memory": true,
         "uses_strings": false,
         "uses_realloc": false,
-        "is_async": false,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1236,8 +1236,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1252,8 +1252,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1283,7 +1283,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1300,21 +1300,6 @@
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
-        "uses_callback": false
-      }
-    },
-    {
-      "import_name": "stream58.read",
-      "definition": {
-        "StreamRead": {
-          "stream_type": 58
-        }
-      },
-      "lower_options": {
-        "uses_memory": true,
-        "uses_strings": false,
-        "uses_realloc": false,
-        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1379,6 +1364,21 @@
       }
     },
     {
+      "import_name": "stream58.read",
+      "definition": {
+        "StreamRead": {
+          "stream_type": 58
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": true,
+        "uses_callback": false
+      }
+    },
+    {
       "import_name": "stream60.new",
       "definition": {
         "StreamNew": {
@@ -1390,21 +1390,6 @@
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
-        "uses_callback": false
-      }
-    },
-    {
-      "import_name": "stream60.read",
-      "definition": {
-        "StreamRead": {
-          "stream_type": 60
-        }
-      },
-      "lower_options": {
-        "uses_memory": true,
-        "uses_strings": false,
-        "uses_realloc": false,
-        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1454,6 +1439,21 @@
       }
     },
     {
+      "import_name": "stream60.read",
+      "definition": {
+        "StreamRead": {
+          "stream_type": 60
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": false,
+        "uses_realloc": false,
+        "is_async": true,
+        "uses_callback": false
+      }
+    },
+    {
       "import_name": "future61.new",
       "definition": {
         "FutureNew": {
@@ -1472,21 +1472,6 @@
       "import_name": "future61.write",
       "definition": {
         "FutureWrite": {
-          "future_type": 61
-        }
-      },
-      "lower_options": {
-        "uses_memory": true,
-        "uses_strings": false,
-        "uses_realloc": false,
-        "is_async": true,
-        "uses_callback": false
-      }
-    },
-    {
-      "import_name": "future61.read",
-      "definition": {
-        "FutureRead": {
           "future_type": 61
         }
       },
@@ -1529,6 +1514,21 @@
       }
     },
     {
+      "import_name": "future61.read",
+      "definition": {
+        "FutureRead": {
+          "future_type": 61
+        }
+      },
+      "lower_options": {
+        "uses_memory": true,
+        "uses_strings": true,
+        "uses_realloc": true,
+        "is_async": true,
+        "uses_callback": false
+      }
+    },
+    {
       "import_name": "_import99",
       "definition": {
         "Instance": {
@@ -1539,7 +1539,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1555,7 +1555,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1571,8 +1571,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -1587,7 +1587,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1617,7 +1617,7 @@
         }
       },
       "lower_options": {
-        "uses_memory": false,
+        "uses_memory": true,
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,
@@ -1635,7 +1635,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1651,7 +1651,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1699,7 +1699,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1715,7 +1715,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1731,7 +1731,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1747,7 +1747,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1763,7 +1763,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1779,7 +1779,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1795,7 +1795,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1811,7 +1811,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1827,7 +1827,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1843,7 +1843,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1859,7 +1859,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1875,7 +1875,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1891,7 +1891,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1907,7 +1907,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1923,7 +1923,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1954,7 +1954,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1970,7 +1970,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -1986,7 +1986,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2002,7 +2002,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2019,7 +2019,7 @@
         "uses_memory": true,
         "uses_strings": true,
         "uses_realloc": true,
-        "is_async": false,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -2034,8 +2034,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -2050,7 +2050,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2066,7 +2066,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2098,7 +2098,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2114,7 +2114,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2130,7 +2130,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2146,7 +2146,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2162,7 +2162,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2178,7 +2178,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2194,8 +2194,8 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": true,
-        "uses_realloc": false,
-        "is_async": false,
+        "uses_realloc": true,
+        "is_async": true,
         "uses_callback": false
       }
     },
@@ -2210,7 +2210,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": false,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2242,7 +2242,7 @@
       "lower_options": {
         "uses_memory": true,
         "uses_strings": false,
-        "uses_realloc": false,
+        "uses_realloc": true,
         "is_async": false,
         "uses_callback": false
       }
@@ -2272,7 +2272,7 @@
         }
       },
       "lower_options": {
-        "uses_memory": false,
+        "uses_memory": true,
         "uses_strings": false,
         "uses_realloc": false,
         "is_async": false,

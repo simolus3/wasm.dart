@@ -115,13 +115,6 @@ final class {vtable_name} implements {rt_import}.StreamVtable<"
         read_write_options.uses_memory = inner_type.is_some();
 
         self.io.imports.push(ImportedFunction {
-            import_name: format!("stream{id_str}.read"),
-            definition: ImportedFunctionDefinition::StreamRead {
-                stream_type: id.index(),
-            },
-            lower_options: read_write_options.clone(),
-        });
-        self.io.imports.push(ImportedFunction {
             import_name: format!("stream{id_str}.write"),
             definition: ImportedFunctionDefinition::StreamWrite {
                 stream_type: id.index(),
@@ -238,6 +231,19 @@ for (var i = start; i < end; i++) {{
                 );
                 let lifted =
                     lift_from_memory(resolve, &mut generator, Rc::new("ptr".to_string()), inner);
+
+                self.io.imports.push(ImportedFunction {
+                    import_name: format!("stream{id_str}.read"),
+                    definition: ImportedFunctionDefinition::StreamRead {
+                        stream_type: id.index(),
+                    },
+                    lower_options: {
+                        let mut options = generator.options.clone();
+                        options.is_async = true;
+                        options
+                    },
+                });
+
                 (lifted, generator.take_code(&mut self.io.imports))
             };
 
@@ -267,6 +273,14 @@ return typedList;"
             uwriteln!(&mut definition, "}}")
         } else {
             // Stream<void>. This means that elementSize is zero, and that allocateBuffer is a noop.
+            self.io.imports.push(ImportedFunction {
+                import_name: format!("stream{id_str}.read"),
+                definition: ImportedFunctionDefinition::StreamRead {
+                    stream_type: id.index(),
+                },
+                lower_options: read_write_options.clone(),
+            });
+
             uwriteln!(
                 &mut definition,
                 "
@@ -369,13 +383,6 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
         self.io.imports.push(ImportedFunction {
             import_name: format!("future{id_str}.write"),
             definition: ImportedFunctionDefinition::FutureWrite {
-                future_type: id.index(),
-            },
-            lower_options: read_write_options.clone(),
-        });
-        self.io.imports.push(ImportedFunction {
-            import_name: format!("future{id_str}.read"),
-            definition: ImportedFunctionDefinition::FutureRead {
                 future_type: id.index(),
             },
             lower_options: read_write_options.clone(),
@@ -515,6 +522,17 @@ final class {vtable_name} implements {rt_import}.FutureVtable<"
             "{}\n    return {lifted};\n  }}\n}}",
             generator.take_code(&mut self.io.imports)
         );
+        self.io.imports.push(ImportedFunction {
+            import_name: format!("future{id_str}.read"),
+            definition: ImportedFunctionDefinition::FutureRead {
+                future_type: id.index(),
+            },
+            lower_options: {
+                let mut options = generator.options.clone();
+                options.is_async = true;
+                options
+            },
+        });
 
         self.main.consume_definition(definition);
         self.main.stream_future_vtables.insert(id, vtable_name);
@@ -617,7 +635,8 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
                 let _ = writeln!(def, "{}\n}}", generator.take_code(&mut self.io.imports));
 
                 {
-                    let options = generator.options;
+                    let mut options = generator.options;
+                    options.is_async = function.kind.is_async();
                     let signature = resolve.wasm_signature(variant, function);
                     let mut import = DartDefinition::default();
                     uwriteln!(

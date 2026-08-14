@@ -193,6 +193,8 @@ ComponentTypeIndex _addType({
   return existing.putIfAbsent(type, () {
     if (type is ImportedAbiType) {
       return resolveImport(type);
+    } else if (type is ResourceAbiType) {
+      return resolveResource(type);
     }
 
     return definitions.addType(switch (type) {
@@ -224,12 +226,12 @@ ComponentTypeIndex _addType({
         for (final field in fields) innerType(field),
       ]),
       FlagsAbiType(:final flags) => types.FlagsType(flags),
-      ResourceAbiType() => types.ModelTypeReference(resolveResource(type)),
       HandleAbiType(:final isOwned, :final resource) =>
         isOwned
             ? types.OwnType(innerType(resource).index)
             : types.BorrowType(innerType(resource).index),
-      ImportedAbiType() => throw AssertionError('handled above'),
+      ImportedAbiType() ||
+      ResourceAbiType() => throw AssertionError('handled above'),
     });
   });
 }

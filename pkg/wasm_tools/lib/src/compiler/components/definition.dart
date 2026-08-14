@@ -48,7 +48,7 @@ final class ExportAliasTarget extends AliasTarget {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x00);
-    s.writeUnsigned(instance.index);
+    instance.serialize(s);
     s.writeName(name);
   }
 }
@@ -62,7 +62,7 @@ final class CoreExportTarget extends AliasTarget {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x01);
-    s.writeUnsigned(module.index);
+    module.serialize(s);
     s.writeName(name);
   }
 }
@@ -77,7 +77,7 @@ final class OuterTarget extends AliasTarget {
   void serialize(w.Serializer s) {
     s.writeByte(0x02);
     s.writeUnsigned(context);
-    s.writeUnsigned(index.index);
+    index.serialize(s);
   }
 }
 
@@ -113,20 +113,20 @@ mixin CanonicalHasOptions {
     }
     if (memory case final memory?) {
       s.writeByte(0x03);
-      s.writeUnsigned(memory.index);
+      memory.serialize(s);
     }
     if (realloc case final realloc?) {
       s.writeByte(0x04);
-      s.writeUnsigned(realloc.index);
+      realloc.serialize(s);
     }
     if (postReturn case final postReturn?) {
       s.writeByte(0x05);
-      s.writeUnsigned(postReturn.index);
+      postReturn.serialize(s);
     }
     if (async) s.writeByte(0x06);
     if (callback case final callback?) {
       s.writeByte(0x07);
-      s.writeUnsigned(callback.index);
+      callback.serialize(s);
     }
   }
 }
@@ -152,7 +152,7 @@ final class CanonLower extends CanonicalLiftOrLower
   void serialize(w.Serializer s) {
     s.writeByte(0x01);
     s.writeByte(0x00);
-    s.writeUnsigned(function.index);
+    function.serialize(s);
     _serializeOptions(s);
   }
 }
@@ -170,9 +170,9 @@ final class CanonLift extends CanonicalLiftOrLower {
   void serialize(w.Serializer s) {
     s.writeByte(0x00);
     s.writeByte(0x00);
-    s.writeUnsigned(function.index);
+    function.serialize(s);
     _serializeOptions(s);
-    s.writeUnsigned(type.index);
+    type.serialize(s);
   }
 }
 
@@ -192,7 +192,7 @@ final class ResourceDrop extends CanonPrimitive {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x03);
-    s.writeUnsigned(resourceType.index.index);
+    resourceType.index.serialize(s);
   }
 }
 
@@ -206,7 +206,7 @@ final class TaskReturn extends CanonPrimitive with CanonicalHasOptions {
     s.writeByte(0x09);
     if (returnType case final returnType?) {
       s.writeByte(0x00);
-      s.writeUnsigned(returnType.index.index);
+      returnType.index.serialize(s);
     } else {
       s.writeByte(0x01);
       s.writeByte(0x00);
@@ -237,7 +237,7 @@ final class StreamNew extends CanonPrimitive {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x0e);
-    s.writeUnsigned(streamType.index.index);
+    streamType.index.serialize(s);
   }
 }
 
@@ -249,7 +249,7 @@ final class StreamRead extends CanonPrimitive with CanonicalHasOptions {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x0f);
-    s.writeUnsigned(streamType.index.index);
+    streamType.index.serialize(s);
     _serializeOptions(s);
   }
 }
@@ -262,7 +262,7 @@ final class StreamWrite extends CanonPrimitive with CanonicalHasOptions {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x10);
-    s.writeUnsigned(streamType.index.index);
+    streamType.index.serialize(s);
     _serializeOptions(s);
   }
 }
@@ -275,7 +275,7 @@ final class StreamDropReadable extends CanonPrimitive {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x13);
-    s.writeUnsigned(streamType.index.index);
+    streamType.index.serialize(s);
   }
 }
 
@@ -287,7 +287,7 @@ final class StreamDropWritable extends CanonPrimitive {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x14);
-    s.writeUnsigned(streamType.index.index);
+    streamType.index.serialize(s);
   }
 }
 
@@ -299,7 +299,7 @@ final class FutureNew extends CanonPrimitive {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x15);
-    s.writeUnsigned(futureType.index.index);
+    futureType.index.serialize(s);
   }
 }
 
@@ -311,7 +311,7 @@ final class FutureRead extends CanonPrimitive with CanonicalHasOptions {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x16);
-    s.writeUnsigned(futureType.index.index);
+    futureType.index.serialize(s);
     _serializeOptions(s);
   }
 }
@@ -324,7 +324,7 @@ final class FutureWrite extends CanonPrimitive with CanonicalHasOptions {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x17);
-    s.writeUnsigned(futureType.index.index);
+    futureType.index.serialize(s);
     _serializeOptions(s);
   }
 }
@@ -337,7 +337,7 @@ final class FutureDropReadable extends CanonPrimitive {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x1a);
-    s.writeUnsigned(futureType.index.index);
+    futureType.index.serialize(s);
   }
 }
 
@@ -349,7 +349,7 @@ final class FutureDropWritable extends CanonPrimitive {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x1b);
-    s.writeUnsigned(futureType.index.index);
+    futureType.index.serialize(s);
   }
 }
 
@@ -436,12 +436,12 @@ final class _InstantiateCoreModule extends CoreInstanceExpression {
   @override
   void serialize(w.Serializer s) {
     s.writeByte(0x00);
-    s.writeUnsigned(module.index.index);
+    module.index.serialize(s);
     s.writeUnsigned(args.length);
     for (final MapEntry(key: name, value: module) in args.entries) {
       s.writeName(name);
       s.writeByte(0x12);
-      s.writeUnsigned(module.index);
+      module.serialize(s);
     }
   }
 }
@@ -464,7 +464,7 @@ final class _InstantiateFromInlineExports extends CoreInstanceExpression {
           'Unsupported sort for core instance: $sort',
         ),
       });
-      s.writeUnsigned(index.index);
+      index.serialize(s);
     }
   }
 }
@@ -483,7 +483,7 @@ final class InstanceFromInlineExports extends ComponentDefinition {
       s.writeName(name);
 
       sort.serializeAsSort(s);
-      s.writeUnsigned(index.index);
+      index.serialize(s);
     }
   }
 }
@@ -501,7 +501,7 @@ final class Export extends ComponentDefinition {
     s.writeByte(0x00);
     s.writeName(name);
     sort.serializeAsSort(s);
-    s.writeUnsigned(exported.index);
+    exported.serialize(s);
     s.writeByte(0x00); // No externdesc
   }
 }
@@ -522,7 +522,7 @@ final class Import extends ComponentDefinition {
     s.writeName(name);
 
     s.writeByte(0x05); // in externdesc production, tag instance type
-    s.writeUnsigned(instanceType.index);
+    instanceType.serialize(s);
   }
 }
 
@@ -547,7 +547,7 @@ final class ExportDeclFunction extends ExportDecl {
   void serialize(w.Serializer s) {
     _serializeName(s);
     s.writeByte(0x01);
-    s.writeUnsigned(functionType.index);
+    functionType.serialize(s);
   }
 }
 
@@ -562,7 +562,7 @@ final class ExportDeclTypeEq extends ExportDecl {
     _serializeName(s);
     s.writeByte(0x03);
     s.writeByte(0x00);
-    s.writeUnsigned(type.index);
+    type.serialize(s);
   }
 }
 
@@ -586,13 +586,18 @@ final class TypeDefinition extends ComponentDefinition {
 
   @override
   void serialize(w.Serializer s) {
+    // The top-level type may no be a type reference.
+    if (type is ModelTypeReference) {
+      throw ArgumentError('Serializing model type reference as top-level type');
+    }
+
     _writeType(type, s);
   }
 
   void _writeType(ModelType type, w.Serializer s) {
     switch (type) {
       case ModelTypeReference(:final index):
-        s.writeUnsigned(index.index);
+        index.serialize(s);
       case PrimitiveType(:final typeCode):
         s.writeByte(typeCode);
       case StringType():
@@ -651,10 +656,10 @@ final class TypeDefinition extends ComponentDefinition {
         _writeOptionalType(error, s);
       case OwnType(:final resource):
         s.writeByte(0x69);
-        s.writeUnsigned(resource.index);
+        resource.serialize(s);
       case BorrowType(:final resource):
-        s.writeByte(0x69);
-        s.writeUnsigned(resource.index);
+        s.writeByte(0x68);
+        resource.serialize(s);
       case StreamType(:final element):
         s.writeByte(0x66);
         _writeOptionalType(element, s);
@@ -667,7 +672,7 @@ final class TypeDefinition extends ComponentDefinition {
           hasInt64Representation ? PrimitiveType.s64 : PrimitiveType.s64,
           s,
         );
-        if (destructor != null) s.writeUnsigned(destructor.index);
+        if (destructor != null) destructor.serialize(s);
       case FunctionType(:final async, :final parameters, :final result):
         s.writeByte(async ? 0x43 : 0x40);
         s.writeUnsigned(parameters.length);

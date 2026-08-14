@@ -1,6 +1,10 @@
 import '../../third_party/wasm_builder/wasm_builder.dart' as w;
 
-extension type const Index(int index) {}
+extension type const Index(int index) {
+  void serialize(w.Serializer serializer) {
+    serializer.writeSigned(index);
+  }
+}
 
 extension type const ComponentFunctionIndex(int index) implements Index {}
 

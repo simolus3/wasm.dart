@@ -9,3 +9,4 @@ dependencies:
   hooks: ^2.0.2
   wasm_components:
   wasm_tools:
+  wasi:

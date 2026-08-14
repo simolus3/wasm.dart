@@ -108,9 +108,6 @@ final class ComponentBuilder with HasDefinitions implements w.Serializable {
     for (final section in _toSections()) {
       section.serialize(s);
     }
-
-    //    TypesSection(_types).serialize(s);
-    //ImportsSection(_imports).serialize(s);
   }
 
   Uint8List serializeToBytes() {
