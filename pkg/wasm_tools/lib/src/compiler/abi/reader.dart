@@ -41,21 +41,73 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
     final ownerIdx = (rawType['owner'] as _JsonObject?)?['interface'] as int?;
     final owner = ownerIdx != null ? interfaces[ownerIdx] : null;
 
-    final MapEntry(key: kind, value: definition) =
-        (rawType['kind'] as _JsonObject).entries.single;
+    final kindDef = rawType['kind'];
+    final (kind, definition) = switch (kindDef) {
+      final String kind => (kind, null),
+      final _JsonObject map => _singleEntryMap(map),
+      _ => throw ArgumentError.value(rawType, 'rawType'),
+    };
+
     switch (kind) {
       case 'record':
-        throw UnimplementedError('record');
+        final fields = ((definition as _JsonObject)['fields'] as List)
+            .cast<_JsonObject>();
+
+        types.add(
+          RecordAbiType(
+            fields: [
+              for (final {'name': name as String, 'type': type} in fields)
+                (name, _deserializeType(types, type)),
+            ],
+            owner: owner,
+          ),
+        );
       case 'resource':
-        throw UnimplementedError('resource');
+        types.add(ResourceAbiType(owner: owner));
       case 'handle':
-        throw UnimplementedError('handle');
+        types.add(switch (definition) {
+          {'own': final type} => HandleAbiType(
+            resource: _deserializeType(types, type),
+            isOwned: true,
+          ),
+          {'borrow': final type} => HandleAbiType(
+            resource: _deserializeType(types, type),
+            isOwned: false,
+          ),
+          _ => throw ArgumentError.value(definition, 'handle definition'),
+        });
       case 'flags':
-        throw UnimplementedError('flags');
+        final flags = ((definition as _JsonObject)['flags'] as List)
+            .cast<_JsonObject>();
+
+        types.add(
+          FlagsAbiType(
+            flags: [for (final {'name': name as String} in flags) name],
+            owner: owner,
+          ),
+        );
       case 'tuple':
-        throw UnimplementedError('tuple');
+        final inner = (definition as _JsonObject)['types'] as List;
+
+        types.add(
+          TupleAbiType(
+            fields: [for (final type in inner) _deserializeType(types, type)],
+            owner: owner,
+          ),
+        );
       case 'variant':
-        throw UnimplementedError('variant');
+        final cases = ((definition as _JsonObject)['cases'] as List)
+            .cast<_JsonObject>();
+
+        types.add(
+          VariantAbiType(
+            variants: [
+              for (final {'name': name as String, 'type': type} in cases)
+                (name, _deserializeNullableType(types, type)),
+            ],
+            owner: owner,
+          ),
+        );
       case 'enum':
         final cases = ((definition as _JsonObject)['cases'] as List)
             .cast<_JsonObject>()
@@ -63,7 +115,9 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
             .toList();
         types.add(EnumAbiType(cases, owner: owner));
       case 'option':
-        throw UnimplementedError('option');
+        types.add(
+          OptionAbiType(_deserializeType(types, definition), owner: owner),
+        );
       case 'result':
         definition as _JsonObject;
 
@@ -75,17 +129,26 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
           ),
         );
       case 'list':
-        throw UnimplementedError('list');
+        types.add(
+          VariableLengthListAbiType(
+            _deserializeType(types, definition),
+            owner: owner,
+          ),
+        );
       case 'map':
         throw UnimplementedError('map');
       case 'fixed-length-list':
         throw UnimplementedError('fixed-length-list');
       case 'future':
-        types.add(FutureAbiType(_deserializeType(types, definition)));
+        types.add(
+          FutureAbiType(_deserializeType(types, definition), owner: owner),
+        );
       case 'stream':
-        types.add(StreamAbiType(_deserializeType(types, definition)));
+        types.add(
+          StreamAbiType(_deserializeType(types, definition), owner: owner),
+        );
       case 'type':
-        final resolved = types[definition as int];
+        final resolved = _deserializeType(types, definition);
         final originalOwner = resolved.owner;
         if (originalOwner == null || resolved.owner == owner) {
           types.add(resolved);
@@ -112,6 +175,18 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
 
     for (final MapEntry(key: name, value: definition as _JsonObject)
         in (value['functions'] as _JsonObject).entries) {
+      final isAsync = switch (definition['kind']) {
+        final String s => s.startsWith('async-'),
+        Map(:final entries) => (entries.single.key as String).startsWith(
+          'async-',
+        ),
+        _ => throw ArgumentError.value(
+          definition,
+          'definition',
+          'Unknown function kind',
+        ),
+      };
+
       key.exportedFunctions[name] = AbiFunction(
         parameters: [
           for (final {'name': paramName as String, 'type': type}
@@ -119,7 +194,7 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
             (paramName, _deserializeType(types, type)),
         ],
         result: _deserializeNullableType(types, definition['result']),
-        async: (definition['kind'] as String).startsWith('async-'),
+        async: isAsync,
       );
     }
 
@@ -368,4 +443,9 @@ final class Package {
       _ => throw ArgumentError.value(name, 'name', 'Invalid package name'),
     };
   }
+}
+
+(String, Object?) _singleEntryMap(_JsonObject obj) {
+  final MapEntry(key: kind, value: definition) = obj.entries.single;
+  return (kind, definition);
 }

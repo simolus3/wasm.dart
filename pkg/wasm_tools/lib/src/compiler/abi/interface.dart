@@ -86,3 +86,32 @@ final class RecordAbiType extends AbiType {
 
   const new({required this.fields, super.owner});
 }
+
+final class VariantAbiType extends AbiType {
+  final List<(String, AbiType?)> variants;
+
+  new({super.owner, required this.variants});
+}
+
+final class TupleAbiType extends AbiType {
+  final List<AbiType> fields;
+
+  new({super.owner, required this.fields});
+}
+
+final class FlagsAbiType extends AbiType {
+  final List<String> flags;
+
+  new({super.owner, required this.flags});
+}
+
+final class ResourceAbiType extends AbiType {
+  new({required super.owner});
+}
+
+final class HandleAbiType extends AbiType {
+  final AbiType resource;
+  final bool isOwned;
+
+  new({super.owner, required this.resource, required this.isOwned});
+}

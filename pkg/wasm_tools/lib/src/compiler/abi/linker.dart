@@ -183,9 +183,19 @@ ComponentTypeIndex _addType({
         for (final (name, type) in fields)
           .new(label: name, type: innerType(type)),
       ]),
+      VariantAbiType(:final variants) => types.VariantType([
+        for (final (name, type) in variants)
+          .new(label: name, type: type == null ? null : innerType(type)),
+      ]),
       VariableLengthListAbiType(:final element) => types.VariableLengthListType(
         elementType: innerType(element),
       ),
+      TupleAbiType(:final fields) => types.TupleType([
+        for (final field in fields) innerType(field),
+      ]),
+      FlagsAbiType(:final flags) => types.FlagsType(flags),
+      ResourceAbiType() ||
+      HandleAbiType() => throw UnimplementedError('resource types'),
       ImportedAbiType() => throw AssertionError('handled above'),
     });
   });
