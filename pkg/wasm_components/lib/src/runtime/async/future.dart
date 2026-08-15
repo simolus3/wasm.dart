@@ -99,6 +99,21 @@ Future<T> readFutureInternal<T>(FutureVtable<T> vtable, int future, Task task) {
   return completer.future;
 }
 
+/// Generates a writable future and completes it with [future], using the
+/// [vtable] to serialize values.
+///
+/// Returns the readable end of the created future, which can be passed to other
+/// components or the host.
+WasmI32 writeFuture<T>(Future<T> future, FutureVtable<T> vtable) {
+  final (readableEnd, writable) = WritableFuture.create(
+    vtable,
+    Task.forCurrentZone(),
+  );
+
+  unawaited(future.then(writable.writeValue));
+  return WasmI32.fromInt(readableEnd);
+}
+
 @internal
 final class WritableFuture<T> {
   final int _handle;

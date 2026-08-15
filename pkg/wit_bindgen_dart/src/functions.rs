@@ -1,8 +1,8 @@
 use std::rc::Rc;
 use std::{fmt::Write, mem};
 
-use heck::{AsLowerCamelCase, AsUpperCamelCase, ToLowerCamelCase};
-use wit_bindgen_core::abi::WasmType;
+use heck::{AsLowerCamelCase, AsUpperCamelCase};
+use wit_bindgen_core::abi::{Bitcast, WasmType};
 use wit_bindgen_core::wit_parser::{Alignment, ArchitectureSize, FlagsRepr, Handle, TypeId};
 use wit_bindgen_core::{
     abi::{Bindgen, Instruction},
@@ -11,7 +11,7 @@ use wit_bindgen_core::{
 use wit_bindgen_core::{uwrite, uwriteln};
 
 use crate::abi::{CanonicalOptions, ImportedFunction, ImportedFunctionDefinition};
-use crate::dart_source::DartSource;
+use crate::dart_source::{DartSource, parameter_name};
 use crate::{
     bindgen::ExportedInstance,
     dart_source::{DartDefinition, KnownDartUri},
@@ -21,13 +21,24 @@ pub struct DartFunctionGenerator<'a, 'd> {
     size_align: &'a SizeAlign,
     pub dart: &'a mut DartSource<'d>,
     pub definition: DartDefinition,
-    block_storage: Vec<DartDefinition>,
-    blocks: Vec<(String, Vec<Rc<String>>)>,
+    block_storage: Vec<PendingBlock>,
+    blocks: Vec<FinishedBlock>,
     mode: FunctionMode<'a>,
     pub cleanup: String,
     next_temporary: usize,
     pub options: CanonicalOptions,
     additional_imports: Vec<ImportedFunction>,
+}
+
+struct FinishedBlock {
+    code: String,
+    operands: Vec<Rc<String>>,
+    cleanup: String,
+}
+
+struct PendingBlock {
+    code: DartDefinition,
+    cleanup: String,
 }
 
 pub enum FunctionMode<'a> {
@@ -148,7 +159,7 @@ impl<'a, 'd> DartFunctionGenerator<'a, 'd> {
             FunctionMode::Standalone => panic!("Standalone mode has no arguments"),
         };
 
-        function.params[nth].name.to_lower_camel_case()
+        parameter_name(&function.params[nth].name)
     }
 
     fn drop_function(&mut self, resource_id: &TypeId) -> Rc<String> {
@@ -185,6 +196,40 @@ void {name}(int handle) {{
             .stream_future_vtables
             .insert(*resource_id, name.clone());
         name
+    }
+
+    fn apply_bitcast(&mut self, operand: &Rc<String>, cast: &Bitcast) -> Rc<String> {
+        match cast {
+            Bitcast::F32ToI32 => todo!(),
+            Bitcast::F64ToI64 => todo!(),
+            Bitcast::F32ToI64 => todo!(),
+            Bitcast::I32ToF32 => todo!(),
+            Bitcast::I64ToF64 => todo!(),
+            Bitcast::I64ToF32 => todo!(),
+            Bitcast::I64ToI32 | Bitcast::P64ToP | Bitcast::I64ToL => {
+                let import = self.dart_wasm_import();
+                Rc::new(format!("{import}.WasmI32.fromInt({operand}.toInt())"))
+            }
+            Bitcast::I32ToI64 | Bitcast::LToI64 | Bitcast::PToP64 => {
+                let import = self.dart_wasm_import();
+                Rc::new(format!(
+                    "{import}.WasmI64.fromInt({operand}.toIntUnsigned())"
+                ))
+            }
+            Bitcast::Sequence(chain) => chain
+                .iter()
+                .fold(operand.clone(), |op, cast| self.apply_bitcast(&op, cast)),
+
+            Bitcast::P64ToI64
+            | Bitcast::I64ToP64
+            | Bitcast::I32ToP
+            | Bitcast::PToI32
+            | Bitcast::I32ToL
+            | Bitcast::LToI32
+            | Bitcast::PToL
+            | Bitcast::LToP
+            | Bitcast::None => operand.clone(),
+        }
     }
 }
 
@@ -317,8 +362,16 @@ impl<'a, 'd> Bindgen for DartFunctionGenerator<'a, 'd> {
             Instruction::OptionLift { payload: _, ty } => {
                 let tmp = self.temporary_variable();
 
-                let (some, some_results) = self.blocks.pop().unwrap();
-                let (none, _) = self.blocks.pop().unwrap();
+                let FinishedBlock {
+                    code: some,
+                    operands: some_results,
+                    cleanup: some_cleanup,
+                } = self.blocks.pop().unwrap();
+                let FinishedBlock {
+                    code: none,
+                    cleanup: none_cleanup,
+                    operands: _,
+                } = self.blocks.pop().unwrap();
 
                 let has_value = operands.pop().unwrap();
                 uwrite!(self.definition, "final ");
@@ -330,9 +383,11 @@ impl<'a, 'd> Bindgen for DartFunctionGenerator<'a, 'd> {
 if ({has_value}.toBool()) {{
   {some}
   {tmp} = .some({});
+  {some_cleanup}
 }} else {{
   {none}
   {tmp} = .none;
+  {none_cleanup}
 }}
                     ",
                     some_results[0]
@@ -356,8 +411,8 @@ if ({has_value}.toBool()) {{
                     .split_off(self.blocks.len() - variant.cases.len());
                 uwriteln!(self.definition, "switch({discriminant}.toIntUnsigned()) {{");
 
-                for ((i, case), (block, results)) in variant.cases.iter().enumerate().zip(cases) {
-                    uwriteln!(self.definition, "case {i}:\n{block}");
+                for ((i, case), block) in variant.cases.iter().enumerate().zip(cases) {
+                    uwriteln!(self.definition, "case {i}:\n{}", block.code);
 
                     uwrite!(
                         self.definition,
@@ -365,9 +420,9 @@ if ({has_value}.toBool()) {{
                         AsUpperCamelCase(&case.name)
                     );
                     if case.ty.is_some() {
-                        uwrite!(self.definition, "{}", results[0]);
+                        uwrite!(self.definition, "{}", block.operands[0]);
                     }
-                    uwriteln!(self.definition, ");");
+                    uwriteln!(self.definition, "{});", block.cleanup);
                 }
 
                 uwriteln!(
@@ -381,8 +436,16 @@ default:
             }
             Instruction::ResultLift { result: _, ty } => {
                 let tmp = self.temporary_variable();
-                let (err, err_results) = self.blocks.pop().unwrap();
-                let (ok, ok_results) = self.blocks.pop().unwrap();
+                let FinishedBlock {
+                    code: err,
+                    operands: err_results,
+                    cleanup: err_cleanup,
+                } = self.blocks.pop().unwrap();
+                let FinishedBlock {
+                    code: ok,
+                    operands: ok_results,
+                    cleanup: ok_cleanup,
+                } = self.blocks.pop().unwrap();
                 let is_err = operands.pop().unwrap();
 
                 uwrite!(self.definition, "final ");
@@ -394,9 +457,11 @@ default:
 if ({is_err}.toBool()) {{
   {err}
   {tmp} = .error({});
+  {err_cleanup}
 }} else {{
   {ok}
   {tmp} = .ok({});
+  {ok_cleanup}
 }}
 ",
                     match err_results.get(0) {
@@ -523,8 +588,16 @@ if ({is_err}.toBool()) {{
                 ty: _,
                 results: result_types,
             } => {
-                let (err, err_results) = self.blocks.pop().unwrap();
-                let (ok, ok_results) = self.blocks.pop().unwrap();
+                let FinishedBlock {
+                    code: err,
+                    operands: err_results,
+                    cleanup: err_cleanup,
+                } = self.blocks.pop().unwrap();
+                let FinishedBlock {
+                    code: ok,
+                    operands: ok_results,
+                    cleanup: ok_cleanup,
+                } = self.blocks.pop().unwrap();
                 let value = operands.pop().unwrap();
 
                 let result_names = (0..result_types.len())
@@ -546,7 +619,7 @@ if ({is_err}.toBool()) {{
                 for (value, name) in ok_results.iter().zip(&result_names) {
                     uwriteln!(self.definition, "{name} = {value};");
                 }
-                uwrite!(self.definition, "  case ");
+                uwrite!(self.definition, "{ok_cleanup}\n  case ");
                 self.definition.imported_identifier(
                     self.dart,
                     KnownDartUri::PkgWasmComponents,
@@ -556,7 +629,7 @@ if ({is_err}.toBool()) {{
                 for (value, name) in err_results.iter().zip(&result_names) {
                     uwriteln!(self.definition, "{name} = {value};");
                 }
-                uwriteln!(self.definition, "}}");
+                uwriteln!(self.definition, "{err_cleanup}\n}}");
 
                 results.extend(result_names);
             }
@@ -565,8 +638,16 @@ if ({is_err}.toBool()) {{
                 ty: _,
                 results: result_types,
             } => {
-                let (some, some_results) = self.blocks.pop().unwrap();
-                let (none, none_results) = self.blocks.pop().unwrap();
+                let FinishedBlock {
+                    code: some,
+                    operands: some_results,
+                    cleanup: some_cleanup,
+                } = self.blocks.pop().unwrap();
+                let FinishedBlock {
+                    code: none,
+                    cleanup: none_cleanup,
+                    operands: none_results,
+                } = self.blocks.pop().unwrap();
                 let value = operands.pop().unwrap();
 
                 let result_names = (0..result_types.len())
@@ -586,11 +667,11 @@ if ({is_err}.toBool()) {{
                 for (value, name) in some_results.iter().zip(&result_names) {
                     uwriteln!(self.definition, "{name} = {value};");
                 }
-                uwriteln!(self.definition, "}} else {{{none}");
+                uwriteln!(self.definition, "{some_cleanup}}} else {{{none}");
                 for (value, name) in none_results.iter().zip(&result_names) {
                     uwriteln!(self.definition, "{name} = {value};");
                 }
-                uwriteln!(self.definition, "}}");
+                uwriteln!(self.definition, "{none_cleanup}}}");
 
                 results.extend(result_names);
             }
@@ -616,7 +697,15 @@ if ({is_err}.toBool()) {{
 
                 uwriteln!(self.definition, "switch ({variant_expr}) {{");
 
-                for (case, (block, results)) in variant.cases.iter().zip(variant_blocks) {
+                for (
+                    case,
+                    FinishedBlock {
+                        code,
+                        operands,
+                        cleanup,
+                    },
+                ) in variant.cases.iter().zip(variant_blocks)
+                {
                     if case.ty.is_some() {
                         uwriteln!(
                             self.definition,
@@ -630,11 +719,12 @@ if ({is_err}.toBool()) {{
                             AsUpperCamelCase(&case.name)
                         );
                     }
-                    uwrite!(self.definition, "{block}");
+                    uwrite!(self.definition, "{code}");
 
-                    for (value, name) in results.iter().zip(&result_names) {
+                    for (value, name) in operands.iter().zip(&result_names) {
                         uwriteln!(self.definition, "{name} = {value};");
                     }
+                    uwriteln!(self.definition, "{cleanup}")
                 }
 
                 uwriteln!(self.definition, "}}");
@@ -645,8 +735,16 @@ if ({is_err}.toBool()) {{
                 let blocks = self.blocks.split_off(self.blocks.len() - *blocks);
 
                 uwriteln!(self.definition, "switch ({discriminant}) {{");
-                for (i, (code, _)) in blocks.iter().enumerate() {
-                    uwriteln!(self.definition, "case {i}: {code}break;");
+                for (
+                    i,
+                    FinishedBlock {
+                        code,
+                        cleanup,
+                        operands: _,
+                    },
+                ) in blocks.iter().enumerate()
+                {
+                    uwriteln!(self.definition, "case {i}: {code}{cleanup}break;");
                 }
                 uwriteln!(self.definition, "}}");
             }
@@ -663,6 +761,23 @@ if ({is_err}.toBool()) {{
                 uwriteln!(
                     self.definition,
                     "(const {vtable}(), {}).toWasmI32();",
+                    operands.pop().unwrap()
+                );
+                results.push(tmp);
+            }
+            Instruction::FutureLower { payload: _, ty } => {
+                let vtable = self.dart.stream_future_vtables.get(ty).cloned().unwrap();
+                let tmp = self.temporary_variable();
+
+                uwrite!(self.definition, "  final {tmp} = ");
+                self.definition.imported_identifier(
+                    self.dart,
+                    KnownDartUri::PkgWasmComponents,
+                    "writeFuture",
+                );
+                uwriteln!(
+                    self.definition,
+                    "({}, const {vtable}());",
                     operands.pop().unwrap()
                 );
                 results.push(tmp);
@@ -821,6 +936,13 @@ if ({is_err}.toBool()) {{
                 let f64 = operands.pop().unwrap();
                 results.push(Rc::new(format!("{f64}.toDouble()")));
             }
+            Instruction::Bitcasts { casts } => {
+                let operands = operands.split_off(operands.len() - casts.len());
+                for (operand, cast) in operands.iter().zip(casts.iter()) {
+                    let result = self.apply_bitcast(operand, cast);
+                    results.push(result);
+                }
+            }
             Instruction::RecordLift {
                 record,
                 name: _,
@@ -919,7 +1041,11 @@ if ({is_err}.toBool()) {{
                 let ptr = self.temporary_variable();
                 let base_ptr = self.temporary_variable();
 
-                let (body, _) = self.blocks.pop().unwrap();
+                let FinishedBlock {
+                    code: body,
+                    cleanup,
+                    operands: _,
+                } = self.blocks.pop().unwrap();
                 uwriteln!(
                     self.definition,
                     "
@@ -930,6 +1056,7 @@ for (final element in {list}) {{
   final elementPtr = {base_ptr};
   {body}
   {base_ptr} += const {dart}.WasmI32({size});
+  {cleanup}
 }}
 "
                 );
@@ -956,7 +1083,11 @@ for (final element in {list}) {{
                 let dart = self.dart.import(KnownDartUri::DartWasm);
                 let length = operands.pop().unwrap();
                 let ptr = operands.pop().unwrap();
-                let (body, mut elements) = self.blocks.pop().unwrap();
+                let FinishedBlock {
+                    code: body,
+                    operands: mut elements,
+                    cleanup,
+                } = self.blocks.pop().unwrap();
                 let value = elements.pop().unwrap();
 
                 uwriteln!(
@@ -966,6 +1097,7 @@ final {start_ptr} = {ptr}.toIntUnsigned();
 final {list} = List.generate({length}.toIntUnsigned(), growable: false, (i) {{
   final elementPtr = {dart}.WasmI32.fromInt({start_ptr} + i * {size});
   {body}
+  {cleanup}
   return {value};
 }});
 "
@@ -1043,14 +1175,25 @@ final {list} = List.generate({length}.toIntUnsigned(), growable: false, (i) {{
     }
 
     fn push_block(&mut self) {
-        let prev = mem::take(&mut self.definition);
-        self.block_storage.push(prev);
+        let prev_def = mem::take(&mut self.definition);
+        let prev_cleanup = mem::take(&mut self.cleanup);
+
+        self.block_storage.push(PendingBlock {
+            code: prev_def,
+            cleanup: prev_cleanup,
+        });
     }
 
     fn finish_block(&mut self, operands: &mut Vec<Self::Operand>) {
         let to_restore = self.block_storage.pop().unwrap();
-        let def = mem::replace(&mut self.definition, to_restore);
-        self.blocks.push((def.take_code(), mem::take(operands)));
+        let def = mem::replace(&mut self.definition, to_restore.code);
+        let cleanup = mem::replace(&mut self.cleanup, to_restore.cleanup);
+
+        self.blocks.push(FinishedBlock {
+            code: def.take_code(),
+            operands: mem::take(operands),
+            cleanup,
+        });
     }
 
     fn sizes(&self) -> &SizeAlign {

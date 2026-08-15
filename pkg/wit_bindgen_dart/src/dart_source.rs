@@ -409,7 +409,7 @@ impl DartDefinition {
             for param in &function.params {
                 let _ = write!(self, "required ");
                 self.write_dart_type(dart, resolve, &param.ty);
-                let _ = write!(self, " {}, ", AsLowerCamelCase(&param.name));
+                let _ = write!(self, " {}, ", parameter_name(&param.name));
             }
             let _ = write!(self, "}}");
         }
@@ -591,13 +591,10 @@ impl DartDefinition {
 
     pub fn write_core_type(&mut self, dart: &mut DartSource, core_type: &WasmType) {
         let simple_name = match core_type {
-            WasmType::I32 => "WasmI32",
-            WasmType::I64 => "WasmI64",
+            WasmType::I32 | WasmType::Pointer | WasmType::Length => "WasmI32",
+            WasmType::I64 | WasmType::PointerOrI64 => "WasmI64",
             WasmType::F32 => "WasmF32",
             WasmType::F64 => "WasmF64",
-            WasmType::Pointer => "WasmI32",
-            WasmType::PointerOrI64 => "WasmI32",
-            WasmType::Length => "WasmI32",
         };
         self.imported_identifier(dart, KnownDartUri::DartWasm, simple_name);
     }
@@ -650,5 +647,13 @@ pub struct ImportMap {
 impl ImportMap {
     pub fn define_package_import(&mut self, package: PackageId, import: Rc<String>) {
         self.map.insert(package, import);
+    }
+}
+
+pub fn parameter_name(name: &str) -> String {
+    if name == "this" {
+        "$this".to_string()
+    } else {
+        name.to_lower_camel_case()
     }
 }

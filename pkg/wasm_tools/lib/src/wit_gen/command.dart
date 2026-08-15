@@ -26,7 +26,7 @@ final class GenerateWitInteropCommand extends Command<void> {
       defaultsTo: 'lib/src/components',
     );
 
-    argParser.addOption(
+    argParser.addMultiOption(
       'world',
       abbr: 'w',
       help: 'The main world to generate in case multiple worlds are defined.',
@@ -56,10 +56,14 @@ final class GenerateWitInteropCommand extends Command<void> {
         throw ToolFailure('Input file $input does not exist');
     }
 
+    final worlds = results.multiOption('world');
+
     final generated = await witBindgen(
       GenerateDartOptions(
         files: inputs,
-        runs: [GenerationRun(results.option('world'))],
+        runs: worlds.isEmpty
+            ? [GenerationRun(null)]
+            : [for (final world in worlds) GenerationRun(world)],
       ),
     );
 
