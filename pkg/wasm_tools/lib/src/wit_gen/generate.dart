@@ -44,31 +44,20 @@ final class WitInputFile {
   }
 }
 
-sealed class GeneratedFile {
+final class GeneratedFile {
+  final String name;
   final String contents;
 
-  GeneratedFile(this.contents);
+  GeneratedFile(this.name, this.contents);
 
   factory GeneratedFile.fromJson(Map<String, Object?> json) {
+    final name = json['name'] as String;
     final contents = json['contents'] as String;
-    final kind = json['kind'];
 
-    if (kind == 'AbiJson') {
-      return AbiJsonFile(contents);
-    } else {
-      final package = (kind as Map<String, Object?>)['Dart'] as String;
-      return GeneratedDartFile(package, contents);
-    }
+    return GeneratedFile(name, contents);
   }
-}
 
-final class AbiJsonFile extends GeneratedFile {
-  AbiJsonFile(super.contents);
-}
-
-final class GeneratedDartFile extends GeneratedFile {
-  final String name;
-  GeneratedDartFile(this.name, super.contents);
+  bool get isDartFile => name.endsWith('.dart');
 }
 
 final class WitGenerateException implements Exception {

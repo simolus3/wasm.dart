@@ -11,7 +11,7 @@ void main(List<String> args) => build(args, (input, output) async {
     output.assets.webAssemblyComponents.add(
       WasmComponentAsset(
         encoded: json.decode(
-          File('hook/wasm_abi.json').readAsStringSync(),
+          File('lib/src/components/wasi_cli_command.json').readAsStringSync(),
         ) as Map<String, Object?>,
       ),
     );

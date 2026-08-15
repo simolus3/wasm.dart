@@ -8,6 +8,7 @@ environment:
   sdk: ^3.13.0-0
 
 dependencies:
+  meta: ^1.19.0
   hooks: ^2.0.2
   wasm_components:
   wasm_tools:

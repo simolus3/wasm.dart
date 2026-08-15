@@ -78,28 +78,26 @@ final class GenerateWitInteropCommand extends Command<void> {
     }
     await outputDirectory.create();
 
-    for (final file in generated) {
-      switch (file) {
-        case AbiJsonFile(:final contents):
-          final hookDirectory = Directory('hook');
-          if (!await hookDirectory.exists()) {
-            await hookDirectory.create();
-          }
-          final file = File('hook/wasm_abi.json');
-          await file.writeAsString(
-            JsonEncoder.withIndent('  ').convert(jsonDecode(contents)),
-          );
-          logger.fine('Wrote abi to ${file.path}.');
-        case GeneratedDartFile(:final name, :var contents):
-          try {
-            contents = formatter.format(contents);
-          } on FormatterException catch (e, s) {
-            logger.warning('Could not format Dart sources', e, s);
-          }
+    for (final generatedFile in generated) {
+      var contents = generatedFile.contents;
+      final file = File.fromUri(
+        outputDirectory.uri.resolve(generatedFile.name),
+      );
 
-          final file = File.fromUri(outputDirectory.uri.resolve(name));
-          await file.writeAsString(contents);
-          logger.fine('Wrote component to ${file.path}.');
+      if (generatedFile.isDartFile) {
+        try {
+          contents = formatter.format(contents);
+        } on FormatterException catch (e, s) {
+          logger.warning('Could not format Dart sources', e, s);
+        }
+
+        await file.writeAsString(contents);
+        logger.fine('Wrote component to ${file.path}.');
+      } else {
+        await file.writeAsString(
+          JsonEncoder.withIndent('  ').convert(jsonDecode(contents)),
+        );
+        logger.fine('Wrote abi to ${file.path}.');
       }
     }
 

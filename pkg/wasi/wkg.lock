@@ -10,3 +10,12 @@ registry = "wasi.dev"
 requirement = "=0.3.0"
 version = "0.3.0"
 digest = "sha256:3a2d58743b67a057f7210b9a73d3b21b34ec7895ffe34d1cb092927307156e40"
+
+[[packages]]
+name = "wasi:http"
+registry = "wasi.dev"
+
+[[packages.versions]]
+requirement = "=0.3.0"
+version = "0.3.0"
+digest = "sha256:92cd8f3730c00226dc15626a2e7b21834dd187fc221f09818720d228585bbbf7"

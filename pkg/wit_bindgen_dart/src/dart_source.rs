@@ -618,6 +618,8 @@ pub enum KnownDartUri {
     DartTypedData,
     /// `package:wasm_components/component.dart`
     PkgWasmComponents,
+    /// `package:meta/meta.dart`
+    Meta,
     Custom(Rc<String>),
 }
 
@@ -627,6 +629,7 @@ impl KnownDartUri {
             KnownDartUri::DartWasm => "dart:_wasm",
             KnownDartUri::DartTypedData => "dart:typed_data",
             KnownDartUri::PkgWasmComponents => "package:wasm_components/wasm_components.dart",
+            KnownDartUri::Meta => "package:meta/meta.dart",
             KnownDartUri::Custom(uri) => uri,
         }
     }

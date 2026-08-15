@@ -13,6 +13,8 @@ import r'wasi_filesystem.dart' as i5;
 import r'wasi_sockets.dart' as i6;
 import r'wasi_random.dart' as i7;
 
+import r'package:meta/meta.dart' as i8;
+
 @pragma("wasm:import", r"component._import0")
 external i1.WasmVoid _import0(i1.WasmI32 p0);
 @pragma("wasm:import", r"component._import1")
@@ -101,6 +103,7 @@ final class _Imported$12 implements i0.Exit {
     switch (status) {
       case i2.OkResult(:final value):
         tmp0 = const i1.WasmI32(0);
+
       case i2.ErrorResult(:final value):
         tmp0 = const i1.WasmI32(1);
     }
@@ -1018,216 +1021,252 @@ final class _Vtable27
               const i1.WasmI32(0),
               offset: 4,
             );
+
           case i5.TypesErrorCodeAlready():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(1),
               offset: 4,
             );
+
           case i5.TypesErrorCodeBadDescriptor():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(2),
               offset: 4,
             );
+
           case i5.TypesErrorCodeBusy():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(3),
               offset: 4,
             );
+
           case i5.TypesErrorCodeDeadlock():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(4),
               offset: 4,
             );
+
           case i5.TypesErrorCodeQuota():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(5),
               offset: 4,
             );
+
           case i5.TypesErrorCodeExist():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(6),
               offset: 4,
             );
+
           case i5.TypesErrorCodeFileTooLarge():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(7),
               offset: 4,
             );
+
           case i5.TypesErrorCodeIllegalByteSequence():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(8),
               offset: 4,
             );
+
           case i5.TypesErrorCodeInProgress():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(9),
               offset: 4,
             );
+
           case i5.TypesErrorCodeInterrupted():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(10),
               offset: 4,
             );
+
           case i5.TypesErrorCodeInvalid():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(11),
               offset: 4,
             );
+
           case i5.TypesErrorCodeIo():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(12),
               offset: 4,
             );
+
           case i5.TypesErrorCodeIsDirectory():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(13),
               offset: 4,
             );
+
           case i5.TypesErrorCodeLoop():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(14),
               offset: 4,
             );
+
           case i5.TypesErrorCodeTooManyLinks():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(15),
               offset: 4,
             );
+
           case i5.TypesErrorCodeMessageSize():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(16),
               offset: 4,
             );
+
           case i5.TypesErrorCodeNameTooLong():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(17),
               offset: 4,
             );
+
           case i5.TypesErrorCodeNoDevice():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(18),
               offset: 4,
             );
+
           case i5.TypesErrorCodeNoEntry():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(19),
               offset: 4,
             );
+
           case i5.TypesErrorCodeNoLock():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(20),
               offset: 4,
             );
+
           case i5.TypesErrorCodeInsufficientMemory():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(21),
               offset: 4,
             );
+
           case i5.TypesErrorCodeInsufficientSpace():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(22),
               offset: 4,
             );
+
           case i5.TypesErrorCodeNotDirectory():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(23),
               offset: 4,
             );
+
           case i5.TypesErrorCodeNotEmpty():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(24),
               offset: 4,
             );
+
           case i5.TypesErrorCodeNotRecoverable():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(25),
               offset: 4,
             );
+
           case i5.TypesErrorCodeUnsupported():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(26),
               offset: 4,
             );
+
           case i5.TypesErrorCodeNoTty():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(27),
               offset: 4,
             );
+
           case i5.TypesErrorCodeNoSuchDevice():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(28),
               offset: 4,
             );
+
           case i5.TypesErrorCodeOverflow():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(29),
               offset: 4,
             );
+
           case i5.TypesErrorCodeNotPermitted():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(30),
               offset: 4,
             );
+
           case i5.TypesErrorCodePipe():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(31),
               offset: 4,
             );
+
           case i5.TypesErrorCodeReadOnly():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(32),
               offset: 4,
             );
+
           case i5.TypesErrorCodeInvalidSeek():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(33),
               offset: 4,
             );
+
           case i5.TypesErrorCodeTextFileBusy():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(34),
               offset: 4,
             );
+
           case i5.TypesErrorCodeCrossDevice():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(35),
               offset: 4,
             );
+
           case i5.TypesErrorCodeOther(payload: final value):
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
@@ -1475,42 +1514,49 @@ final class _Vtable31
             const i1.WasmI32(0),
             offset: 0,
           );
+
         case i5.TypesDescriptorTypeCharacterDevice():
           i2.memory.storeInt8(
             wasmAddress.toIntUnsigned(),
             const i1.WasmI32(1),
             offset: 0,
           );
+
         case i5.TypesDescriptorTypeDirectory():
           i2.memory.storeInt8(
             wasmAddress.toIntUnsigned(),
             const i1.WasmI32(2),
             offset: 0,
           );
+
         case i5.TypesDescriptorTypeFifo():
           i2.memory.storeInt8(
             wasmAddress.toIntUnsigned(),
             const i1.WasmI32(3),
             offset: 0,
           );
+
         case i5.TypesDescriptorTypeSymbolicLink():
           i2.memory.storeInt8(
             wasmAddress.toIntUnsigned(),
             const i1.WasmI32(4),
             offset: 0,
           );
+
         case i5.TypesDescriptorTypeRegularFile():
           i2.memory.storeInt8(
             wasmAddress.toIntUnsigned(),
             const i1.WasmI32(5),
             offset: 0,
           );
+
         case i5.TypesDescriptorTypeSocket():
           i2.memory.storeInt8(
             wasmAddress.toIntUnsigned(),
             const i1.WasmI32(6),
             offset: 0,
           );
+
         case i5.TypesDescriptorTypeOther(payload: final value):
           i2.memory.storeInt8(
             wasmAddress.toIntUnsigned(),
@@ -2409,12 +2455,14 @@ final class _Imported$4 implements i5.Types {
           const i1.WasmI32(0),
           offset: 0,
         );
+
       case i5.TypesNewTimestampNow():
         i2.memory.storeInt8(
           (tmp0 + const i1.WasmI32(8)).toIntUnsigned(),
           const i1.WasmI32(1),
           offset: 0,
         );
+
       case i5.TypesNewTimestampTimestamp(payload: final value):
         i2.memory.storeInt8(
           (tmp0 + const i1.WasmI32(8)).toIntUnsigned(),
@@ -2439,12 +2487,14 @@ final class _Imported$4 implements i5.Types {
           const i1.WasmI32(0),
           offset: 0,
         );
+
       case i5.TypesNewTimestampNow():
         i2.memory.storeInt8(
           (tmp0 + const i1.WasmI32(32)).toIntUnsigned(),
           const i1.WasmI32(1),
           offset: 0,
         );
+
       case i5.TypesNewTimestampTimestamp(payload: final value):
         i2.memory.storeInt8(
           (tmp0 + const i1.WasmI32(32)).toIntUnsigned(),
@@ -3315,12 +3365,14 @@ final class _Imported$4 implements i5.Types {
           const i1.WasmI32(0),
           offset: 0,
         );
+
       case i5.TypesNewTimestampNow():
         i2.memory.storeInt8(
           (tmp0 + const i1.WasmI32(16)).toIntUnsigned(),
           const i1.WasmI32(1),
           offset: 0,
         );
+
       case i5.TypesNewTimestampTimestamp(payload: final value):
         i2.memory.storeInt8(
           (tmp0 + const i1.WasmI32(16)).toIntUnsigned(),
@@ -3345,12 +3397,14 @@ final class _Imported$4 implements i5.Types {
           const i1.WasmI32(0),
           offset: 0,
         );
+
       case i5.TypesNewTimestampNow():
         i2.memory.storeInt8(
           (tmp0 + const i1.WasmI32(40)).toIntUnsigned(),
           const i1.WasmI32(1),
           offset: 0,
         );
+
       case i5.TypesNewTimestampTimestamp(payload: final value):
         i2.memory.storeInt8(
           (tmp0 + const i1.WasmI32(40)).toIntUnsigned(),
@@ -5068,84 +5122,98 @@ final class _Vtable61
               const i1.WasmI32(0),
               offset: 4,
             );
+
           case i6.TypesErrorCodeNotSupported():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(1),
               offset: 4,
             );
+
           case i6.TypesErrorCodeInvalidArgument():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(2),
               offset: 4,
             );
+
           case i6.TypesErrorCodeOutOfMemory():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(3),
               offset: 4,
             );
+
           case i6.TypesErrorCodeTimeout():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(4),
               offset: 4,
             );
+
           case i6.TypesErrorCodeInvalidState():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(5),
               offset: 4,
             );
+
           case i6.TypesErrorCodeAddressNotBindable():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(6),
               offset: 4,
             );
+
           case i6.TypesErrorCodeAddressInUse():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(7),
               offset: 4,
             );
+
           case i6.TypesErrorCodeRemoteUnreachable():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(8),
               offset: 4,
             );
+
           case i6.TypesErrorCodeConnectionRefused():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(9),
               offset: 4,
             );
+
           case i6.TypesErrorCodeConnectionBroken():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(10),
               offset: 4,
             );
+
           case i6.TypesErrorCodeConnectionReset():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(11),
               offset: 4,
             );
+
           case i6.TypesErrorCodeConnectionAborted():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(12),
               offset: 4,
             );
+
           case i6.TypesErrorCodeDatagramTooLarge():
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i1.WasmI32(13),
               offset: 4,
             );
+
           case i6.TypesErrorCodeOther(payload: final value):
             i2.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
@@ -5491,6 +5559,7 @@ final class _Imported$6 implements i6.Types {
         tmp9 = const i1.WasmI32(0);
         tmp10 = const i1.WasmI32(0);
         tmp11 = const i1.WasmI32(0);
+
       case i6.TypesIpSocketAddressIpv6(payload: final value):
         tmp0 = const i1.WasmI32(1);
         tmp1 = i1.WasmI32.uint16FromInt(value.port);
@@ -5632,6 +5701,7 @@ final class _Imported$6 implements i6.Types {
           i1.WasmI32.uint8FromInt(value.address.$4),
           offset: 9,
         );
+
       case i6.TypesIpSocketAddressIpv6(payload: final value):
         i2.memory.storeInt8(
           (tmp0 + const i1.WasmI32(4)).toIntUnsigned(),
@@ -7240,6 +7310,7 @@ final class _Imported$6 implements i6.Types {
         tmp9 = const i1.WasmI32(0);
         tmp10 = const i1.WasmI32(0);
         tmp11 = const i1.WasmI32(0);
+
       case i6.TypesIpSocketAddressIpv6(payload: final value):
         tmp0 = const i1.WasmI32(1);
         tmp1 = i1.WasmI32.uint16FromInt(value.port);
@@ -7369,6 +7440,7 @@ final class _Imported$6 implements i6.Types {
         tmp9 = const i1.WasmI32(0);
         tmp10 = const i1.WasmI32(0);
         tmp11 = const i1.WasmI32(0);
+
       case i6.TypesIpSocketAddressIpv6(payload: final value):
         tmp0 = const i1.WasmI32(1);
         tmp1 = i1.WasmI32.uint16FromInt(value.port);
@@ -7611,6 +7683,7 @@ final class _Imported$6 implements i6.Types {
             i1.WasmI32.uint8FromInt(value.address.$4),
             offset: 13,
           );
+
         case i6.TypesIpSocketAddressIpv6(payload: final value):
           i2.memory.storeInt8(
             (tmp0 + const i1.WasmI32(12)).toIntUnsigned(),
@@ -8791,6 +8864,7 @@ final class CommandImports {
   i7.InsecureSeed get randomInsecureSeed => const _Imported$10();
 }
 
+@i8.RecordUse()
 void commandComponent(i0.Run Function(CommandImports) defineComponent) {
   final res = defineComponent(const CommandImports._());
   _unnamedExport13 = res;
@@ -8805,6 +8879,7 @@ i1.WasmI32 _component_0() {
       switch (tmp0) {
         case i2.OkResult(:final value):
           tmp1 = const i1.WasmI32(0);
+
         case i2.ErrorResult(:final value):
           tmp1 = const i1.WasmI32(1);
       }

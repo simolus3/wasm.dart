@@ -796,8 +796,12 @@ impl<'a> WorldGenerator for DartWorldGenerator<'a> {
         // their main() function.
         let mut def = DartDefinition::default();
         {
+            uwrite!(def, "@");
+            def.imported_identifier(&mut self.main, KnownDartUri::Meta, "RecordUse");
+            uwriteln!(def, "()");
+
             let def = &mut def;
-            let _ = write!(
+            uwrite!(
                 def,
                 "void {}Component(",
                 AsLowerCamelCase(&resolved_world.name)

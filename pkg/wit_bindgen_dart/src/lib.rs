@@ -41,14 +41,8 @@ pub enum ExportResult {
 
 #[derive(Serialize, Debug)]
 pub struct GeneratedFile {
-    pub kind: GeneratedFileKind,
+    pub name: Rc<String>,
     pub contents: String,
-}
-
-#[derive(Serialize, Debug)]
-pub enum GeneratedFileKind {
-    AbiJson,
-    Dart(Rc<String>),
 }
 
 #[repr(C)]
@@ -106,7 +100,6 @@ fn wit_bindgen_dart_internal(input: GenerateDartOptions) -> anyhow::Result<Vec<G
         }
     }
 
-    let mut abi = ImportsAndExports::default();
     let mut import_map = ImportMap::default();
     let mut outputs = vec![];
 
@@ -136,7 +129,7 @@ fn wit_bindgen_dart_internal(input: GenerateDartOptions) -> anyhow::Result<Vec<G
             AsSnakeCase(&package.name.name)
         ));
         outputs.push(GeneratedFile {
-            kind: GeneratedFileKind::Dart(name.clone()),
+            name: name.clone(),
             contents: dart.to_string(),
         });
         import_map.define_package_import(package_id, name);
@@ -145,33 +138,36 @@ fn wit_bindgen_dart_internal(input: GenerateDartOptions) -> anyhow::Result<Vec<G
     for run in input.runs {
         let world = resolve.select_world(&main_packages, run.main.as_deref())?;
 
+        let mut abi = ImportsAndExports::default();
         let mut generator = DartWorldGenerator::new(&mut abi, &import_map);
         let mut files = Files::default();
         generator.generate(&mut resolve, world, &mut files)?;
 
         let world = &resolve.worlds[world];
-        outputs.push(GeneratedFile {
-            kind: GeneratedFileKind::Dart(Rc::new(match world.package.as_ref() {
-                Some(package) => {
-                    let package = &resolve.packages[*package];
+        let base_file_name = Rc::new(match world.package.as_ref() {
+            Some(package) => {
+                let package = &resolve.packages[*package];
 
-                    format!(
-                        "{}_{}_{}.dart",
-                        AsSnakeCase(&package.name.namespace),
-                        AsSnakeCase(&package.name.name),
-                        AsSnakeCase(&world.name)
-                    )
-                }
-                None => world.name.to_snake_case(),
-            })),
+                format!(
+                    "{}_{}_{}",
+                    AsSnakeCase(&package.name.namespace),
+                    AsSnakeCase(&package.name.name),
+                    AsSnakeCase(&world.name)
+                )
+            }
+            None => world.name.to_snake_case(),
+        });
+        outputs.push(GeneratedFile {
+            name: Rc::new(format!("{base_file_name}.dart")),
             contents: generator.main.to_string(),
+        });
+
+        outputs.push(GeneratedFile {
+            name: Rc::new(format!("{base_file_name}.json")),
+            contents: abi.serialize_abi(&resolve)?,
         });
     }
 
-    outputs.push(GeneratedFile {
-        kind: GeneratedFileKind::AbiJson,
-        contents: abi.serialize_abi(&resolve)?,
-    });
     Ok(outputs)
 }
 
@@ -393,7 +389,14 @@ interface greeting {
                 is_main: true,
                 is_directory: true,
             }],
-            runs: vec![GenerationRun { main: None }],
+            runs: vec![
+                GenerationRun {
+                    main: Some("wasi:cli/command".to_string()),
+                },
+                GenerationRun {
+                    main: Some("wasi:http/service".to_string()),
+                },
+            ],
         };
 
         wit_bindgen_dart_internal(options).unwrap();
