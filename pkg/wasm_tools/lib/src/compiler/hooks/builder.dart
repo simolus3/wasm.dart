@@ -8,20 +8,22 @@ import 'package:package_config/package_config.dart';
 
 import '../../failure.dart';
 import '../abi/abi.dart';
-import '../abi/reader.dart';
+import '../abi/reader.dart' hide Package;
 import 'extension.dart';
 import 'extension.dart' as hooks;
 
-final class PackageConfigWithAbi {
+final class PreCompilationBuildResult {
   final String packageConfigFile;
   final PackageConfig packageConfig;
-  final ProgramAbi abi;
+  final NativeAssetsBuildRunner _buildRunner;
+  final BuildResult _result;
 
-  PackageConfigWithAbi({
-    required this.packageConfigFile,
-    required this.packageConfig,
-    required this.abi,
-  });
+  PreCompilationBuildResult._(
+    this.packageConfigFile,
+    this.packageConfig,
+    this._buildRunner,
+    this._result,
+  );
 
   /// Resolves the file containing pre-compiled WebAssembly helpers used to
   /// implement component interop.
@@ -45,10 +47,41 @@ final class PackageConfigWithAbi {
     return file;
   }
 
-  static Future<PackageConfigWithAbi?> resolveProgramAbi({
+  Future<ProgramAbi> linkAbi({
+    required Logger logger,
+    required File entrypoint,
+    required File useFile,
+  }) async {
+    final linkResult = await _buildRunner.link(
+      extensions: [WasmComponentExtension()],
+      buildResult: _result,
+      recordUse: RecordUseConfig(
+        file: useFile.uri,
+        entryPoints: [entrypoint.uri],
+        compiler: 'wasm_tools',
+      ),
+    );
+
+    final abi = ProgramAbi();
+
+    if (linkResult.isFailure) {
+      logger.shout('Could not run link hooks: ${linkResult.asFailure.value}');
+      return abi;
+    }
+
+    final assets = linkResult.asSuccess.value.encodedAssets;
+    for (final asset in assets) {
+      if (asset.type == hooks.name) {
+        readAbi(abi, asset.encoding);
+      }
+    }
+
+    return abi;
+  }
+
+  static Future<PreCompilationBuildResult?> runBuild({
     required File mainFile,
     required Logger logger,
-    bool includeDevDependencies = false,
   }) async {
     final mainUri = mainFile.absolute.uri;
     final pkgConfig = await findPackageConfigAndUri(mainUri);
@@ -69,13 +102,13 @@ final class PackageConfigWithAbi {
         pkgConfig.config,
         pkgConfig.file,
         mainPackage.name,
-        includeDevDependencies: includeDevDependencies,
+        includeDevDependencies: true,
       ),
     );
 
     final buildResult = await buildRunner.build(
       extensions: [WasmComponentExtension()],
-      linkingEnabled: false,
+      linkingEnabled: true,
     );
     if (buildResult.isFailure) {
       final error = buildResult.asFailure.value;
@@ -83,18 +116,11 @@ final class PackageConfigWithAbi {
       return null;
     }
 
-    final abi = ProgramAbi();
-    final assets = buildResult.asSuccess.value.encodedAssets;
-    for (final asset in assets) {
-      if (asset.type == hooks.name) {
-        readAbi(abi, asset.encoding);
-      }
-    }
-
-    return PackageConfigWithAbi(
-      packageConfig: pkgConfig.config,
-      packageConfigFile: pkgConfig.file.toFilePath(),
-      abi: abi,
+    return PreCompilationBuildResult._(
+      pkgConfig.file.toFilePath(),
+      pkgConfig.config,
+      buildRunner,
+      buildResult.asSuccess.value,
     );
   }
 }

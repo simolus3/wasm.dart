@@ -11,6 +11,11 @@ final class WasmComponentExtension extends ProtocolExtension {
   void setupBuildInput(BuildInputBuilder input) {
     input.config.addBuildAssetTypes(const [name]);
   }
+
+  @override
+  void setupLinkInput(LinkInputBuilder input) {
+    input.config.addBuildAssetTypes(const [name]);
+  }
 }
 
 extension HookConfigWasm on HookConfig {
@@ -18,21 +23,21 @@ extension HookConfigWasm on HookConfig {
   bool get buildWasmComponent => buildAssetTypes.contains(name);
 }
 
-/// Extension on [BuildOutputAssetsBuilder] to add [WasmComponentAsset]s.
-extension BuildOutputAssetsBuilderWasm on BuildOutputAssetsBuilder {
+/// Extension on [LinkOutputAssetsBuilder] to add [WasmComponentAsset]s.
+extension LinkOutputAssetsBuilderWasm on LinkOutputAssetsBuilder {
   /// Provides access to emitting code assets.
   ///
   /// Should only be used if [HookConfigWasm.buildWasmComponent] is true.
-  BuildOutputWasmComponentAssetBuilder get webAssemblyComponents {
-    return BuildOutputWasmComponentAssetBuilder._(this);
+  LinkOutputWasmComponentAssetBuilder get webAssemblyComponents {
+    return LinkOutputWasmComponentAssetBuilder._(this);
   }
 }
 
-/// Extension on [BuildOutputAssetsBuilder] to add [WasmComponentAsset]s.
-final class BuildOutputWasmComponentAssetBuilder {
-  final BuildOutputAssetsBuilder _output;
+/// Extension on [LinkOutputAssetsBuilder] to add [WasmComponentAsset]s.
+final class LinkOutputWasmComponentAssetBuilder {
+  final LinkOutputAssetsBuilder _output;
 
-  BuildOutputWasmComponentAssetBuilder._(this._output);
+  LinkOutputWasmComponentAssetBuilder._(this._output);
 
   void add(WasmComponentAsset asset) {
     _output.addEncodedAsset(asset.encode());
@@ -40,7 +45,7 @@ final class BuildOutputWasmComponentAssetBuilder {
 }
 
 final class WasmComponentAsset {
-  /// The WIT context, as serialized by `wasm-tools component wit -j`.
+  /// The WIT context, as serialized by `dart run wasm_tools witgen`.
   final Map<String, Object?> encoded;
 
   const WasmComponentAsset({required this.encoded});

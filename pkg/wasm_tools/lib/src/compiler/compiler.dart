@@ -30,18 +30,17 @@ final class ComponentCompiler {
   Future<void> run() async {
     final workspace = await Directory.systemTemp.createTemp('dart-wasm-cm');
     final dart2wasmOut = p.join(workspace.path, 'app.dart2.wasm');
+    final recordedUses = p.join(workspace.path, 'recorded_uses.json');
 
     try {
-      logger.fine('Invoking build hooks to infer ABI');
-      final resolved = await PackageConfigWithAbi.resolveProgramAbi(
+      logger.fine('Running build hooks');
+      final buildConfig = await PreCompilationBuildResult.runBuild(
         mainFile: options.input,
         logger: logger,
-        includeDevDependencies: options.hooksIncludeDevDependencies,
       );
-      if (resolved == null) {
-        throw CompilerFailure('Could not resolve components');
+      if (buildConfig == null) {
+        throw CompilerFailure('Could not run build hooks');
       }
-      final abi = resolved.abi;
 
       logger.fine('Building main application');
       final binDir = p.dirname(Platform.resolvedExecutable);
@@ -62,7 +61,7 @@ final class ComponentCompiler {
         '--libraries-spec',
         librariesSpec,
         '--packages',
-        resolved.packageConfigFile,
+        buildConfig.packageConfigFile,
         '--standalone',
         '--enable-experimental-wasm-interop',
         '--no-minify',
@@ -70,10 +69,19 @@ final class ComponentCompiler {
         '-O0',
         options.input.path,
         dart2wasmOut,
+        '--recorded-uses',
+        recordedUses,
       ], mode: .inheritStdio)).exitCode;
       if (result != 0) {
         throw CompilerFailure('dart2wasm failed: $result');
       }
+
+      logger.fine('Invoking link hooks to infer ABI');
+      final abi = await buildConfig.linkAbi(
+        logger: logger,
+        entrypoint: options.input,
+        useFile: File(recordedUses),
+      );
 
       final transformer = ModuleTransformer.fromBytes(
         await File(dart2wasmOut).readAsBytes(),
@@ -83,7 +91,7 @@ final class ComponentCompiler {
 
       final builder = ComponentBuilder();
       final libcDef = builder.defineModuleFromBytes(
-        await (await resolved.resolveRuntimeHelpersFile()).readAsBytes(),
+        await (await buildConfig.resolveRuntimeHelpersFile()).readAsBytes(),
       );
       final appDef = builder.defineModule(transformer.module);
 
