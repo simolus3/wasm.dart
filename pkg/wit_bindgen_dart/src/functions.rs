@@ -796,7 +796,10 @@ if ({is_err}.toBool()) {{
                 ty: _,
             } => {
                 let handle = operands.pop().unwrap();
-                results.push(Rc::new(format!("{handle}.handle.toWasmI32()")));
+                let import = self.dart.import(KnownDartUri::DartWasm);
+                results.push(Rc::new(format!(
+                    "{import}.WasmI32.fromInt({handle}.handle)"
+                )));
             }
             Instruction::I32Store { offset }
             | Instruction::LengthStore { offset }

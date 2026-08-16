@@ -6,6 +6,7 @@ environment:
 
 workspace:
   - pkg/wasm_tools/example/hello_world_wasi
+  - pkg/wasm_tools/example/http_service
   - pkg/wasm_tools/example/greeting
 
   - pkg/test_runner

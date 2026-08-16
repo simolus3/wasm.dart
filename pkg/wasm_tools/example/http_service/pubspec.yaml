@@ -1,0 +1,12 @@
+name: wasi_http_service
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0-0
+
+dependencies:
+  hooks: ^2.0.2
+  wasm_components:
+  wasm_tools:
+  wasi:

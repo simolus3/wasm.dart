@@ -1786,7 +1786,11 @@ final class _Imported$4 implements i5.Types {
     required int offset,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(8));
-    _import55(self.handle.toWasmI32(), i1.WasmI64.fromInt(offset), tmp0);
+    _import55(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI64.fromInt(offset),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
     final tmp2 = i2.ReadableStream(tmp1.toIntUnsigned(), const _Vtable25());
     final tmp3 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
@@ -1804,7 +1808,7 @@ final class _Imported$4 implements i5.Types {
   }) {
     final tmp0 = i2.newReadableStream(const _Vtable25(), data).toWasmI32();
     final tmp1 = _import56(
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       tmp0,
       i1.WasmI64.fromInt(offset),
     );
@@ -1818,7 +1822,7 @@ final class _Imported$4 implements i5.Types {
     required Stream<i3.Uint8List> data,
   }) {
     final tmp0 = i2.newReadableStream(const _Vtable25(), data).toWasmI32();
-    final tmp1 = _import57(self.handle.toWasmI32(), tmp0);
+    final tmp1 = _import57(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp2 = i2.readFuture(const _Vtable27(), tmp1.toIntUnsigned());
     return tmp2;
   }
@@ -1834,7 +1838,7 @@ final class _Imported$4 implements i5.Types {
     await i2
         .createSubtask(
           _import58(
-            self.handle.toWasmI32(),
+            i1.WasmI32.fromInt(self.handle),
             i1.WasmI64.fromInt(offset),
             i1.WasmI64.fromInt(length),
             advice.index.toWasmI32(),
@@ -1952,7 +1956,9 @@ final class _Imported$4 implements i5.Types {
     required i2.Borrowed<i5.TypesDescriptor> self,
   }) async {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    await i2.createSubtask(_import59(self.handle.toWasmI32(), tmp0)).completion;
+    await i2
+        .createSubtask(_import59(i1.WasmI32.fromInt(self.handle), tmp0))
+        .completion;
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i5.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -2064,7 +2070,9 @@ final class _Imported$4 implements i5.Types {
     required i2.Borrowed<i5.TypesDescriptor> self,
   }) async {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    await i2.createSubtask(_import60(self.handle.toWasmI32(), tmp0)).completion;
+    await i2
+        .createSubtask(_import60(i1.WasmI32.fromInt(self.handle), tmp0))
+        .completion;
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<i5.TypesDescriptorFlags, i5.TypesErrorCode> tmp10;
     if (tmp1.toBool()) {
@@ -2179,7 +2187,9 @@ final class _Imported$4 implements i5.Types {
     required i2.Borrowed<i5.TypesDescriptor> self,
   }) async {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    await i2.createSubtask(_import61(self.handle.toWasmI32(), tmp0)).completion;
+    await i2
+        .createSubtask(_import61(i1.WasmI32.fromInt(self.handle), tmp0))
+        .completion;
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<i5.TypesDescriptorType, i5.TypesErrorCode> tmp14;
     if (tmp1.toBool()) {
@@ -2328,7 +2338,11 @@ final class _Imported$4 implements i5.Types {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
     await i2
         .createSubtask(
-          _import62(self.handle.toWasmI32(), i1.WasmI64.fromInt(size), tmp0),
+          _import62(
+            i1.WasmI32.fromInt(self.handle),
+            i1.WasmI64.fromInt(size),
+            tmp0,
+          ),
         )
         .completion;
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
@@ -2445,7 +2459,7 @@ final class _Imported$4 implements i5.Types {
     final tmp0 = i2.mallocAligned(const i1.WasmI32(8), const i1.WasmI32(56));
     i2.memory.storeInt32(
       (tmp0 + const i1.WasmI32(0)).toIntUnsigned(),
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       offset: 0,
     );
     switch (dataAccessTimestamp) {
@@ -2629,7 +2643,7 @@ final class _Imported$4 implements i5.Types {
     required i2.Borrowed<i5.TypesDescriptor> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(8));
-    _import64(self.handle.toWasmI32(), tmp0);
+    _import64(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
     final tmp2 = i2.ReadableStream(tmp1.toIntUnsigned(), const _Vtable31());
     final tmp3 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
@@ -2644,7 +2658,9 @@ final class _Imported$4 implements i5.Types {
     required i2.Borrowed<i5.TypesDescriptor> self,
   }) async {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    await i2.createSubtask(_import65(self.handle.toWasmI32(), tmp0)).completion;
+    await i2
+        .createSubtask(_import65(i1.WasmI32.fromInt(self.handle), tmp0))
+        .completion;
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i5.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -2759,7 +2775,12 @@ final class _Imported$4 implements i5.Types {
     var tmp1 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
     await i2
         .createSubtask(
-          _import66(self.handle.toWasmI32(), tmp0.ptr, tmp0.packedLength, tmp1),
+          _import66(
+            i1.WasmI32.fromInt(self.handle),
+            tmp0.ptr,
+            tmp0.packedLength,
+            tmp1,
+          ),
         )
         .completion;
     final tmp2 = i2.memory.loadUint8(tmp1.toIntUnsigned(), offset: 0);
@@ -2883,7 +2904,9 @@ final class _Imported$4 implements i5.Types {
   >
   methodDescriptorStat({required i2.Borrowed<i5.TypesDescriptor> self}) async {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(8), const i1.WasmI32(112));
-    await i2.createSubtask(_import67(self.handle.toWasmI32(), tmp0)).completion;
+    await i2
+        .createSubtask(_import67(i1.WasmI32.fromInt(self.handle), tmp0))
+        .completion;
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<
       ({
@@ -3114,7 +3137,7 @@ final class _Imported$4 implements i5.Types {
     await i2
         .createSubtask(
           _import68(
-            self.handle.toWasmI32(),
+            i1.WasmI32.fromInt(self.handle),
             pathFlags.toWasmI32(),
             tmp0.ptr,
             tmp0.packedLength,
@@ -3339,7 +3362,7 @@ final class _Imported$4 implements i5.Types {
     final tmp0 = i2.mallocAligned(const i1.WasmI32(8), const i1.WasmI32(64));
     i2.memory.storeInt32(
       (tmp0 + const i1.WasmI32(0)).toIntUnsigned(),
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       offset: 0,
     );
     i2.memory.storeInt8(
@@ -3541,7 +3564,7 @@ final class _Imported$4 implements i5.Types {
     final tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(28));
     i2.memory.storeInt32(
       (tmp0 + const i1.WasmI32(0)).toIntUnsigned(),
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       offset: 0,
     );
     i2.memory.storeInt8(
@@ -3562,7 +3585,7 @@ final class _Imported$4 implements i5.Types {
     );
     i2.memory.storeInt32(
       (tmp0 + const i1.WasmI32(16)).toIntUnsigned(),
-      newDescriptor.handle.toWasmI32(),
+      i1.WasmI32.fromInt(newDescriptor.handle),
       offset: 0,
     );
     final tmp2 = i2.AllocatedString.allocateUtf16(newPath);
@@ -3696,7 +3719,7 @@ final class _Imported$4 implements i5.Types {
     final tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
     i2.memory.storeInt32(
       (tmp0 + const i1.WasmI32(0)).toIntUnsigned(),
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       offset: 0,
     );
     i2.memory.storeInt8(
@@ -3844,7 +3867,12 @@ final class _Imported$4 implements i5.Types {
     var tmp1 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
     await i2
         .createSubtask(
-          _import73(self.handle.toWasmI32(), tmp0.ptr, tmp0.packedLength, tmp1),
+          _import73(
+            i1.WasmI32.fromInt(self.handle),
+            tmp0.ptr,
+            tmp0.packedLength,
+            tmp1,
+          ),
         )
         .completion;
     final tmp2 = i2.memory.loadUint8(tmp1.toIntUnsigned(), offset: 0);
@@ -3964,7 +3992,12 @@ final class _Imported$4 implements i5.Types {
     var tmp1 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
     await i2
         .createSubtask(
-          _import74(self.handle.toWasmI32(), tmp0.ptr, tmp0.packedLength, tmp1),
+          _import74(
+            i1.WasmI32.fromInt(self.handle),
+            tmp0.ptr,
+            tmp0.packedLength,
+            tmp1,
+          ),
         )
         .completion;
     final tmp2 = i2.memory.loadUint8(tmp1.toIntUnsigned(), offset: 0);
@@ -4082,7 +4115,7 @@ final class _Imported$4 implements i5.Types {
     final tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(24));
     i2.memory.storeInt32(
       (tmp0 + const i1.WasmI32(0)).toIntUnsigned(),
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       offset: 0,
     );
     final tmp1 = i2.AllocatedString.allocateUtf16(oldPath);
@@ -4098,7 +4131,7 @@ final class _Imported$4 implements i5.Types {
     );
     i2.memory.storeInt32(
       (tmp0 + const i1.WasmI32(12)).toIntUnsigned(),
-      newDescriptor.handle.toWasmI32(),
+      i1.WasmI32.fromInt(newDescriptor.handle),
       offset: 0,
     );
     final tmp2 = i2.AllocatedString.allocateUtf16(newPath);
@@ -4229,7 +4262,7 @@ final class _Imported$4 implements i5.Types {
     final tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
     i2.memory.storeInt32(
       (tmp0 + const i1.WasmI32(0)).toIntUnsigned(),
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       offset: 0,
     );
     final tmp1 = i2.AllocatedString.allocateUtf16(oldPath);
@@ -4371,7 +4404,12 @@ final class _Imported$4 implements i5.Types {
     var tmp1 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
     await i2
         .createSubtask(
-          _import77(self.handle.toWasmI32(), tmp0.ptr, tmp0.packedLength, tmp1),
+          _import77(
+            i1.WasmI32.fromInt(self.handle),
+            tmp0.ptr,
+            tmp0.packedLength,
+            tmp1,
+          ),
         )
         .completion;
     final tmp2 = i2.memory.loadUint8(tmp1.toIntUnsigned(), offset: 0);
@@ -4487,7 +4525,11 @@ final class _Imported$4 implements i5.Types {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(1), const i1.WasmI32(1));
     await i2
         .createSubtask(
-          _import78(self.handle.toWasmI32(), other.handle.toWasmI32(), tmp0),
+          _import78(
+            i1.WasmI32.fromInt(self.handle),
+            i1.WasmI32.fromInt(other.handle),
+            tmp0,
+          ),
         )
         .completion;
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
@@ -4501,7 +4543,9 @@ final class _Imported$4 implements i5.Types {
     required i2.Borrowed<i5.TypesDescriptor> self,
   }) async {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(8), const i1.WasmI32(24));
-    await i2.createSubtask(_import79(self.handle.toWasmI32(), tmp0)).completion;
+    await i2
+        .createSubtask(_import79(i1.WasmI32.fromInt(self.handle), tmp0))
+        .completion;
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<({int lower, int upper}), i5.TypesErrorCode> tmp11;
     if (tmp1.toBool()) {
@@ -4623,7 +4667,7 @@ final class _Imported$4 implements i5.Types {
     await i2
         .createSubtask(
           _import80(
-            self.handle.toWasmI32(),
+            i1.WasmI32.fromInt(self.handle),
             pathFlags.toWasmI32(),
             tmp0.ptr,
             tmp0.packedLength,
@@ -4839,7 +4883,7 @@ final class _Vtable58
 
       i2.memory.storeInt32(
         wasmAddress.toIntUnsigned(),
-        element.handle.toWasmI32(),
+        i1.WasmI32.fromInt(element.handle),
         offset: 0,
       );
     }
@@ -5576,7 +5620,7 @@ final class _Imported$6 implements i6.Types {
     }
     var tmp12 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
     _import100(
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       tmp0,
       tmp1,
       tmp2,
@@ -5666,7 +5710,7 @@ final class _Imported$6 implements i6.Types {
     final tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(36));
     i2.memory.storeInt32(
       (tmp0 + const i1.WasmI32(0)).toIntUnsigned(),
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       offset: 0,
     );
     switch (remoteAddress) {
@@ -5832,7 +5876,7 @@ final class _Imported$6 implements i6.Types {
   i2.Result<Stream<List<i2.Owned<i6.TypesTcpSocket>>>, i6.TypesErrorCode>
   methodTcpSocketListen({required i2.Borrowed<i6.TypesTcpSocket> self}) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import102(self.handle.toWasmI32(), tmp0);
+    _import102(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<
       Stream<List<i2.Owned<i6.TypesTcpSocket>>>,
@@ -5907,7 +5951,7 @@ final class _Imported$6 implements i6.Types {
     required Stream<i3.Uint8List> data,
   }) {
     final tmp0 = i2.newReadableStream(const _Vtable60(), data).toWasmI32();
-    final tmp1 = _import103(self.handle.toWasmI32(), tmp0);
+    final tmp1 = _import103(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp2 = i2.readFuture(const _Vtable61(), tmp1.toIntUnsigned());
     return tmp2;
   }
@@ -5916,7 +5960,7 @@ final class _Imported$6 implements i6.Types {
   (Stream<i3.Uint8List>, Future<i2.Result<void, i6.TypesErrorCode>>)
   methodTcpSocketReceive({required i2.Borrowed<i6.TypesTcpSocket> self}) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(8));
-    _import104(self.handle.toWasmI32(), tmp0);
+    _import104(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
     final tmp2 = i2.ReadableStream(tmp1.toIntUnsigned(), const _Vtable60());
     final tmp3 = i2.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
@@ -5932,7 +5976,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(36));
-    _import105(self.handle.toWasmI32(), tmp0);
+    _import105(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<i6.TypesIpSocketAddress, i6.TypesErrorCode> tmp30;
     if (tmp1.toBool()) {
@@ -6053,7 +6097,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(36));
-    _import106(self.handle.toWasmI32(), tmp0);
+    _import106(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<i6.TypesIpSocketAddress, i6.TypesErrorCode> tmp30;
     if (tmp1.toBool()) {
@@ -6172,7 +6216,7 @@ final class _Imported$6 implements i6.Types {
   bool methodTcpSocketGetIsListening({
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
-    final tmp0 = _import107(self.handle.toWasmI32());
+    final tmp0 = _import107(i1.WasmI32.fromInt(self.handle));
     return tmp0.toBool();
   }
 
@@ -6180,7 +6224,7 @@ final class _Imported$6 implements i6.Types {
   i6.TypesIpAddressFamily methodTcpSocketGetAddressFamily({
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
-    final tmp0 = _import108(self.handle.toWasmI32());
+    final tmp0 = _import108(i1.WasmI32.fromInt(self.handle));
     return i6.TypesIpAddressFamily.values[tmp0.toIntUnsigned()];
   }
 
@@ -6190,7 +6234,11 @@ final class _Imported$6 implements i6.Types {
     required int value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import109(self.handle.toWasmI32(), i1.WasmI64.fromInt(value), tmp0);
+    _import109(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI64.fromInt(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -6257,7 +6305,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import110(self.handle.toWasmI32(), tmp0);
+    _import110(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<bool, i6.TypesErrorCode> tmp9;
     if (tmp1.toBool()) {
@@ -6327,7 +6375,11 @@ final class _Imported$6 implements i6.Types {
     required bool value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import111(self.handle.toWasmI32(), i1.WasmI32.fromBool(value), tmp0);
+    _import111(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI32.fromBool(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -6394,7 +6446,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(8), const i1.WasmI32(24));
-    _import112(self.handle.toWasmI32(), tmp0);
+    _import112(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<int, i6.TypesErrorCode> tmp9;
     if (tmp1.toBool()) {
@@ -6464,7 +6516,11 @@ final class _Imported$6 implements i6.Types {
     required int value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import113(self.handle.toWasmI32(), i1.WasmI64.fromInt(value), tmp0);
+    _import113(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI64.fromInt(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -6531,7 +6587,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(8), const i1.WasmI32(24));
-    _import114(self.handle.toWasmI32(), tmp0);
+    _import114(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<int, i6.TypesErrorCode> tmp9;
     if (tmp1.toBool()) {
@@ -6601,7 +6657,11 @@ final class _Imported$6 implements i6.Types {
     required int value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import115(self.handle.toWasmI32(), i1.WasmI64.fromInt(value), tmp0);
+    _import115(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI64.fromInt(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -6668,7 +6728,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import116(self.handle.toWasmI32(), tmp0);
+    _import116(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<int, i6.TypesErrorCode> tmp9;
     if (tmp1.toBool()) {
@@ -6738,7 +6798,11 @@ final class _Imported$6 implements i6.Types {
     required int value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import117(self.handle.toWasmI32(), i1.WasmI32.fromInt(value), tmp0);
+    _import117(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI32.fromInt(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -6805,7 +6869,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import118(self.handle.toWasmI32(), tmp0);
+    _import118(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<int, i6.TypesErrorCode> tmp9;
     if (tmp1.toBool()) {
@@ -6875,7 +6939,11 @@ final class _Imported$6 implements i6.Types {
     required int value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import119(self.handle.toWasmI32(), i1.WasmI32.uint8FromInt(value), tmp0);
+    _import119(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI32.uint8FromInt(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -6942,7 +7010,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(8), const i1.WasmI32(24));
-    _import120(self.handle.toWasmI32(), tmp0);
+    _import120(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<int, i6.TypesErrorCode> tmp9;
     if (tmp1.toBool()) {
@@ -7012,7 +7080,11 @@ final class _Imported$6 implements i6.Types {
     required int value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import121(self.handle.toWasmI32(), i1.WasmI64.fromInt(value), tmp0);
+    _import121(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI64.fromInt(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -7079,7 +7151,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesTcpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(8), const i1.WasmI32(24));
-    _import122(self.handle.toWasmI32(), tmp0);
+    _import122(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<int, i6.TypesErrorCode> tmp9;
     if (tmp1.toBool()) {
@@ -7149,7 +7221,11 @@ final class _Imported$6 implements i6.Types {
     required int value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import123(self.handle.toWasmI32(), i1.WasmI64.fromInt(value), tmp0);
+    _import123(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI64.fromInt(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -7327,7 +7403,7 @@ final class _Imported$6 implements i6.Types {
     }
     var tmp12 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
     _import126(
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       tmp0,
       tmp1,
       tmp2,
@@ -7457,7 +7533,7 @@ final class _Imported$6 implements i6.Types {
     }
     var tmp12 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
     _import127(
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       tmp0,
       tmp1,
       tmp2,
@@ -7544,7 +7620,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesUdpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import128(self.handle.toWasmI32(), tmp0);
+    _import128(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -7615,7 +7691,7 @@ final class _Imported$6 implements i6.Types {
     final tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(48));
     i2.memory.storeInt32(
       (tmp0 + const i1.WasmI32(0)).toIntUnsigned(),
-      self.handle.toWasmI32(),
+      i1.WasmI32.fromInt(self.handle),
       offset: 0,
     );
 
@@ -7822,7 +7898,7 @@ final class _Imported$6 implements i6.Types {
   methodUdpSocketReceive({required i2.Borrowed<i6.TypesUdpSocket> self}) async {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(44));
     await i2
-        .createSubtask(_import130(self.handle.toWasmI32(), tmp0))
+        .createSubtask(_import130(i1.WasmI32.fromInt(self.handle), tmp0))
         .completion;
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<(List<int>, i6.TypesIpSocketAddress), i6.TypesErrorCode>
@@ -7957,7 +8033,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesUdpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(36));
-    _import131(self.handle.toWasmI32(), tmp0);
+    _import131(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<i6.TypesIpSocketAddress, i6.TypesErrorCode> tmp30;
     if (tmp1.toBool()) {
@@ -8078,7 +8154,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesUdpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(36));
-    _import132(self.handle.toWasmI32(), tmp0);
+    _import132(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<i6.TypesIpSocketAddress, i6.TypesErrorCode> tmp30;
     if (tmp1.toBool()) {
@@ -8197,7 +8273,7 @@ final class _Imported$6 implements i6.Types {
   i6.TypesIpAddressFamily methodUdpSocketGetAddressFamily({
     required i2.Borrowed<i6.TypesUdpSocket> self,
   }) {
-    final tmp0 = _import133(self.handle.toWasmI32());
+    final tmp0 = _import133(i1.WasmI32.fromInt(self.handle));
     return i6.TypesIpAddressFamily.values[tmp0.toIntUnsigned()];
   }
 
@@ -8206,7 +8282,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesUdpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import134(self.handle.toWasmI32(), tmp0);
+    _import134(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<int, i6.TypesErrorCode> tmp9;
     if (tmp1.toBool()) {
@@ -8276,7 +8352,11 @@ final class _Imported$6 implements i6.Types {
     required int value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import135(self.handle.toWasmI32(), i1.WasmI32.uint8FromInt(value), tmp0);
+    _import135(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI32.uint8FromInt(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -8343,7 +8423,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesUdpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(8), const i1.WasmI32(24));
-    _import136(self.handle.toWasmI32(), tmp0);
+    _import136(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<int, i6.TypesErrorCode> tmp9;
     if (tmp1.toBool()) {
@@ -8413,7 +8493,11 @@ final class _Imported$6 implements i6.Types {
     required int value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import137(self.handle.toWasmI32(), i1.WasmI64.fromInt(value), tmp0);
+    _import137(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI64.fromInt(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
@@ -8480,7 +8564,7 @@ final class _Imported$6 implements i6.Types {
     required i2.Borrowed<i6.TypesUdpSocket> self,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(8), const i1.WasmI32(24));
-    _import138(self.handle.toWasmI32(), tmp0);
+    _import138(i1.WasmI32.fromInt(self.handle), tmp0);
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<int, i6.TypesErrorCode> tmp9;
     if (tmp1.toBool()) {
@@ -8550,7 +8634,11 @@ final class _Imported$6 implements i6.Types {
     required int value,
   }) {
     var tmp0 = i2.mallocAligned(const i1.WasmI32(4), const i1.WasmI32(20));
-    _import139(self.handle.toWasmI32(), i1.WasmI64.fromInt(value), tmp0);
+    _import139(
+      i1.WasmI32.fromInt(self.handle),
+      i1.WasmI64.fromInt(value),
+      tmp0,
+    );
     final tmp1 = i2.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i2.Result<void, i6.TypesErrorCode> tmp8;
     if (tmp1.toBool()) {
