@@ -1,19 +1,58 @@
+@internal
+library;
+
+// ignore: import_internal_library
+import 'dart:_wasm';
 import 'dart:async';
 
-import 'subtask.dart';
+import 'package:meta/meta.dart';
 
-final class OneShotTimer implements Timer {
+import '../../embedder/clock.dart';
+import 'subtask.dart';
+import 'task.dart';
+
+final class WasmTimer implements Timer {
+  final Task _task;
+  final Duration _duration;
+
+  /// The callback, which should be bound to the zone creating this timer.
+  final void Function() _callback;
+  final bool _isPeriodic;
+
+  Subtask? _currentWait;
+
   @override
   var isActive = true;
+
   @override
   var tick = 0;
 
-  OneShotTimer(Subtask wait, void Function() run) {
-    wait.completion.then((_) {
+  new({
+    required this._task,
+    required this._duration,
+    required this._callback,
+    required this._isPeriodic,
+  }) {
+    _schedule();
+  }
+
+  void _schedule() {
+    assert(_currentWait == null && isActive);
+    final inNanos = (_duration.inMicroseconds * 1000).toWasmI64();
+    final task = _currentWait = _task.trackSubtask(
+      wasiMonotonicWaitFor(inNanos),
+    );
+
+    task.completion.whenComplete(() {
       if (isActive) {
-        isActive = false;
+        if (!_isPeriodic) isActive = false;
+
         tick++;
-        run();
+        _callback();
+
+        if (_isPeriodic && isActive) {
+          _schedule();
+        }
       }
     });
   }
@@ -21,6 +60,7 @@ final class OneShotTimer implements Timer {
   @override
   void cancel() {
     isActive = false;
+    _currentWait = null;
     // Ideally we should cancel the wait subtask too, but that is not currently
     // possible (see Subtask.cancel for details).
   }

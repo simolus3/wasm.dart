@@ -21,9 +21,21 @@ final class _Run implements Run {
     final stdoutDone = stdout.writeViaStream(data: out.stream);
 
     out.add(utf8.encode('Hello world!\n'));
-    await Future<void>.delayed(const Duration(seconds: 1));
-    out.add(utf8.encode('This is running Dart!'));
-    out.close();
+    await Future.pause(const Duration(seconds: 1));
+
+    final message = utf8.encode('This is running Dart!');
+    var i = 0;
+
+    Timer.periodic(Duration(milliseconds: 10), (timer) {
+      if (i == message.length) {
+        out.close();
+        timer.cancel();
+        return;
+      }
+
+      out.add(Uint8List.sublistView(message, i, i + 1));
+      i++;
+    });
 
     await stdoutDone;
     return const .ok(null);

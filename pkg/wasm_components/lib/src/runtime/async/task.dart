@@ -3,7 +3,6 @@ import 'dart:async';
 import 'dart:_wasm';
 import 'dart:collection';
 
-import '../../embedder/clock.dart';
 import 'callback.dart';
 import 'future.dart';
 import 'stream.dart';
@@ -144,10 +143,22 @@ final class Task {
         return parent.runBinary(zone, f, arg1, arg2);
       },
       createTimer: (self, parent, zone, duration, f) {
-        final inNanos = (duration.inMicroseconds * 1000).toWasmI64();
-        final subtask = trackSubtask(wasiMonotonicWaitFor(inNanos));
+        return WasmTimer(
+          task: this,
+          isPeriodic: false,
+          duration: duration,
+          callback: zone.bindCallbackGuarded(f),
+        );
+      },
+      createPeriodicTimer: (self, parent, zone, period, f) {
+        late WasmTimer timer;
 
-        return OneShotTimer(subtask, zone.bindCallbackGuarded(f));
+        return timer = WasmTimer(
+          task: this,
+          isPeriodic: true,
+          duration: period,
+          callback: () => zone.runUnaryGuarded(f, timer),
+        );
       },
       scheduleMicrotask: (self, parent, zone, f) {
         scheduleRawMicrotask(zone.bindCallbackGuarded(f));
