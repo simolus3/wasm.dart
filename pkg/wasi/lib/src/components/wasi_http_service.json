@@ -1474,8 +1474,7 @@
             "uses_strings": true,
             "uses_realloc": false,
             "is_async": true,
-            "uses_callback": true,
-            "post_return": "component_0_postreturn"
+            "uses_callback": true
           },
           "parameters": [
             {

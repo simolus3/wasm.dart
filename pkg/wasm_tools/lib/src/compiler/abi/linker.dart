@@ -109,6 +109,10 @@ final class Linker {
       final mapped = types.InstanceType();
 
       ComponentTypeIndex importFromOuter(ImportedAbiType import) {
+        if (import.definingInterface == interface) {
+          return typeEntries[import.inSameInterface!]!;
+        }
+
         // We can't import types in an interface type, but we can import it
         // into the outer component and then use a alias.
         final outer = importType(import);

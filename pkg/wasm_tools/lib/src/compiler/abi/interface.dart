@@ -47,7 +47,9 @@ final class ImportedAbiType extends AbiType {
   final AbiInterface definingInterface;
   final String name;
 
-  new(this.definingInterface, this.name, {super.owner});
+  final AbiType? inSameInterface;
+
+  new(this.definingInterface, this.name, {super.owner, this.inSameInterface});
 }
 
 final class StreamAbiType extends AbiType {

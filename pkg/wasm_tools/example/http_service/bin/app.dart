@@ -9,11 +9,7 @@ void main() {
   serviceComponent((imports) => _RequestHandler(imports));
 }
 
-final class _RequestHandler implements Handler {
-  final ServiceImports _imports;
-
-  new(this._imports);
-
+final class _RequestHandler(final ServiceImports _imports) implements Handler {
   @override
   Future<Result<Owned<TypesResponse>, TypesErrorCode>> handle({
     required Owned<TypesRequest> request,

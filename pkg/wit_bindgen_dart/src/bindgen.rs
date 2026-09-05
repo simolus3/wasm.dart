@@ -935,7 +935,8 @@ return asyncExitCode.toWasmI32();
                     uwrite!(def, ";")
                 }
 
-                if guest_export_needs_post_return(resolve, function) {
+                // TODO: Post-return for async functions?
+                if !function.kind.is_async() && guest_export_needs_post_return(resolve, function) {
                     let mut generator = DartFunctionGenerator::new(
                         &self.size_align,
                         &mut self.main,

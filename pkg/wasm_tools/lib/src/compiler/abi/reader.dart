@@ -152,8 +152,18 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
       case 'type':
         final resolved = _deserializeType(types, definition);
         final originalOwner = resolved.owner;
-        if (originalOwner == null || originalOwner == owner) {
+        if (originalOwner == null) {
           types.add(resolved);
+          break;
+        } else if (originalOwner == owner) {
+          types.add(
+            ImportedAbiType(
+              originalOwner,
+              ArgumentError.checkNotNull(name, 'name'),
+              owner: owner,
+              inSameInterface: resolved,
+            ),
+          );
           break;
         }
 
