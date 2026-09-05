@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import 'task.dart';
+import 'waitable.dart';
 
 @internal
 enum SubtaskState {
@@ -28,8 +29,15 @@ abstract final class Subtask {
   Future<void> get completion;
 
   /// Requests the subtask to be cancelled.
+  ///
+  /// Due to limitations in the component model, this currently blocks the
+  /// Dart thread until the subtask returns or affirms the cancellation. This
+  /// will be fixed once the `async` option on `subtask.cancel` is stable.
   void cancel();
 }
+
+@pragma('wasm:import', 'component.canon.subtask.cancel')
+external WasmI32 _subtaskCancel(WasmI32 task);
 
 @internal
 final class SubtaskImpl extends Subtask {
@@ -59,9 +67,9 @@ final class SubtaskImpl extends Subtask {
         _removeSelf();
         _completer?.complete();
       case SubtaskState.cancelledBeforeStarted:
+        _removeCancelled(const SubtaskCancelledException._(true));
       case SubtaskState.cancelledBeforeReturned:
-        _removeSelf();
-        _completer?.completeError(const SubtaskCancelledException._());
+        _removeCancelled(const SubtaskCancelledException._(false));
     }
   }
 
@@ -69,44 +77,55 @@ final class SubtaskImpl extends Subtask {
     _task.removeSubtask(_index);
   }
 
+  void _removeCancelled(SubtaskCancelledException e) {
+    _removeSelf();
+    _completer?.completeError(e);
+  }
+
   @override
   Future<void> get completion {
     if (_completer case final completer?) return completer.future;
 
     assert(_state == .returned, 'Must be immediately-returned subtask');
-    return Future.value();
+    return Future.syncValue(null);
   }
 
   @override
   void cancel() {
-    if (_cancellationRequested || _index == 0) return;
-    // TODO: Because we add subtasks to the waitable set immediately after
-    // creating them, cancelling requires the "🚝: enabling more canonical ABI
-    // options on more async-related builtins" feature to make
-    // subtask.cancel async. Until that is stabilized, we can't cancel subtasks.
-    // After adding that, also fix timers to cancel properly.
-
-    //    const blockedCode = 0xffff_ffff;
-
+    if (_cancellationRequested || _index == 0 || _completer!.isCompleted) {
+      return;
+    }
     _cancellationRequested = true;
-    // final newState = _subtaskCancel(_index.toWasmI32()).toIntUnsigned();
-    // if (newState == blockedCode) {
-    //   // We're already waiting on the task, we'll be notified asynchronously
-    //   // about state updates.
-    // } else {
-    //   _dispatchEvent(_SubtaskState.values[newState]);
-    // }
+
+    final indexI32 = WasmI32.fromInt(_index);
+
+    // We can't cancel subtasks that are currently in a waitable set, so we have
+    // to temporarily remove the task from the waitable set.
+    waitableJoin(indexI32, const WasmI32(0));
+
+    final newState = _subtaskCancel(indexI32).toIntUnsigned();
+    if (newState == blockedCode) {
+      // Wait on the task (again), so we'll be notified when it completes or
+      // acknowledges the cancellation request.
+      _task.waitable.addWaitable(indexI32);
+    } else {
+      dispatchEvent(SubtaskState.values[newState]);
+    }
   }
 }
 
 /// An exception thrown from [Subtask.completion] when the subtask was cancelled
 /// and has acknowledged its cancellation.
 final class SubtaskCancelledException implements Exception {
-  const SubtaskCancelledException._();
+  final bool beforeStarted;
+
+  const SubtaskCancelledException._(this.beforeStarted);
 
   @override
   String toString() {
-    return 'Subtask cancelled';
+    return beforeStarted
+        ? 'Subtask cancelled before starting'
+        : 'Subtask cancelled';
   }
 }
 

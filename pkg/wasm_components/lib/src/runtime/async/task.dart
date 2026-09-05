@@ -19,9 +19,6 @@ external WasmI32 _contextGet();
 @pragma('wasm:import', 'component.canon.subtask.drop')
 external WasmVoid _subtaskDrop(WasmI32 task);
 
-//@pragma('wasm:import', 'component.canon.subtask.cancel')
-//external WasmI32 _subtaskCancel(WasmI32 task);
-
 var _nextTaskId = 0;
 final Map<int, Task> _activeTasks = {};
 

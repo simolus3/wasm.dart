@@ -43,25 +43,26 @@ final class WasmTimer implements Timer {
       wasiMonotonicWaitFor(inNanos),
     );
 
-    task.completion.whenComplete(() {
-      if (isActive) {
-        if (!_isPeriodic) isActive = false;
+    task.completion.onError<SubtaskCancelledException>((_, _) {}).whenComplete(
+      () {
+        if (isActive) {
+          if (!_isPeriodic) isActive = false;
 
-        tick++;
-        _callback();
+          tick++;
+          _callback();
 
-        if (_isPeriodic && isActive) {
-          _schedule();
+          if (_isPeriodic && isActive) {
+            _schedule();
+          }
         }
-      }
-    });
+      },
+    );
   }
 
   @override
   void cancel() {
     isActive = false;
+    _currentWait?.cancel();
     _currentWait = null;
-    // Ideally we should cancel the wait subtask too, but that is not currently
-    // possible (see Subtask.cancel for details).
   }
 }
