@@ -4,4 +4,4 @@ A simple http server, exposed as a `wasi:http/service` component without any Dar
 
 From this directory, run `dart run wasm_tools compile bin/app.dart`.
 
-Once you have compiled the app, run `wasmtime serve bin/app.wasm`.
+Once you have compiled the app, run `wasmtime serve bin/app.wasm  -O pooling-max-tables-per-module=4`.

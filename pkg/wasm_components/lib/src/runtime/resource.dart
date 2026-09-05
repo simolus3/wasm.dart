@@ -12,6 +12,8 @@ final class Owned<T> extends ResourceHandle<T> {
   void drop() {
     _drop(handle);
   }
+
+  Borrowed<T> borrow() => Borrowed(handle);
 }
 
 final class Borrowed<T> extends ResourceHandle<T> {

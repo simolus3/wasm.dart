@@ -10,26 +10,39 @@ void main() {
 }
 
 final class _RequestHandler(final ServiceImports _imports) implements Handler {
+  var _requestId = 0;
+
   @override
   Future<Result<Owned<TypesResponse>, TypesErrorCode>> handle({
     required Owned<TypesRequest> request,
   }) async {
-    final Owned<TypesFields> headers;
-    switch (_imports.httpTypes.staticFieldsFromList(
-      entries: [('X-Test', utf8.encode('Foo'))],
-    )) {
-      case OkResult(:final value):
-        headers = value;
-      case ErrorResult():
-        return .error(
-          .internalError(.some("Could not encode response headers")),
-        );
-    }
+    final headers = _imports.httpTypes.constructorFields();
+
+    final responseText =
+        '''
+<!doctype html>
+<html>
+<head>
+  <title>dart2wasm http server</title>
+</head>
+<body>
+<h1>This website is running Dart!</h1>
+
+<p>
+Okay, that alone wouldn't be to impressive. But it's also running in <em>wasmtime</em>!
+</p<>
+
+<p>
+This is request number ${_requestId++} served by this server.
+</p>
+</body>
+</html>
+''';
 
     final (response, _) = _imports.httpTypes.staticResponseNew(
       headers: headers,
-      contents: .none,
-      trailers: Future(() => .ok(.none)),
+      contents: .some(.value(utf8.encode(responseText))),
+      trailers: Future.syncValue(.ok(.none)),
     );
 
     request.drop();
