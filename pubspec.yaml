@@ -2,7 +2,7 @@ name: _root
 publish_to: none
 
 environment:
-  sdk: ^3.13.0-0
+  sdk: ^3.13.0
 
 workspace:
   - pkg/wasm_tools/example/hello_world_wasi
