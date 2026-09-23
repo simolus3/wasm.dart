@@ -75,9 +75,10 @@ final class ModuleTransformer {
           if (export case w.FunctionExport(
             function: final w.DefinedFunction fn,
           )) {
-            if (fn.type != import.type) {
+            if (!_canLink(import.type, fn.type)) {
               throw StateError(
-                'Could not link ${import.name} due to different types.',
+                'Could not link ${import.name} due to different types: '
+                'import is ${import.type}, implementation is ${fn.type}.',
               );
             }
 
@@ -269,6 +270,34 @@ final class ModuleTransformer {
       module.start = startFunction;
     }
   }
+}
+
+/// Whether a function of type [implementation] can be used in place of calls
+/// to a function imported as [imported].
+///
+/// This is not an exact type equality check: `dart2wasm` infers return types
+/// for functions it compiles, so an implementation annotated with
+/// `@pragma('wasm:export')` may end up with a more precise (subtype) result
+/// type than the one declared on the matching `wasm:import` in `embedder.dart`
+/// (which has no body to infer from). For instance, `stringConcat` is declared
+/// to return `WasmExternRef?` (`externref`) in both places, but the
+/// implementation is compiled with a `(ref extern)` result.
+///
+/// Since we rewrite call sites rather than instantiate two modules, ordinary
+/// Wasm subtyping applies: parameters are contravariant and results covariant.
+bool _canLink(w.FunctionType imported, w.FunctionType implementation) {
+  if (imported.inputs.length != implementation.inputs.length) return false;
+  if (imported.outputs.length != implementation.outputs.length) return false;
+
+  for (var i = 0; i < imported.inputs.length; i++) {
+    if (!imported.inputs[i].isSubtypeOf(implementation.inputs[i])) return false;
+  }
+  for (var i = 0; i < imported.outputs.length; i++) {
+    if (!implementation.outputs[i].isSubtypeOf(imported.outputs[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 const _runtimeImportName = 'libc';
