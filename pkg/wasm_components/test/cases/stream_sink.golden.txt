@@ -1,0 +1,13 @@
+{"type":"start","test":0}
+{"type":"bool","value":false}
+{"type":"int","value":1}
+{"type":"bool","value":true}
+{"type":"end","test":0}
+{"type":"start","test":1}
+{"type":"bool","value":true}
+{"type":"int","value":1}
+{"type":"bool","value":false}
+{"type":"int","value":2}
+{"type":"bool","value":false}
+{"type":"bool","value":true}
+{"type":"end","test":1}

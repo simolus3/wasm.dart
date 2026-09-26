@@ -125,13 +125,14 @@ final class ReadableStream<T extends List<Object?>> extends Stream<T> {
 @internal
 final class StreamSinkState<T extends List<Object?>> {
   final StreamVtable<T> _vtable;
-  final Task _task;
+  final Task? _task;
   final StreamSubscription<T> _subscription;
   final int _id;
   final int _elementSize;
 
   var _otherEndDropped = false;
   var _dropped = false;
+  var _done = false;
 
   _PendingStreamBuffer? _pendingWrite;
 
@@ -154,6 +155,7 @@ final class StreamSinkState<T extends List<Object?>> {
       );
     }
 
+    _subscription.pause();
     final start = _vtable.allocateBuffer(data.length);
     _vtable.writeToBuffer(start, data);
     final buffer = _PendingStreamBuffer(start, data.length);
@@ -161,8 +163,11 @@ final class StreamSinkState<T extends List<Object?>> {
   }
 
   void _onDone() {
+    _done = true;
     _subscription.cancel();
-    drop();
+    if (_pendingWrite == null) {
+      drop();
+    }
   }
 
   int _startWrite(_PendingStreamBuffer write) {
@@ -217,9 +222,14 @@ final class StreamSinkState<T extends List<Object?>> {
             }
           }
 
-          // We've completed the write, so the subscription can be resumed.
+          // We've completed the write, so the subscription can be resumed (or
+          // dropped if onDone already fired).
           assert(_pendingWrite == null);
-          _subscription.resume();
+          if (_done) {
+            drop();
+          } else {
+            _subscription.resume();
+          }
         case CopyResult.dropped:
           _pendingWrite?.advance(elementsTransferred);
           _dropPendingWriteBuffer();
@@ -242,7 +252,7 @@ final class StreamSinkState<T extends List<Object?>> {
     if (!_dropped) {
       _dropped = true;
       _vtable.dropWritable(_id);
-      _task.writeStreams.remove(_id);
+      _task?.writeStreams.remove(_id);
     }
   }
 }
