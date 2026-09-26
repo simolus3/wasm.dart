@@ -153,7 +153,10 @@ void readAbi(ProgramAbi abi, Map<String, Object?> encoded) {
         final resolved = _deserializeType(types, definition);
         final originalOwner = resolved.owner;
         if (originalOwner == null) {
-          types.add(resolved);
+          types.add(switch (resolved) {
+            SimpleAbiType(:final type) => SimpleAbiType(type, owner: owner),
+            _ => resolved,
+          });
           break;
         } else if (originalOwner == owner) {
           types.add(

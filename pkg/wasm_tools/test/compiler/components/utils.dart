@@ -19,6 +19,19 @@ Future<String> componentToWat(ComponentBuilder builder) async {
   return stdout;
 }
 
+Future<String> componentToWit(ComponentBuilder builder) async {
+  final bytes = builder.serializeToBytes();
+  final (exitCode, stdout, stderr) = await _runWasmTool([
+    'component',
+    'wit',
+  ], .value(bytes));
+  if (exitCode != 0) {
+    throw ArgumentError('wasm-tools component wit failed: $stderr');
+  }
+
+  return stdout;
+}
+
 Future<void> validateComponent(Stream<Uint8List> component) async {
   final (exitCode, _, stderr) = await _runWasmTool([
     'validate',

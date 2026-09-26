@@ -25,12 +25,13 @@ void main(List<String> args) => link(args, (input, output) async {
     }
 
     for (final used in usedWorlds) {
-      output.dependencies.add(.parse(used));
+      final abiUri = input.packageRoot.resolve(used);
+      output.dependencies.add(abiUri);
 
       output.assets.webAssemblyComponents.add(
         WasmComponentAsset(
           encoded: json.decode(
-            File(used).readAsStringSync(),
+            File.fromUri(abiUri).readAsStringSync(),
           ) as Map<String, Object?>,
         ),
       );

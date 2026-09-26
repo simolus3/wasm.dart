@@ -112,6 +112,21 @@ void main() {
 )
 ''');
   });
+
+  test('Module.deserialize preserves start function', () {
+    final builder = w.ModuleBuilder('withStart', null);
+    builder.startFunction;
+
+    final module = builder.build();
+    expect(module.start, isNotNull);
+
+    final serializer = w.Serializer();
+    module.serialize(serializer);
+    final deserialized = w.Module.deserialize(w.Deserializer(serializer.data));
+
+    expect(deserialized.start, isNotNull);
+    expect(deserialized.start!.functionName, '#init');
+  });
 }
 
 w.Module _defineModuleCallingExit0() {
