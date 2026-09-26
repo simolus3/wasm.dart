@@ -32,6 +32,7 @@ final class _ShelfWasiHandler implements Handler {
     required Owned<TypesRequest> request,
   }) async {
     final httpTypes = _imports.httpTypes;
+    var requestConsumed = false;
     try {
       final handler = _handler ??= _createHandler();
       final reqBorrow = request.borrow();
@@ -85,9 +86,17 @@ final class _ShelfWasiHandler implements Handler {
       final requestedUri = Uri.parse('$scheme://$authority$pathWithQuery');
 
       final requestResCompleter = Completer<Result<void, TypesErrorCode>>();
-      final (bodyStream, _) = httpTypes.staticRequestConsumeBody(
+      final (bodyStream, requestTrailers) = httpTypes.staticRequestConsumeBody(
         $this: request,
         res: requestResCompleter.future,
+      );
+      requestConsumed = true;
+      unawaited(
+        requestTrailers.then((res) {
+          if (res case OkResult(value: final opt) when opt.hasValue) {
+            opt.requireValue().drop();
+          }
+        }, onError: (_) {}),
       );
 
       var bodyListened = false;
@@ -138,11 +147,12 @@ final class _ShelfWasiHandler implements Handler {
         (chunk) => chunk is Uint8List ? chunk : Uint8List.fromList(chunk),
       );
 
-      final (wasiResponse, _) = httpTypes.staticResponseNew(
+      final (wasiResponse, responseResult) = httpTypes.staticResponseNew(
         headers: responseFields,
         contents: Option.some(responseBodyStream),
         trailers: Future.syncValue(const Result.ok(Option.none)),
       );
+      responseResult.ignore();
 
       if (shelfResponse.statusCode != 200) {
         httpTypes.methodResponseSetStatusCode(
@@ -153,6 +163,9 @@ final class _ShelfWasiHandler implements Handler {
 
       return Result.ok(wasiResponse);
     } catch (e) {
+      if (!requestConsumed) {
+        request.drop();
+      }
       return _errorResponse('Outer WASI Shelf error: $e');
     }
   }
@@ -160,11 +173,12 @@ final class _ShelfWasiHandler implements Handler {
   Result<Owned<TypesResponse>, TypesErrorCode> _errorResponse(String message) {
     final httpTypes = _imports.httpTypes;
     final fields = httpTypes.constructorFields();
-    final (resp, _) = httpTypes.staticResponseNew(
+    final (resp, responseResult) = httpTypes.staticResponseNew(
       headers: fields,
       contents: Option.some(Stream.value(utf8.encode('$message\n'))),
       trailers: Future.syncValue(const Result.ok(Option.none)),
     );
+    responseResult.ignore();
     httpTypes.methodResponseSetStatusCode(self: resp.borrow(), statusCode: 500);
     return Result.ok(resp);
   }

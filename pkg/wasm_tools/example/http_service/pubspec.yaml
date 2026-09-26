@@ -12,3 +12,6 @@ dependencies:
   wasm_components:
   wasm_tools:
   wasi:
+
+dev_dependencies:
+  test: ^1.25.0
