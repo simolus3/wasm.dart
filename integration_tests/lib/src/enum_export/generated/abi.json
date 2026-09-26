@@ -1,0 +1,109 @@
+{
+  "imports": [],
+  "exports": [
+    {
+      "implements": 0,
+      "functions": {
+        "eval-expression": {
+          "exported_name": "component_0",
+          "options": {
+            "uses_memory": false,
+            "uses_strings": false,
+            "uses_realloc": false,
+            "is_async": false,
+            "uses_callback": false
+          },
+          "parameters": [
+            {
+              "name": "op",
+              "type": 0
+            },
+            {
+              "name": "x",
+              "type": "u32"
+            },
+            {
+              "name": "y",
+              "type": "u32"
+            }
+          ],
+          "result": "u32"
+        }
+      }
+    }
+  ],
+  "world": {
+    "worlds": [
+      {
+        "name": "root",
+        "imports": {},
+        "exports": {
+          "interface-0": {
+            "interface": {
+              "id": 0
+            }
+          }
+        },
+        "package": 0
+      }
+    ],
+    "interfaces": [
+      {
+        "name": "calculate",
+        "types": {
+          "op": 0
+        },
+        "functions": {
+          "eval-expression": {
+            "name": "eval-expression",
+            "kind": "freestanding",
+            "params": [
+              {
+                "name": "op",
+                "type": 0
+              },
+              {
+                "name": "x",
+                "type": "u32"
+              },
+              {
+                "name": "y",
+                "type": "u32"
+              }
+            ],
+            "result": "u32"
+          }
+        },
+        "package": 0
+      }
+    ],
+    "types": [
+      {
+        "name": "op",
+        "kind": {
+          "enum": {
+            "cases": [
+              {
+                "name": "add"
+              }
+            ]
+          }
+        },
+        "owner": {
+          "interface": 0
+        }
+      }
+    ],
+    "packages": [
+      {
+        "name": "dart:enum-export",
+        "interfaces": {
+          "calculate": 0
+        },
+        "worlds": {
+          "root": 0
+        }
+      }
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 // ignore_for_file: type=warning
-import r'wasi_cli.dart' as i0;
+import r'package:wasm_components/wasm_components.dart' as i0;
 
-import r'package:wasm_components/wasm_components.dart' as i1;
+import r'wasi_cli.dart' as i1;
 
 // ignore: import_internal_library
 import r'dart:_wasm' as i2;
@@ -13,7 +13,7 @@ import r'wasi_random.dart' as i6;
 
 import r'package:meta/meta.dart' as i7;
 
-final class _Imported$14 implements i0.Types {
+final class _Imported$14 implements i1.Types {
   const _Imported$14();
 }
 
@@ -36,21 +36,21 @@ external i2.WasmVoid _streamDropReadable89(i2.WasmI32 stream);
 @pragma('wasm:import', 'component.stream89.drop-writable')
 external i2.WasmVoid _streamDropWritable89(i2.WasmI32 stream);
 
-final class _Vtable89 implements i1.StreamVtable<i3.Uint8List> {
+final class _Vtable89 implements i0.StreamVtable<i3.Uint8List> {
   const _Vtable89();
 
   @override
   int get elementSize => 1;
   @override
   int allocateBuffer(int size) {
-    return i1
+    return i0
         .mallocAligned(const i2.WasmI32(1), (size * 1).toWasmI32())
         .toIntUnsigned();
   }
 
   @override
   void freeBuffer(int address, int totalSize, int start, int end) {
-    i1.dartFree(
+    i0.dartFree(
       address.toWasmI32(),
       (totalSize * 1).toWasmI32(),
       const i2.WasmI32(1),
@@ -62,7 +62,7 @@ final class _Vtable89 implements i1.StreamVtable<i3.Uint8List> {
     for (final (i, element) in elements.indexed) {
       final wasmAddress = i2.WasmI32.fromInt(address + i);
 
-      i1.memory.storeInt8(
+      i0.memory.storeInt8(
         wasmAddress.toIntUnsigned(),
         i2.WasmI32.uint8FromInt(element),
         offset: 0,
@@ -75,7 +75,7 @@ final class _Vtable89 implements i1.StreamVtable<i3.Uint8List> {
     final typedList = i3.Uint8List(count);
     for (var i = 0; i < count; i++) {
       final ptr = i2.WasmI32.fromInt(address + i * 1);
-      final tmp0 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
+      final tmp0 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
 
       typedList[i] = tmp0.toIntUnsigned();
     }
@@ -125,7 +125,7 @@ external i2.WasmVoid _futureDropReadable95(i2.WasmI32 future);
 external i2.WasmVoid _futureDropWritable95(i2.WasmI32 future);
 
 final class _Vtable95
-    implements i1.FutureVtable<i1.Result<void, i0.TypesErrorCode>> {
+    implements i0.FutureVtable<i0.Result<void, i1.TypesErrorCode>> {
   const _Vtable95();
 
   @override
@@ -159,35 +159,35 @@ final class _Vtable95
 
   @override
   int allocateBuffer() {
-    return i1
+    return i0
         .mallocAligned(const i2.WasmI32(1), const i2.WasmI32(2))
         .toIntUnsigned();
   }
 
   @override
   void freeBuffer(int address, {required bool containsValue}) {
-    i1.dartFree(address.toWasmI32(), const i2.WasmI32(2), const i2.WasmI32(1));
+    i0.dartFree(address.toWasmI32(), const i2.WasmI32(2), const i2.WasmI32(1));
   }
 
   @override
-  void store(int address, i1.Result<void, i0.TypesErrorCode> value) {
+  void store(int address, i0.Result<void, i1.TypesErrorCode> value) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
     switch (value) {
-      case i1.OkResult(:final value):
-        i1.memory.storeInt8(
+      case i0.OkResult(:final value):
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           const i2.WasmI32(0),
           offset: 0,
         );
 
-      case i1.ErrorResult(:final value):
-        i1.memory.storeInt8(
+      case i0.ErrorResult(:final value):
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           const i2.WasmI32(1),
           offset: 0,
         );
-        i1.memory.storeInt8(
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           value.index.toWasmI32(),
           offset: 1,
@@ -196,15 +196,15 @@ final class _Vtable95
   }
 
   @override
-  i1.Result<void, i0.TypesErrorCode> load(int address) {
+  i0.Result<void, i1.TypesErrorCode> load(int address) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
-    final tmp0 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i0.TypesErrorCode> tmp2;
+    final tmp0 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
+    final i0.Result<void, i1.TypesErrorCode> tmp2;
     if (tmp0.toBool()) {
-      final tmp1 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 1);
+      final tmp1 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 1);
 
-      tmp2 = .error(i0.TypesErrorCode.values[tmp1.toIntUnsigned()]);
+      tmp2 = .error(i1.TypesErrorCode.values[tmp1.toIntUnsigned()]);
     } else {
       tmp2 = .ok(null);
     }
@@ -216,15 +216,15 @@ final class _Vtable95
 @pragma("wasm:import", r"component._import10")
 external i2.WasmI32 _import10(i2.WasmI32 p0);
 
-final class _Imported$16 implements i0.Stdout {
+final class _Imported$16 implements i1.Stdout {
   const _Imported$16();
   @override
-  Future<i1.Result<void, i0.TypesErrorCode>> writeViaStream({
+  Future<i0.Result<void, i1.TypesErrorCode>> writeViaStream({
     required Stream<i3.Uint8List> data,
   }) {
-    final tmp0 = i1.newReadableStream(const _Vtable89(), data).toWasmI32();
+    final tmp0 = i0.newReadableStream(const _Vtable89(), data).toWasmI32();
     final tmp1 = _import10(tmp0);
-    final tmp2 = i1.readFuture(const _Vtable95(), tmp1.toIntUnsigned());
+    final tmp2 = i0.readFuture(const _Vtable95(), tmp1.toIntUnsigned());
     return tmp2;
   }
 }
@@ -241,7 +241,7 @@ external i2.WasmVoid _futureDropReadable98(i2.WasmI32 future);
 external i2.WasmVoid _futureDropWritable98(i2.WasmI32 future);
 
 final class _Vtable98
-    implements i1.FutureVtable<i1.Result<void, i0.TypesErrorCode>> {
+    implements i0.FutureVtable<i0.Result<void, i1.TypesErrorCode>> {
   const _Vtable98();
 
   @override
@@ -275,35 +275,35 @@ final class _Vtable98
 
   @override
   int allocateBuffer() {
-    return i1
+    return i0
         .mallocAligned(const i2.WasmI32(1), const i2.WasmI32(2))
         .toIntUnsigned();
   }
 
   @override
   void freeBuffer(int address, {required bool containsValue}) {
-    i1.dartFree(address.toWasmI32(), const i2.WasmI32(2), const i2.WasmI32(1));
+    i0.dartFree(address.toWasmI32(), const i2.WasmI32(2), const i2.WasmI32(1));
   }
 
   @override
-  void store(int address, i1.Result<void, i0.TypesErrorCode> value) {
+  void store(int address, i0.Result<void, i1.TypesErrorCode> value) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
     switch (value) {
-      case i1.OkResult(:final value):
-        i1.memory.storeInt8(
+      case i0.OkResult(:final value):
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           const i2.WasmI32(0),
           offset: 0,
         );
 
-      case i1.ErrorResult(:final value):
-        i1.memory.storeInt8(
+      case i0.ErrorResult(:final value):
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           const i2.WasmI32(1),
           offset: 0,
         );
-        i1.memory.storeInt8(
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           value.index.toWasmI32(),
           offset: 1,
@@ -312,15 +312,15 @@ final class _Vtable98
   }
 
   @override
-  i1.Result<void, i0.TypesErrorCode> load(int address) {
+  i0.Result<void, i1.TypesErrorCode> load(int address) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
-    final tmp0 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i0.TypesErrorCode> tmp2;
+    final tmp0 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
+    final i0.Result<void, i1.TypesErrorCode> tmp2;
     if (tmp0.toBool()) {
-      final tmp1 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 1);
+      final tmp1 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 1);
 
-      tmp2 = .error(i0.TypesErrorCode.values[tmp1.toIntUnsigned()]);
+      tmp2 = .error(i1.TypesErrorCode.values[tmp1.toIntUnsigned()]);
     } else {
       tmp2 = .ok(null);
     }
@@ -332,15 +332,15 @@ final class _Vtable98
 @pragma("wasm:import", r"component._import16")
 external i2.WasmI32 _import16(i2.WasmI32 p0);
 
-final class _Imported$17 implements i0.Stderr {
+final class _Imported$17 implements i1.Stderr {
   const _Imported$17();
   @override
-  Future<i1.Result<void, i0.TypesErrorCode>> writeViaStream({
+  Future<i0.Result<void, i1.TypesErrorCode>> writeViaStream({
     required Stream<i3.Uint8List> data,
   }) {
-    final tmp0 = i1.newReadableStream(const _Vtable89(), data).toWasmI32();
+    final tmp0 = i0.newReadableStream(const _Vtable89(), data).toWasmI32();
     final tmp1 = _import16(tmp0);
-    final tmp2 = i1.readFuture(const _Vtable98(), tmp1.toIntUnsigned());
+    final tmp2 = i0.readFuture(const _Vtable98(), tmp1.toIntUnsigned());
     return tmp2;
   }
 }
@@ -357,7 +357,7 @@ external i2.WasmVoid _futureDropReadable91(i2.WasmI32 future);
 external i2.WasmVoid _futureDropWritable91(i2.WasmI32 future);
 
 final class _Vtable91
-    implements i1.FutureVtable<i1.Result<void, i0.TypesErrorCode>> {
+    implements i0.FutureVtable<i0.Result<void, i1.TypesErrorCode>> {
   const _Vtable91();
 
   @override
@@ -391,35 +391,35 @@ final class _Vtable91
 
   @override
   int allocateBuffer() {
-    return i1
+    return i0
         .mallocAligned(const i2.WasmI32(1), const i2.WasmI32(2))
         .toIntUnsigned();
   }
 
   @override
   void freeBuffer(int address, {required bool containsValue}) {
-    i1.dartFree(address.toWasmI32(), const i2.WasmI32(2), const i2.WasmI32(1));
+    i0.dartFree(address.toWasmI32(), const i2.WasmI32(2), const i2.WasmI32(1));
   }
 
   @override
-  void store(int address, i1.Result<void, i0.TypesErrorCode> value) {
+  void store(int address, i0.Result<void, i1.TypesErrorCode> value) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
     switch (value) {
-      case i1.OkResult(:final value):
-        i1.memory.storeInt8(
+      case i0.OkResult(:final value):
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           const i2.WasmI32(0),
           offset: 0,
         );
 
-      case i1.ErrorResult(:final value):
-        i1.memory.storeInt8(
+      case i0.ErrorResult(:final value):
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           const i2.WasmI32(1),
           offset: 0,
         );
-        i1.memory.storeInt8(
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           value.index.toWasmI32(),
           offset: 1,
@@ -428,15 +428,15 @@ final class _Vtable91
   }
 
   @override
-  i1.Result<void, i0.TypesErrorCode> load(int address) {
+  i0.Result<void, i1.TypesErrorCode> load(int address) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
-    final tmp0 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i0.TypesErrorCode> tmp2;
+    final tmp0 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
+    final i0.Result<void, i1.TypesErrorCode> tmp2;
     if (tmp0.toBool()) {
-      final tmp1 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 1);
+      final tmp1 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 1);
 
-      tmp2 = .error(i0.TypesErrorCode.values[tmp1.toIntUnsigned()]);
+      tmp2 = .error(i1.TypesErrorCode.values[tmp1.toIntUnsigned()]);
     } else {
       tmp2 = .ok(null);
     }
@@ -448,19 +448,19 @@ final class _Vtable91
 @pragma("wasm:import", r"component._import22")
 external i2.WasmVoid _import22(i2.WasmI32 p0);
 
-final class _Imported$15 implements i0.Stdin {
+final class _Imported$15 implements i1.Stdin {
   const _Imported$15();
   @override
-  (Stream<i3.Uint8List>, Future<i1.Result<void, i0.TypesErrorCode>>)
+  (Stream<i3.Uint8List>, Future<i0.Result<void, i1.TypesErrorCode>>)
   readViaStream() {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
     _import22(tmp0);
-    final tmp1 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
-    final tmp2 = i1.ReadableStream(tmp1.toIntUnsigned(), const _Vtable89());
-    final tmp3 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
-    final tmp4 = i1.readFuture(const _Vtable91(), tmp3.toIntUnsigned());
+    final tmp1 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
+    final tmp2 = i0.ReadableStream(tmp1.toIntUnsigned(), const _Vtable89());
+    final tmp3 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
+    final tmp4 = i0.readFuture(const _Vtable91(), tmp3.toIntUnsigned());
     final tmp5 = (tmp2, tmp4);
-    i1.dartFree(tmp0, const i2.WasmI32(8), const i2.WasmI32(4));
+    i0.dartFree(tmp0, const i2.WasmI32(8), const i2.WasmI32(4));
     return tmp5;
   }
 }
@@ -488,21 +488,21 @@ external i2.WasmVoid _streamDropReadable142(i2.WasmI32 stream);
 @pragma('wasm:import', 'component.stream142.drop-writable')
 external i2.WasmVoid _streamDropWritable142(i2.WasmI32 stream);
 
-final class _Vtable142 implements i1.StreamVtable<i3.Uint8List> {
+final class _Vtable142 implements i0.StreamVtable<i3.Uint8List> {
   const _Vtable142();
 
   @override
   int get elementSize => 1;
   @override
   int allocateBuffer(int size) {
-    return i1
+    return i0
         .mallocAligned(const i2.WasmI32(1), (size * 1).toWasmI32())
         .toIntUnsigned();
   }
 
   @override
   void freeBuffer(int address, int totalSize, int start, int end) {
-    i1.dartFree(
+    i0.dartFree(
       address.toWasmI32(),
       (totalSize * 1).toWasmI32(),
       const i2.WasmI32(1),
@@ -514,7 +514,7 @@ final class _Vtable142 implements i1.StreamVtable<i3.Uint8List> {
     for (final (i, element) in elements.indexed) {
       final wasmAddress = i2.WasmI32.fromInt(address + i);
 
-      i1.memory.storeInt8(
+      i0.memory.storeInt8(
         wasmAddress.toIntUnsigned(),
         i2.WasmI32.uint8FromInt(element),
         offset: 0,
@@ -527,7 +527,7 @@ final class _Vtable142 implements i1.StreamVtable<i3.Uint8List> {
     final typedList = i3.Uint8List(count);
     for (var i = 0; i < count; i++) {
       final ptr = i2.WasmI32.fromInt(address + i * 1);
-      final tmp0 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
+      final tmp0 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
 
       typedList[i] = tmp0.toIntUnsigned();
     }
@@ -585,8 +585,8 @@ external i2.WasmVoid _futureDropWritable147(i2.WasmI32 future);
 
 final class _Vtable147
     implements
-        i1.FutureVtable<
-          i1.Result<i1.Option<i1.Owned<i5.TypesFields>>, i5.TypesErrorCode>
+        i0.FutureVtable<
+          i0.Result<i0.Option<i0.Owned<i5.TypesFields>>, i5.TypesErrorCode>
         > {
   const _Vtable147();
 
@@ -621,7 +621,7 @@ final class _Vtable147
 
   @override
   int allocateBuffer() {
-    return i1
+    return i0
         .mallocAligned(const i2.WasmI32(8), const i2.WasmI32(40))
         .toIntUnsigned();
   }
@@ -630,16 +630,16 @@ final class _Vtable147
   void freeBuffer(int address, {required bool containsValue}) {
     if (containsValue) {
       final ptr = i2.WasmI32.fromInt(address);
-      final tmp0 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
+      final tmp0 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
       switch (tmp0) {
         case 0:
-          final tmp1 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 8);
+          final tmp1 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 8);
           switch (tmp1) {
             case 0:
               break;
             case 1:
-              final tmp2 = i1.memory.loadInt32(ptr.toIntUnsigned(), offset: 12);
-              final tmp3 = i1.Owned<i5.TypesFields>(
+              final tmp2 = i0.memory.loadInt32(ptr.toIntUnsigned(), offset: 12);
+              final tmp3 = i0.Owned<i5.TypesFields>(
                 tmp2.toIntUnsigned(),
                 _drop$129,
               );
@@ -648,25 +648,25 @@ final class _Vtable147
           }
           break;
         case 1:
-          final tmp4 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 8);
+          final tmp4 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 8);
           switch (tmp4) {
             case 0:
               break;
             case 1:
-              final tmp5 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 16);
+              final tmp5 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 16);
               switch (tmp5) {
                 case 0:
                   break;
                 case 1:
-                  final tmp6 = i1.memory.loadInt32(
+                  final tmp6 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp7 = i1.memory.loadInt32(
+                  final tmp7 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp6, tmp7).free();
+                  i0.AllocatedString(tmp6, tmp7).free();
                   break;
               }
               break;
@@ -695,20 +695,20 @@ final class _Vtable147
             case 13:
               break;
             case 14:
-              final tmp8 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 20);
+              final tmp8 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 20);
               switch (tmp8) {
                 case 0:
                   break;
                 case 1:
-                  final tmp9 = i1.memory.loadInt32(
+                  final tmp9 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  final tmp10 = i1.memory.loadInt32(
+                  final tmp10 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 28,
                   );
-                  i1.AllocatedString(tmp9, tmp10).free();
+                  i0.AllocatedString(tmp9, tmp10).free();
                   break;
               }
               break;
@@ -727,7 +727,7 @@ final class _Vtable147
             case 21:
               break;
             case 22:
-              final tmp11 = i1.memory.loadUint8(
+              final tmp11 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -735,7 +735,7 @@ final class _Vtable147
                 case 0:
                   break;
                 case 1:
-                  final tmp12 = i1.memory.loadUint8(
+                  final tmp12 = i0.memory.loadUint8(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
@@ -743,15 +743,15 @@ final class _Vtable147
                     case 0:
                       break;
                     case 1:
-                      final tmp13 = i1.memory.loadInt32(
+                      final tmp13 = i0.memory.loadInt32(
                         ptr.toIntUnsigned(),
                         offset: 24,
                       );
-                      final tmp14 = i1.memory.loadInt32(
+                      final tmp14 = i0.memory.loadInt32(
                         ptr.toIntUnsigned(),
                         offset: 28,
                       );
-                      i1.AllocatedString(tmp13, tmp14).free();
+                      i0.AllocatedString(tmp13, tmp14).free();
                       break;
                   }
                   break;
@@ -760,7 +760,7 @@ final class _Vtable147
             case 23:
               break;
             case 24:
-              final tmp15 = i1.memory.loadUint8(
+              final tmp15 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -768,15 +768,15 @@ final class _Vtable147
                 case 0:
                   break;
                 case 1:
-                  final tmp16 = i1.memory.loadInt32(
+                  final tmp16 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp17 = i1.memory.loadInt32(
+                  final tmp17 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp16, tmp17).free();
+                  i0.AllocatedString(tmp16, tmp17).free();
                   break;
               }
               break;
@@ -785,7 +785,7 @@ final class _Vtable147
             case 26:
               break;
             case 27:
-              final tmp18 = i1.memory.loadUint8(
+              final tmp18 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -793,15 +793,15 @@ final class _Vtable147
                 case 0:
                   break;
                 case 1:
-                  final tmp19 = i1.memory.loadInt32(
+                  final tmp19 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp20 = i1.memory.loadInt32(
+                  final tmp20 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp19, tmp20).free();
+                  i0.AllocatedString(tmp19, tmp20).free();
                   break;
               }
               break;
@@ -810,7 +810,7 @@ final class _Vtable147
             case 29:
               break;
             case 30:
-              final tmp21 = i1.memory.loadUint8(
+              final tmp21 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -818,20 +818,20 @@ final class _Vtable147
                 case 0:
                   break;
                 case 1:
-                  final tmp22 = i1.memory.loadInt32(
+                  final tmp22 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp23 = i1.memory.loadInt32(
+                  final tmp23 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp22, tmp23).free();
+                  i0.AllocatedString(tmp22, tmp23).free();
                   break;
               }
               break;
             case 31:
-              final tmp24 = i1.memory.loadUint8(
+              final tmp24 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -839,20 +839,20 @@ final class _Vtable147
                 case 0:
                   break;
                 case 1:
-                  final tmp25 = i1.memory.loadInt32(
+                  final tmp25 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp26 = i1.memory.loadInt32(
+                  final tmp26 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp25, tmp26).free();
+                  i0.AllocatedString(tmp25, tmp26).free();
                   break;
               }
               break;
             case 32:
-              final tmp27 = i1.memory.loadUint8(
+              final tmp27 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -860,15 +860,15 @@ final class _Vtable147
                 case 0:
                   break;
                 case 1:
-                  final tmp28 = i1.memory.loadInt32(
+                  final tmp28 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp29 = i1.memory.loadInt32(
+                  final tmp29 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp28, tmp29).free();
+                  i0.AllocatedString(tmp28, tmp29).free();
                   break;
               }
               break;
@@ -883,7 +883,7 @@ final class _Vtable147
             case 37:
               break;
             case 38:
-              final tmp30 = i1.memory.loadUint8(
+              final tmp30 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -891,15 +891,15 @@ final class _Vtable147
                 case 0:
                   break;
                 case 1:
-                  final tmp31 = i1.memory.loadInt32(
+                  final tmp31 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp32 = i1.memory.loadInt32(
+                  final tmp32 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp31, tmp32).free();
+                  i0.AllocatedString(tmp31, tmp32).free();
                   break;
               }
               break;
@@ -907,19 +907,19 @@ final class _Vtable147
           break;
       }
     }
-    i1.dartFree(address.toWasmI32(), const i2.WasmI32(40), const i2.WasmI32(8));
+    i0.dartFree(address.toWasmI32(), const i2.WasmI32(40), const i2.WasmI32(8));
   }
 
   @override
   void store(
     int address,
-    i1.Result<i1.Option<i1.Owned<i5.TypesFields>>, i5.TypesErrorCode> value,
+    i0.Result<i0.Option<i0.Owned<i5.TypesFields>>, i5.TypesErrorCode> value,
   ) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
     switch (value) {
-      case i1.OkResult(:final value):
-        i1.memory.storeInt8(
+      case i0.OkResult(:final value):
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           const i2.WasmI32(0),
           offset: 0,
@@ -927,40 +927,40 @@ final class _Vtable147
         final tmp0 = value;
         if (tmp0.hasValue) {
           final value = tmp0.requireValue();
-          i1.memory.storeInt8(
+          i0.memory.storeInt8(
             wasmAddress.toIntUnsigned(),
             const i2.WasmI32(1),
             offset: 8,
           );
-          i1.memory.storeInt32(
+          i0.memory.storeInt32(
             wasmAddress.toIntUnsigned(),
             i2.WasmI32.fromInt(value.handle),
             offset: 12,
           );
         } else {
-          i1.memory.storeInt8(
+          i0.memory.storeInt8(
             wasmAddress.toIntUnsigned(),
             const i2.WasmI32(0),
             offset: 8,
           );
         }
 
-      case i1.ErrorResult(:final value):
-        i1.memory.storeInt8(
+      case i0.ErrorResult(:final value):
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           const i2.WasmI32(1),
           offset: 0,
         );
         switch (value) {
           case i5.TypesErrorCodeDnsTimeout():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(0),
               offset: 8,
             );
 
           case i5.TypesErrorCodeDnsError(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(1),
               offset: 8,
@@ -968,24 +968,24 @@ final class _Vtable147
             final tmp2 = value.rcode;
             if (tmp2.hasValue) {
               final value = tmp2.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp1 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp1 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp1.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp1.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -994,18 +994,18 @@ final class _Vtable147
             final tmp3 = value.infoCode;
             if (tmp3.hasValue) {
               final value = tmp3.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 28,
               );
-              i1.memory.storeInt16(
+              i0.memory.storeInt16(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.uint16FromInt(value),
                 offset: 30,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 28,
@@ -1013,91 +1013,91 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeDestinationNotFound():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(2),
               offset: 8,
             );
 
           case i5.TypesErrorCodeDestinationUnavailable():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(3),
               offset: 8,
             );
 
           case i5.TypesErrorCodeDestinationIpProhibited():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(4),
               offset: 8,
             );
 
           case i5.TypesErrorCodeDestinationIpUnroutable():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(5),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionRefused():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(6),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionTerminated():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(7),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionTimeout():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(8),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionReadTimeout():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(9),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionWriteTimeout():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(10),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionLimitReached():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(11),
               offset: 8,
             );
 
           case i5.TypesErrorCodeTlsProtocolError():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(12),
               offset: 8,
             );
 
           case i5.TypesErrorCodeTlsCertificateError():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(13),
               offset: 8,
             );
 
           case i5.TypesErrorCodeTlsAlertReceived(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(14),
               offset: 8,
@@ -1105,18 +1105,18 @@ final class _Vtable147
             final tmp4 = value.alertId;
             if (tmp4.hasValue) {
               final value = tmp4.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.uint8FromInt(value),
                 offset: 17,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1125,24 +1125,24 @@ final class _Vtable147
             final tmp6 = value.alertMessage;
             if (tmp6.hasValue) {
               final value = tmp6.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 20,
               );
-              final tmp5 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp5 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp5.packedLength,
                 offset: 28,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp5.ptr,
                 offset: 24,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 20,
@@ -1150,21 +1150,21 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeHttpRequestDenied():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(15),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpRequestLengthRequired():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(16),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpRequestBodySize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(17),
               offset: 8,
@@ -1172,18 +1172,18 @@ final class _Vtable147
             final tmp7 = value;
             if (tmp7.hasValue) {
               final value = tmp7.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt64(
+              i0.memory.storeInt64(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI64.fromInt(value),
                 offset: 24,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1191,21 +1191,21 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeHttpRequestMethodInvalid():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(18),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpRequestUriInvalid():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(19),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpRequestUriTooLong():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(20),
               offset: 8,
@@ -1214,7 +1214,7 @@ final class _Vtable147
           case i5.TypesErrorCodeHttpRequestHeaderSectionSize(
             payload: final value,
           ):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(21),
               offset: 8,
@@ -1222,18 +1222,18 @@ final class _Vtable147
             final tmp8 = value;
             if (tmp8.hasValue) {
               final value = tmp8.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1241,7 +1241,7 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeHttpRequestHeaderSize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(22),
               offset: 8,
@@ -1249,7 +1249,7 @@ final class _Vtable147
             final tmp12 = value;
             if (tmp12.hasValue) {
               final value = tmp12.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
@@ -1257,24 +1257,24 @@ final class _Vtable147
               final tmp10 = value.fieldName;
               if (tmp10.hasValue) {
                 final value = tmp10.requireValue();
-                i1.memory.storeInt8(
+                i0.memory.storeInt8(
                   wasmAddress.toIntUnsigned(),
                   const i2.WasmI32(1),
                   offset: 20,
                 );
-                final tmp9 = i1.AllocatedString.allocateUtf16(value);
-                i1.memory.storeInt32(
+                final tmp9 = i0.AllocatedString.allocateUtf16(value);
+                i0.memory.storeInt32(
                   wasmAddress.toIntUnsigned(),
                   tmp9.packedLength,
                   offset: 28,
                 );
-                i1.memory.storeInt32(
+                i0.memory.storeInt32(
                   wasmAddress.toIntUnsigned(),
                   tmp9.ptr,
                   offset: 24,
                 );
               } else {
-                i1.memory.storeInt8(
+                i0.memory.storeInt8(
                   wasmAddress.toIntUnsigned(),
                   const i2.WasmI32(0),
                   offset: 20,
@@ -1283,25 +1283,25 @@ final class _Vtable147
               final tmp11 = value.fieldSize;
               if (tmp11.hasValue) {
                 final value = tmp11.requireValue();
-                i1.memory.storeInt8(
+                i0.memory.storeInt8(
                   wasmAddress.toIntUnsigned(),
                   const i2.WasmI32(1),
                   offset: 32,
                 );
-                i1.memory.storeInt32(
+                i0.memory.storeInt32(
                   wasmAddress.toIntUnsigned(),
                   i2.WasmI32.fromInt(value),
                   offset: 36,
                 );
               } else {
-                i1.memory.storeInt8(
+                i0.memory.storeInt8(
                   wasmAddress.toIntUnsigned(),
                   const i2.WasmI32(0),
                   offset: 32,
                 );
               }
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1311,7 +1311,7 @@ final class _Vtable147
           case i5.TypesErrorCodeHttpRequestTrailerSectionSize(
             payload: final value,
           ):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(23),
               offset: 8,
@@ -1319,18 +1319,18 @@ final class _Vtable147
             final tmp13 = value;
             if (tmp13.hasValue) {
               final value = tmp13.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1338,7 +1338,7 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeHttpRequestTrailerSize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(24),
               offset: 8,
@@ -1346,24 +1346,24 @@ final class _Vtable147
             final tmp15 = value.fieldName;
             if (tmp15.hasValue) {
               final value = tmp15.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp14 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp14 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp14.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp14.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1372,18 +1372,18 @@ final class _Vtable147
             final tmp16 = value.fieldSize;
             if (tmp16.hasValue) {
               final value = tmp16.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 28,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 32,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 28,
@@ -1391,7 +1391,7 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeHttpResponseIncomplete():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(25),
               offset: 8,
@@ -1400,7 +1400,7 @@ final class _Vtable147
           case i5.TypesErrorCodeHttpResponseHeaderSectionSize(
             payload: final value,
           ):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(26),
               offset: 8,
@@ -1408,18 +1408,18 @@ final class _Vtable147
             final tmp17 = value;
             if (tmp17.hasValue) {
               final value = tmp17.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1427,7 +1427,7 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeHttpResponseHeaderSize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(27),
               offset: 8,
@@ -1435,24 +1435,24 @@ final class _Vtable147
             final tmp19 = value.fieldName;
             if (tmp19.hasValue) {
               final value = tmp19.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp18 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp18 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp18.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp18.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1461,18 +1461,18 @@ final class _Vtable147
             final tmp20 = value.fieldSize;
             if (tmp20.hasValue) {
               final value = tmp20.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 28,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 32,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 28,
@@ -1480,7 +1480,7 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeHttpResponseBodySize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(28),
               offset: 8,
@@ -1488,18 +1488,18 @@ final class _Vtable147
             final tmp21 = value;
             if (tmp21.hasValue) {
               final value = tmp21.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt64(
+              i0.memory.storeInt64(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI64.fromInt(value),
                 offset: 24,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1509,7 +1509,7 @@ final class _Vtable147
           case i5.TypesErrorCodeHttpResponseTrailerSectionSize(
             payload: final value,
           ):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(29),
               offset: 8,
@@ -1517,18 +1517,18 @@ final class _Vtable147
             final tmp22 = value;
             if (tmp22.hasValue) {
               final value = tmp22.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1536,7 +1536,7 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeHttpResponseTrailerSize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(30),
               offset: 8,
@@ -1544,24 +1544,24 @@ final class _Vtable147
             final tmp24 = value.fieldName;
             if (tmp24.hasValue) {
               final value = tmp24.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp23 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp23 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp23.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp23.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1570,18 +1570,18 @@ final class _Vtable147
             final tmp25 = value.fieldSize;
             if (tmp25.hasValue) {
               final value = tmp25.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 28,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 32,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 28,
@@ -1591,7 +1591,7 @@ final class _Vtable147
           case i5.TypesErrorCodeHttpResponseTransferCoding(
             payload: final value,
           ):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(31),
               offset: 8,
@@ -1599,24 +1599,24 @@ final class _Vtable147
             final tmp27 = value;
             if (tmp27.hasValue) {
               final value = tmp27.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp26 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp26 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp26.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp26.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1624,7 +1624,7 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeHttpResponseContentCoding(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(32),
               offset: 8,
@@ -1632,24 +1632,24 @@ final class _Vtable147
             final tmp29 = value;
             if (tmp29.hasValue) {
               final value = tmp29.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp28 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp28 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp28.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp28.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1657,42 +1657,42 @@ final class _Vtable147
             }
 
           case i5.TypesErrorCodeHttpResponseTimeout():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(33),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpUpgradeFailed():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(34),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpProtocolError():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(35),
               offset: 8,
             );
 
           case i5.TypesErrorCodeLoopDetected():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(36),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConfigurationError():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(37),
               offset: 8,
             );
 
           case i5.TypesErrorCodeInternalError(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(38),
               offset: 8,
@@ -1700,24 +1700,24 @@ final class _Vtable147
             final tmp31 = value;
             if (tmp31.hasValue) {
               final value = tmp31.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp30 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp30 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp30.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp30.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -1728,48 +1728,48 @@ final class _Vtable147
   }
 
   @override
-  i1.Result<i1.Option<i1.Owned<i5.TypesFields>>, i5.TypesErrorCode> load(
+  i0.Result<i0.Option<i0.Owned<i5.TypesFields>>, i5.TypesErrorCode> load(
     int address,
   ) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
-    final tmp0 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
-    final i1.Result<i1.Option<i1.Owned<i5.TypesFields>>, i5.TypesErrorCode>
+    final tmp0 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
+    final i0.Result<i0.Option<i0.Owned<i5.TypesFields>>, i5.TypesErrorCode>
     tmp87;
     if (tmp0.toBool()) {
-      final tmp5 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 8);
+      final tmp5 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 8);
       final i5.TypesErrorCode tmp86;
       switch (tmp5.toIntUnsigned()) {
         case 0:
           tmp86 = i5.TypesErrorCodeDnsTimeout();
         case 1:
-          final tmp6 = i1.memory.loadUint8(
+          final tmp6 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp9;
+          final i0.Option<String> tmp9;
           if (tmp6.toBool()) {
-            final tmp7 = i1.memory.loadInt32(
+            final tmp7 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp8 = i1.memory.loadInt32(
+            final tmp8 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp9 = .some(i1.AllocatedString.read(tmp7, tmp8));
+            tmp9 = .some(i0.AllocatedString.read(tmp7, tmp8));
           } else {
             tmp9 = .none;
           }
 
-          final tmp10 = i1.memory.loadUint8(
+          final tmp10 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 28,
           );
-          final i1.Option<int> tmp12;
+          final i0.Option<int> tmp12;
           if (tmp10.toBool()) {
-            final tmp11 = i1.memory.loadUint16(
+            final tmp11 = i0.memory.loadUint16(
               wasmAddress.toIntUnsigned(),
               offset: 30,
             );
@@ -1807,13 +1807,13 @@ final class _Vtable147
         case 13:
           tmp86 = i5.TypesErrorCodeTlsCertificateError();
         case 14:
-          final tmp14 = i1.memory.loadUint8(
+          final tmp14 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp16;
+          final i0.Option<int> tmp16;
           if (tmp14.toBool()) {
-            final tmp15 = i1.memory.loadUint8(
+            final tmp15 = i0.memory.loadUint8(
               wasmAddress.toIntUnsigned(),
               offset: 17,
             );
@@ -1823,22 +1823,22 @@ final class _Vtable147
             tmp16 = .none;
           }
 
-          final tmp17 = i1.memory.loadUint8(
+          final tmp17 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 20,
           );
-          final i1.Option<String> tmp20;
+          final i0.Option<String> tmp20;
           if (tmp17.toBool()) {
-            final tmp18 = i1.memory.loadInt32(
+            final tmp18 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
-            final tmp19 = i1.memory.loadInt32(
+            final tmp19 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 28,
             );
 
-            tmp20 = .some(i1.AllocatedString.read(tmp18, tmp19));
+            tmp20 = .some(i0.AllocatedString.read(tmp18, tmp19));
           } else {
             tmp20 = .none;
           }
@@ -1851,13 +1851,13 @@ final class _Vtable147
         case 16:
           tmp86 = i5.TypesErrorCodeHttpRequestLengthRequired();
         case 17:
-          final tmp22 = i1.memory.loadUint8(
+          final tmp22 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp24;
+          final i0.Option<int> tmp24;
           if (tmp22.toBool()) {
-            final tmp23 = i1.memory.loadInt64(
+            final tmp23 = i0.memory.loadInt64(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
@@ -1875,13 +1875,13 @@ final class _Vtable147
         case 20:
           tmp86 = i5.TypesErrorCodeHttpRequestUriTooLong();
         case 21:
-          final tmp25 = i1.memory.loadUint8(
+          final tmp25 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp27;
+          final i0.Option<int> tmp27;
           if (tmp25.toBool()) {
-            final tmp26 = i1.memory.loadInt32(
+            final tmp26 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
@@ -1893,42 +1893,42 @@ final class _Vtable147
 
           tmp86 = i5.TypesErrorCodeHttpRequestHeaderSectionSize(tmp27);
         case 22:
-          final tmp28 = i1.memory.loadUint8(
+          final tmp28 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<
-            ({i1.Option<String> fieldName, i1.Option<int> fieldSize})
+          final i0.Option<
+            ({i0.Option<String> fieldName, i0.Option<int> fieldSize})
           >
           tmp37;
           if (tmp28.toBool()) {
-            final tmp29 = i1.memory.loadUint8(
+            final tmp29 = i0.memory.loadUint8(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final i1.Option<String> tmp32;
+            final i0.Option<String> tmp32;
             if (tmp29.toBool()) {
-              final tmp30 = i1.memory.loadInt32(
+              final tmp30 = i0.memory.loadInt32(
                 wasmAddress.toIntUnsigned(),
                 offset: 24,
               );
-              final tmp31 = i1.memory.loadInt32(
+              final tmp31 = i0.memory.loadInt32(
                 wasmAddress.toIntUnsigned(),
                 offset: 28,
               );
 
-              tmp32 = .some(i1.AllocatedString.read(tmp30, tmp31));
+              tmp32 = .some(i0.AllocatedString.read(tmp30, tmp31));
             } else {
               tmp32 = .none;
             }
 
-            final tmp33 = i1.memory.loadUint8(
+            final tmp33 = i0.memory.loadUint8(
               wasmAddress.toIntUnsigned(),
               offset: 32,
             );
-            final i1.Option<int> tmp35;
+            final i0.Option<int> tmp35;
             if (tmp33.toBool()) {
-              final tmp34 = i1.memory.loadInt32(
+              final tmp34 = i0.memory.loadInt32(
                 wasmAddress.toIntUnsigned(),
                 offset: 36,
               );
@@ -1947,13 +1947,13 @@ final class _Vtable147
 
           tmp86 = i5.TypesErrorCodeHttpRequestHeaderSize(tmp37);
         case 23:
-          final tmp38 = i1.memory.loadUint8(
+          final tmp38 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp40;
+          final i0.Option<int> tmp40;
           if (tmp38.toBool()) {
-            final tmp39 = i1.memory.loadInt32(
+            final tmp39 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
@@ -1965,33 +1965,33 @@ final class _Vtable147
 
           tmp86 = i5.TypesErrorCodeHttpRequestTrailerSectionSize(tmp40);
         case 24:
-          final tmp41 = i1.memory.loadUint8(
+          final tmp41 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp44;
+          final i0.Option<String> tmp44;
           if (tmp41.toBool()) {
-            final tmp42 = i1.memory.loadInt32(
+            final tmp42 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp43 = i1.memory.loadInt32(
+            final tmp43 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp44 = .some(i1.AllocatedString.read(tmp42, tmp43));
+            tmp44 = .some(i0.AllocatedString.read(tmp42, tmp43));
           } else {
             tmp44 = .none;
           }
 
-          final tmp45 = i1.memory.loadUint8(
+          final tmp45 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 28,
           );
-          final i1.Option<int> tmp47;
+          final i0.Option<int> tmp47;
           if (tmp45.toBool()) {
-            final tmp46 = i1.memory.loadInt32(
+            final tmp46 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 32,
             );
@@ -2007,13 +2007,13 @@ final class _Vtable147
         case 25:
           tmp86 = i5.TypesErrorCodeHttpResponseIncomplete();
         case 26:
-          final tmp49 = i1.memory.loadUint8(
+          final tmp49 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp51;
+          final i0.Option<int> tmp51;
           if (tmp49.toBool()) {
-            final tmp50 = i1.memory.loadInt32(
+            final tmp50 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
@@ -2025,33 +2025,33 @@ final class _Vtable147
 
           tmp86 = i5.TypesErrorCodeHttpResponseHeaderSectionSize(tmp51);
         case 27:
-          final tmp52 = i1.memory.loadUint8(
+          final tmp52 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp55;
+          final i0.Option<String> tmp55;
           if (tmp52.toBool()) {
-            final tmp53 = i1.memory.loadInt32(
+            final tmp53 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp54 = i1.memory.loadInt32(
+            final tmp54 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp55 = .some(i1.AllocatedString.read(tmp53, tmp54));
+            tmp55 = .some(i0.AllocatedString.read(tmp53, tmp54));
           } else {
             tmp55 = .none;
           }
 
-          final tmp56 = i1.memory.loadUint8(
+          final tmp56 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 28,
           );
-          final i1.Option<int> tmp58;
+          final i0.Option<int> tmp58;
           if (tmp56.toBool()) {
-            final tmp57 = i1.memory.loadInt32(
+            final tmp57 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 32,
             );
@@ -2065,13 +2065,13 @@ final class _Vtable147
 
           tmp86 = i5.TypesErrorCodeHttpResponseHeaderSize(tmp59);
         case 28:
-          final tmp60 = i1.memory.loadUint8(
+          final tmp60 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp62;
+          final i0.Option<int> tmp62;
           if (tmp60.toBool()) {
-            final tmp61 = i1.memory.loadInt64(
+            final tmp61 = i0.memory.loadInt64(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
@@ -2083,13 +2083,13 @@ final class _Vtable147
 
           tmp86 = i5.TypesErrorCodeHttpResponseBodySize(tmp62);
         case 29:
-          final tmp63 = i1.memory.loadUint8(
+          final tmp63 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp65;
+          final i0.Option<int> tmp65;
           if (tmp63.toBool()) {
-            final tmp64 = i1.memory.loadInt32(
+            final tmp64 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
@@ -2101,33 +2101,33 @@ final class _Vtable147
 
           tmp86 = i5.TypesErrorCodeHttpResponseTrailerSectionSize(tmp65);
         case 30:
-          final tmp66 = i1.memory.loadUint8(
+          final tmp66 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp69;
+          final i0.Option<String> tmp69;
           if (tmp66.toBool()) {
-            final tmp67 = i1.memory.loadInt32(
+            final tmp67 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp68 = i1.memory.loadInt32(
+            final tmp68 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp69 = .some(i1.AllocatedString.read(tmp67, tmp68));
+            tmp69 = .some(i0.AllocatedString.read(tmp67, tmp68));
           } else {
             tmp69 = .none;
           }
 
-          final tmp70 = i1.memory.loadUint8(
+          final tmp70 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 28,
           );
-          final i1.Option<int> tmp72;
+          final i0.Option<int> tmp72;
           if (tmp70.toBool()) {
-            final tmp71 = i1.memory.loadInt32(
+            final tmp71 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 32,
             );
@@ -2141,44 +2141,44 @@ final class _Vtable147
 
           tmp86 = i5.TypesErrorCodeHttpResponseTrailerSize(tmp73);
         case 31:
-          final tmp74 = i1.memory.loadUint8(
+          final tmp74 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp77;
+          final i0.Option<String> tmp77;
           if (tmp74.toBool()) {
-            final tmp75 = i1.memory.loadInt32(
+            final tmp75 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp76 = i1.memory.loadInt32(
+            final tmp76 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp77 = .some(i1.AllocatedString.read(tmp75, tmp76));
+            tmp77 = .some(i0.AllocatedString.read(tmp75, tmp76));
           } else {
             tmp77 = .none;
           }
 
           tmp86 = i5.TypesErrorCodeHttpResponseTransferCoding(tmp77);
         case 32:
-          final tmp78 = i1.memory.loadUint8(
+          final tmp78 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp81;
+          final i0.Option<String> tmp81;
           if (tmp78.toBool()) {
-            final tmp79 = i1.memory.loadInt32(
+            final tmp79 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp80 = i1.memory.loadInt32(
+            final tmp80 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp81 = .some(i1.AllocatedString.read(tmp79, tmp80));
+            tmp81 = .some(i0.AllocatedString.read(tmp79, tmp80));
           } else {
             tmp81 = .none;
           }
@@ -2195,22 +2195,22 @@ final class _Vtable147
         case 37:
           tmp86 = i5.TypesErrorCodeConfigurationError();
         case 38:
-          final tmp82 = i1.memory.loadUint8(
+          final tmp82 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp85;
+          final i0.Option<String> tmp85;
           if (tmp82.toBool()) {
-            final tmp83 = i1.memory.loadInt32(
+            final tmp83 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp84 = i1.memory.loadInt32(
+            final tmp84 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp85 = .some(i1.AllocatedString.read(tmp83, tmp84));
+            tmp85 = .some(i0.AllocatedString.read(tmp83, tmp84));
           } else {
             tmp85 = .none;
           }
@@ -2223,14 +2223,14 @@ final class _Vtable147
 
       tmp87 = .error(tmp86);
     } else {
-      final tmp1 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 8);
-      final i1.Option<i1.Owned<i5.TypesFields>> tmp4;
+      final tmp1 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 8);
+      final i0.Option<i0.Owned<i5.TypesFields>> tmp4;
       if (tmp1.toBool()) {
-        final tmp2 = i1.memory.loadInt32(
+        final tmp2 = i0.memory.loadInt32(
           wasmAddress.toIntUnsigned(),
           offset: 12,
         );
-        final tmp3 = i1.Owned<i5.TypesFields>(tmp2.toIntUnsigned(), _drop$129);
+        final tmp3 = i0.Owned<i5.TypesFields>(tmp2.toIntUnsigned(), _drop$129);
         tmp4 = .some(tmp3);
       } else {
         tmp4 = .none;
@@ -2255,7 +2255,7 @@ external i2.WasmVoid _futureDropReadable151(i2.WasmI32 future);
 external i2.WasmVoid _futureDropWritable151(i2.WasmI32 future);
 
 final class _Vtable151
-    implements i1.FutureVtable<i1.Result<void, i5.TypesErrorCode>> {
+    implements i0.FutureVtable<i0.Result<void, i5.TypesErrorCode>> {
   const _Vtable151();
 
   @override
@@ -2289,7 +2289,7 @@ final class _Vtable151
 
   @override
   int allocateBuffer() {
-    return i1
+    return i0
         .mallocAligned(const i2.WasmI32(8), const i2.WasmI32(40))
         .toIntUnsigned();
   }
@@ -2298,30 +2298,30 @@ final class _Vtable151
   void freeBuffer(int address, {required bool containsValue}) {
     if (containsValue) {
       final ptr = i2.WasmI32.fromInt(address);
-      final tmp0 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
+      final tmp0 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 0);
       switch (tmp0) {
         case 0:
           break;
         case 1:
-          final tmp1 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 8);
+          final tmp1 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 8);
           switch (tmp1) {
             case 0:
               break;
             case 1:
-              final tmp2 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 16);
+              final tmp2 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 16);
               switch (tmp2) {
                 case 0:
                   break;
                 case 1:
-                  final tmp3 = i1.memory.loadInt32(
+                  final tmp3 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp4 = i1.memory.loadInt32(
+                  final tmp4 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp3, tmp4).free();
+                  i0.AllocatedString(tmp3, tmp4).free();
                   break;
               }
               break;
@@ -2350,20 +2350,20 @@ final class _Vtable151
             case 13:
               break;
             case 14:
-              final tmp5 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 20);
+              final tmp5 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 20);
               switch (tmp5) {
                 case 0:
                   break;
                 case 1:
-                  final tmp6 = i1.memory.loadInt32(
+                  final tmp6 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  final tmp7 = i1.memory.loadInt32(
+                  final tmp7 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 28,
                   );
-                  i1.AllocatedString(tmp6, tmp7).free();
+                  i0.AllocatedString(tmp6, tmp7).free();
                   break;
               }
               break;
@@ -2382,12 +2382,12 @@ final class _Vtable151
             case 21:
               break;
             case 22:
-              final tmp8 = i1.memory.loadUint8(ptr.toIntUnsigned(), offset: 16);
+              final tmp8 = i0.memory.loadUint8(ptr.toIntUnsigned(), offset: 16);
               switch (tmp8) {
                 case 0:
                   break;
                 case 1:
-                  final tmp9 = i1.memory.loadUint8(
+                  final tmp9 = i0.memory.loadUint8(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
@@ -2395,15 +2395,15 @@ final class _Vtable151
                     case 0:
                       break;
                     case 1:
-                      final tmp10 = i1.memory.loadInt32(
+                      final tmp10 = i0.memory.loadInt32(
                         ptr.toIntUnsigned(),
                         offset: 24,
                       );
-                      final tmp11 = i1.memory.loadInt32(
+                      final tmp11 = i0.memory.loadInt32(
                         ptr.toIntUnsigned(),
                         offset: 28,
                       );
-                      i1.AllocatedString(tmp10, tmp11).free();
+                      i0.AllocatedString(tmp10, tmp11).free();
                       break;
                   }
                   break;
@@ -2412,7 +2412,7 @@ final class _Vtable151
             case 23:
               break;
             case 24:
-              final tmp12 = i1.memory.loadUint8(
+              final tmp12 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -2420,15 +2420,15 @@ final class _Vtable151
                 case 0:
                   break;
                 case 1:
-                  final tmp13 = i1.memory.loadInt32(
+                  final tmp13 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp14 = i1.memory.loadInt32(
+                  final tmp14 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp13, tmp14).free();
+                  i0.AllocatedString(tmp13, tmp14).free();
                   break;
               }
               break;
@@ -2437,7 +2437,7 @@ final class _Vtable151
             case 26:
               break;
             case 27:
-              final tmp15 = i1.memory.loadUint8(
+              final tmp15 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -2445,15 +2445,15 @@ final class _Vtable151
                 case 0:
                   break;
                 case 1:
-                  final tmp16 = i1.memory.loadInt32(
+                  final tmp16 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp17 = i1.memory.loadInt32(
+                  final tmp17 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp16, tmp17).free();
+                  i0.AllocatedString(tmp16, tmp17).free();
                   break;
               }
               break;
@@ -2462,7 +2462,7 @@ final class _Vtable151
             case 29:
               break;
             case 30:
-              final tmp18 = i1.memory.loadUint8(
+              final tmp18 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -2470,20 +2470,20 @@ final class _Vtable151
                 case 0:
                   break;
                 case 1:
-                  final tmp19 = i1.memory.loadInt32(
+                  final tmp19 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp20 = i1.memory.loadInt32(
+                  final tmp20 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp19, tmp20).free();
+                  i0.AllocatedString(tmp19, tmp20).free();
                   break;
               }
               break;
             case 31:
-              final tmp21 = i1.memory.loadUint8(
+              final tmp21 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -2491,20 +2491,20 @@ final class _Vtable151
                 case 0:
                   break;
                 case 1:
-                  final tmp22 = i1.memory.loadInt32(
+                  final tmp22 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp23 = i1.memory.loadInt32(
+                  final tmp23 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp22, tmp23).free();
+                  i0.AllocatedString(tmp22, tmp23).free();
                   break;
               }
               break;
             case 32:
-              final tmp24 = i1.memory.loadUint8(
+              final tmp24 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -2512,15 +2512,15 @@ final class _Vtable151
                 case 0:
                   break;
                 case 1:
-                  final tmp25 = i1.memory.loadInt32(
+                  final tmp25 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp26 = i1.memory.loadInt32(
+                  final tmp26 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp25, tmp26).free();
+                  i0.AllocatedString(tmp25, tmp26).free();
                   break;
               }
               break;
@@ -2535,7 +2535,7 @@ final class _Vtable151
             case 37:
               break;
             case 38:
-              final tmp27 = i1.memory.loadUint8(
+              final tmp27 = i0.memory.loadUint8(
                 ptr.toIntUnsigned(),
                 offset: 16,
               );
@@ -2543,15 +2543,15 @@ final class _Vtable151
                 case 0:
                   break;
                 case 1:
-                  final tmp28 = i1.memory.loadInt32(
+                  final tmp28 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 20,
                   );
-                  final tmp29 = i1.memory.loadInt32(
+                  final tmp29 = i0.memory.loadInt32(
                     ptr.toIntUnsigned(),
                     offset: 24,
                   );
-                  i1.AllocatedString(tmp28, tmp29).free();
+                  i0.AllocatedString(tmp28, tmp29).free();
                   break;
               }
               break;
@@ -2559,37 +2559,37 @@ final class _Vtable151
           break;
       }
     }
-    i1.dartFree(address.toWasmI32(), const i2.WasmI32(40), const i2.WasmI32(8));
+    i0.dartFree(address.toWasmI32(), const i2.WasmI32(40), const i2.WasmI32(8));
   }
 
   @override
-  void store(int address, i1.Result<void, i5.TypesErrorCode> value) {
+  void store(int address, i0.Result<void, i5.TypesErrorCode> value) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
     switch (value) {
-      case i1.OkResult(:final value):
-        i1.memory.storeInt8(
+      case i0.OkResult(:final value):
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           const i2.WasmI32(0),
           offset: 0,
         );
 
-      case i1.ErrorResult(:final value):
-        i1.memory.storeInt8(
+      case i0.ErrorResult(:final value):
+        i0.memory.storeInt8(
           wasmAddress.toIntUnsigned(),
           const i2.WasmI32(1),
           offset: 0,
         );
         switch (value) {
           case i5.TypesErrorCodeDnsTimeout():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(0),
               offset: 8,
             );
 
           case i5.TypesErrorCodeDnsError(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(1),
               offset: 8,
@@ -2597,24 +2597,24 @@ final class _Vtable151
             final tmp1 = value.rcode;
             if (tmp1.hasValue) {
               final value = tmp1.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp0 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp0 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp0.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp0.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -2623,18 +2623,18 @@ final class _Vtable151
             final tmp2 = value.infoCode;
             if (tmp2.hasValue) {
               final value = tmp2.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 28,
               );
-              i1.memory.storeInt16(
+              i0.memory.storeInt16(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.uint16FromInt(value),
                 offset: 30,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 28,
@@ -2642,91 +2642,91 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeDestinationNotFound():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(2),
               offset: 8,
             );
 
           case i5.TypesErrorCodeDestinationUnavailable():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(3),
               offset: 8,
             );
 
           case i5.TypesErrorCodeDestinationIpProhibited():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(4),
               offset: 8,
             );
 
           case i5.TypesErrorCodeDestinationIpUnroutable():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(5),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionRefused():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(6),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionTerminated():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(7),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionTimeout():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(8),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionReadTimeout():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(9),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionWriteTimeout():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(10),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConnectionLimitReached():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(11),
               offset: 8,
             );
 
           case i5.TypesErrorCodeTlsProtocolError():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(12),
               offset: 8,
             );
 
           case i5.TypesErrorCodeTlsCertificateError():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(13),
               offset: 8,
             );
 
           case i5.TypesErrorCodeTlsAlertReceived(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(14),
               offset: 8,
@@ -2734,18 +2734,18 @@ final class _Vtable151
             final tmp3 = value.alertId;
             if (tmp3.hasValue) {
               final value = tmp3.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.uint8FromInt(value),
                 offset: 17,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -2754,24 +2754,24 @@ final class _Vtable151
             final tmp5 = value.alertMessage;
             if (tmp5.hasValue) {
               final value = tmp5.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 20,
               );
-              final tmp4 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp4 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp4.packedLength,
                 offset: 28,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp4.ptr,
                 offset: 24,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 20,
@@ -2779,21 +2779,21 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeHttpRequestDenied():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(15),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpRequestLengthRequired():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(16),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpRequestBodySize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(17),
               offset: 8,
@@ -2801,18 +2801,18 @@ final class _Vtable151
             final tmp6 = value;
             if (tmp6.hasValue) {
               final value = tmp6.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt64(
+              i0.memory.storeInt64(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI64.fromInt(value),
                 offset: 24,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -2820,21 +2820,21 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeHttpRequestMethodInvalid():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(18),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpRequestUriInvalid():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(19),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpRequestUriTooLong():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(20),
               offset: 8,
@@ -2843,7 +2843,7 @@ final class _Vtable151
           case i5.TypesErrorCodeHttpRequestHeaderSectionSize(
             payload: final value,
           ):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(21),
               offset: 8,
@@ -2851,18 +2851,18 @@ final class _Vtable151
             final tmp7 = value;
             if (tmp7.hasValue) {
               final value = tmp7.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -2870,7 +2870,7 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeHttpRequestHeaderSize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(22),
               offset: 8,
@@ -2878,7 +2878,7 @@ final class _Vtable151
             final tmp11 = value;
             if (tmp11.hasValue) {
               final value = tmp11.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
@@ -2886,24 +2886,24 @@ final class _Vtable151
               final tmp9 = value.fieldName;
               if (tmp9.hasValue) {
                 final value = tmp9.requireValue();
-                i1.memory.storeInt8(
+                i0.memory.storeInt8(
                   wasmAddress.toIntUnsigned(),
                   const i2.WasmI32(1),
                   offset: 20,
                 );
-                final tmp8 = i1.AllocatedString.allocateUtf16(value);
-                i1.memory.storeInt32(
+                final tmp8 = i0.AllocatedString.allocateUtf16(value);
+                i0.memory.storeInt32(
                   wasmAddress.toIntUnsigned(),
                   tmp8.packedLength,
                   offset: 28,
                 );
-                i1.memory.storeInt32(
+                i0.memory.storeInt32(
                   wasmAddress.toIntUnsigned(),
                   tmp8.ptr,
                   offset: 24,
                 );
               } else {
-                i1.memory.storeInt8(
+                i0.memory.storeInt8(
                   wasmAddress.toIntUnsigned(),
                   const i2.WasmI32(0),
                   offset: 20,
@@ -2912,25 +2912,25 @@ final class _Vtable151
               final tmp10 = value.fieldSize;
               if (tmp10.hasValue) {
                 final value = tmp10.requireValue();
-                i1.memory.storeInt8(
+                i0.memory.storeInt8(
                   wasmAddress.toIntUnsigned(),
                   const i2.WasmI32(1),
                   offset: 32,
                 );
-                i1.memory.storeInt32(
+                i0.memory.storeInt32(
                   wasmAddress.toIntUnsigned(),
                   i2.WasmI32.fromInt(value),
                   offset: 36,
                 );
               } else {
-                i1.memory.storeInt8(
+                i0.memory.storeInt8(
                   wasmAddress.toIntUnsigned(),
                   const i2.WasmI32(0),
                   offset: 32,
                 );
               }
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -2940,7 +2940,7 @@ final class _Vtable151
           case i5.TypesErrorCodeHttpRequestTrailerSectionSize(
             payload: final value,
           ):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(23),
               offset: 8,
@@ -2948,18 +2948,18 @@ final class _Vtable151
             final tmp12 = value;
             if (tmp12.hasValue) {
               final value = tmp12.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -2967,7 +2967,7 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeHttpRequestTrailerSize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(24),
               offset: 8,
@@ -2975,24 +2975,24 @@ final class _Vtable151
             final tmp14 = value.fieldName;
             if (tmp14.hasValue) {
               final value = tmp14.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp13 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp13 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp13.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp13.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -3001,18 +3001,18 @@ final class _Vtable151
             final tmp15 = value.fieldSize;
             if (tmp15.hasValue) {
               final value = tmp15.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 28,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 32,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 28,
@@ -3020,7 +3020,7 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeHttpResponseIncomplete():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(25),
               offset: 8,
@@ -3029,7 +3029,7 @@ final class _Vtable151
           case i5.TypesErrorCodeHttpResponseHeaderSectionSize(
             payload: final value,
           ):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(26),
               offset: 8,
@@ -3037,18 +3037,18 @@ final class _Vtable151
             final tmp16 = value;
             if (tmp16.hasValue) {
               final value = tmp16.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -3056,7 +3056,7 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeHttpResponseHeaderSize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(27),
               offset: 8,
@@ -3064,24 +3064,24 @@ final class _Vtable151
             final tmp18 = value.fieldName;
             if (tmp18.hasValue) {
               final value = tmp18.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp17 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp17 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp17.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp17.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -3090,18 +3090,18 @@ final class _Vtable151
             final tmp19 = value.fieldSize;
             if (tmp19.hasValue) {
               final value = tmp19.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 28,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 32,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 28,
@@ -3109,7 +3109,7 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeHttpResponseBodySize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(28),
               offset: 8,
@@ -3117,18 +3117,18 @@ final class _Vtable151
             final tmp20 = value;
             if (tmp20.hasValue) {
               final value = tmp20.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt64(
+              i0.memory.storeInt64(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI64.fromInt(value),
                 offset: 24,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -3138,7 +3138,7 @@ final class _Vtable151
           case i5.TypesErrorCodeHttpResponseTrailerSectionSize(
             payload: final value,
           ):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(29),
               offset: 8,
@@ -3146,18 +3146,18 @@ final class _Vtable151
             final tmp21 = value;
             if (tmp21.hasValue) {
               final value = tmp21.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -3165,7 +3165,7 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeHttpResponseTrailerSize(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(30),
               offset: 8,
@@ -3173,24 +3173,24 @@ final class _Vtable151
             final tmp23 = value.fieldName;
             if (tmp23.hasValue) {
               final value = tmp23.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp22 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp22 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp22.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp22.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -3199,18 +3199,18 @@ final class _Vtable151
             final tmp24 = value.fieldSize;
             if (tmp24.hasValue) {
               final value = tmp24.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 28,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 i2.WasmI32.fromInt(value),
                 offset: 32,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 28,
@@ -3220,7 +3220,7 @@ final class _Vtable151
           case i5.TypesErrorCodeHttpResponseTransferCoding(
             payload: final value,
           ):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(31),
               offset: 8,
@@ -3228,24 +3228,24 @@ final class _Vtable151
             final tmp26 = value;
             if (tmp26.hasValue) {
               final value = tmp26.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp25 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp25 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp25.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp25.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -3253,7 +3253,7 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeHttpResponseContentCoding(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(32),
               offset: 8,
@@ -3261,24 +3261,24 @@ final class _Vtable151
             final tmp28 = value;
             if (tmp28.hasValue) {
               final value = tmp28.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp27 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp27 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp27.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp27.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -3286,42 +3286,42 @@ final class _Vtable151
             }
 
           case i5.TypesErrorCodeHttpResponseTimeout():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(33),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpUpgradeFailed():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(34),
               offset: 8,
             );
 
           case i5.TypesErrorCodeHttpProtocolError():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(35),
               offset: 8,
             );
 
           case i5.TypesErrorCodeLoopDetected():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(36),
               offset: 8,
             );
 
           case i5.TypesErrorCodeConfigurationError():
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(37),
               offset: 8,
             );
 
           case i5.TypesErrorCodeInternalError(payload: final value):
-            i1.memory.storeInt8(
+            i0.memory.storeInt8(
               wasmAddress.toIntUnsigned(),
               const i2.WasmI32(38),
               offset: 8,
@@ -3329,24 +3329,24 @@ final class _Vtable151
             final tmp30 = value;
             if (tmp30.hasValue) {
               final value = tmp30.requireValue();
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(1),
                 offset: 16,
               );
-              final tmp29 = i1.AllocatedString.allocateUtf16(value);
-              i1.memory.storeInt32(
+              final tmp29 = i0.AllocatedString.allocateUtf16(value);
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp29.packedLength,
                 offset: 24,
               );
-              i1.memory.storeInt32(
+              i0.memory.storeInt32(
                 wasmAddress.toIntUnsigned(),
                 tmp29.ptr,
                 offset: 20,
               );
             } else {
-              i1.memory.storeInt8(
+              i0.memory.storeInt8(
                 wasmAddress.toIntUnsigned(),
                 const i2.WasmI32(0),
                 offset: 16,
@@ -3357,45 +3357,45 @@ final class _Vtable151
   }
 
   @override
-  i1.Result<void, i5.TypesErrorCode> load(int address) {
+  i0.Result<void, i5.TypesErrorCode> load(int address) {
     final wasmAddress = i2.WasmI32.fromInt(address);
 
-    final tmp0 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i5.TypesErrorCode> tmp83;
+    final tmp0 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 0);
+    final i0.Result<void, i5.TypesErrorCode> tmp83;
     if (tmp0.toBool()) {
-      final tmp1 = i1.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 8);
+      final tmp1 = i0.memory.loadUint8(wasmAddress.toIntUnsigned(), offset: 8);
       final i5.TypesErrorCode tmp82;
       switch (tmp1.toIntUnsigned()) {
         case 0:
           tmp82 = i5.TypesErrorCodeDnsTimeout();
         case 1:
-          final tmp2 = i1.memory.loadUint8(
+          final tmp2 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp5;
+          final i0.Option<String> tmp5;
           if (tmp2.toBool()) {
-            final tmp3 = i1.memory.loadInt32(
+            final tmp3 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp4 = i1.memory.loadInt32(
+            final tmp4 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp5 = .some(i1.AllocatedString.read(tmp3, tmp4));
+            tmp5 = .some(i0.AllocatedString.read(tmp3, tmp4));
           } else {
             tmp5 = .none;
           }
 
-          final tmp6 = i1.memory.loadUint8(
+          final tmp6 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 28,
           );
-          final i1.Option<int> tmp8;
+          final i0.Option<int> tmp8;
           if (tmp6.toBool()) {
-            final tmp7 = i1.memory.loadUint16(
+            final tmp7 = i0.memory.loadUint16(
               wasmAddress.toIntUnsigned(),
               offset: 30,
             );
@@ -3433,13 +3433,13 @@ final class _Vtable151
         case 13:
           tmp82 = i5.TypesErrorCodeTlsCertificateError();
         case 14:
-          final tmp10 = i1.memory.loadUint8(
+          final tmp10 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp12;
+          final i0.Option<int> tmp12;
           if (tmp10.toBool()) {
-            final tmp11 = i1.memory.loadUint8(
+            final tmp11 = i0.memory.loadUint8(
               wasmAddress.toIntUnsigned(),
               offset: 17,
             );
@@ -3449,22 +3449,22 @@ final class _Vtable151
             tmp12 = .none;
           }
 
-          final tmp13 = i1.memory.loadUint8(
+          final tmp13 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 20,
           );
-          final i1.Option<String> tmp16;
+          final i0.Option<String> tmp16;
           if (tmp13.toBool()) {
-            final tmp14 = i1.memory.loadInt32(
+            final tmp14 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
-            final tmp15 = i1.memory.loadInt32(
+            final tmp15 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 28,
             );
 
-            tmp16 = .some(i1.AllocatedString.read(tmp14, tmp15));
+            tmp16 = .some(i0.AllocatedString.read(tmp14, tmp15));
           } else {
             tmp16 = .none;
           }
@@ -3477,13 +3477,13 @@ final class _Vtable151
         case 16:
           tmp82 = i5.TypesErrorCodeHttpRequestLengthRequired();
         case 17:
-          final tmp18 = i1.memory.loadUint8(
+          final tmp18 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp20;
+          final i0.Option<int> tmp20;
           if (tmp18.toBool()) {
-            final tmp19 = i1.memory.loadInt64(
+            final tmp19 = i0.memory.loadInt64(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
@@ -3501,13 +3501,13 @@ final class _Vtable151
         case 20:
           tmp82 = i5.TypesErrorCodeHttpRequestUriTooLong();
         case 21:
-          final tmp21 = i1.memory.loadUint8(
+          final tmp21 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp23;
+          final i0.Option<int> tmp23;
           if (tmp21.toBool()) {
-            final tmp22 = i1.memory.loadInt32(
+            final tmp22 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
@@ -3519,42 +3519,42 @@ final class _Vtable151
 
           tmp82 = i5.TypesErrorCodeHttpRequestHeaderSectionSize(tmp23);
         case 22:
-          final tmp24 = i1.memory.loadUint8(
+          final tmp24 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<
-            ({i1.Option<String> fieldName, i1.Option<int> fieldSize})
+          final i0.Option<
+            ({i0.Option<String> fieldName, i0.Option<int> fieldSize})
           >
           tmp33;
           if (tmp24.toBool()) {
-            final tmp25 = i1.memory.loadUint8(
+            final tmp25 = i0.memory.loadUint8(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final i1.Option<String> tmp28;
+            final i0.Option<String> tmp28;
             if (tmp25.toBool()) {
-              final tmp26 = i1.memory.loadInt32(
+              final tmp26 = i0.memory.loadInt32(
                 wasmAddress.toIntUnsigned(),
                 offset: 24,
               );
-              final tmp27 = i1.memory.loadInt32(
+              final tmp27 = i0.memory.loadInt32(
                 wasmAddress.toIntUnsigned(),
                 offset: 28,
               );
 
-              tmp28 = .some(i1.AllocatedString.read(tmp26, tmp27));
+              tmp28 = .some(i0.AllocatedString.read(tmp26, tmp27));
             } else {
               tmp28 = .none;
             }
 
-            final tmp29 = i1.memory.loadUint8(
+            final tmp29 = i0.memory.loadUint8(
               wasmAddress.toIntUnsigned(),
               offset: 32,
             );
-            final i1.Option<int> tmp31;
+            final i0.Option<int> tmp31;
             if (tmp29.toBool()) {
-              final tmp30 = i1.memory.loadInt32(
+              final tmp30 = i0.memory.loadInt32(
                 wasmAddress.toIntUnsigned(),
                 offset: 36,
               );
@@ -3573,13 +3573,13 @@ final class _Vtable151
 
           tmp82 = i5.TypesErrorCodeHttpRequestHeaderSize(tmp33);
         case 23:
-          final tmp34 = i1.memory.loadUint8(
+          final tmp34 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp36;
+          final i0.Option<int> tmp36;
           if (tmp34.toBool()) {
-            final tmp35 = i1.memory.loadInt32(
+            final tmp35 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
@@ -3591,33 +3591,33 @@ final class _Vtable151
 
           tmp82 = i5.TypesErrorCodeHttpRequestTrailerSectionSize(tmp36);
         case 24:
-          final tmp37 = i1.memory.loadUint8(
+          final tmp37 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp40;
+          final i0.Option<String> tmp40;
           if (tmp37.toBool()) {
-            final tmp38 = i1.memory.loadInt32(
+            final tmp38 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp39 = i1.memory.loadInt32(
+            final tmp39 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp40 = .some(i1.AllocatedString.read(tmp38, tmp39));
+            tmp40 = .some(i0.AllocatedString.read(tmp38, tmp39));
           } else {
             tmp40 = .none;
           }
 
-          final tmp41 = i1.memory.loadUint8(
+          final tmp41 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 28,
           );
-          final i1.Option<int> tmp43;
+          final i0.Option<int> tmp43;
           if (tmp41.toBool()) {
-            final tmp42 = i1.memory.loadInt32(
+            final tmp42 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 32,
             );
@@ -3633,13 +3633,13 @@ final class _Vtable151
         case 25:
           tmp82 = i5.TypesErrorCodeHttpResponseIncomplete();
         case 26:
-          final tmp45 = i1.memory.loadUint8(
+          final tmp45 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp47;
+          final i0.Option<int> tmp47;
           if (tmp45.toBool()) {
-            final tmp46 = i1.memory.loadInt32(
+            final tmp46 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
@@ -3651,33 +3651,33 @@ final class _Vtable151
 
           tmp82 = i5.TypesErrorCodeHttpResponseHeaderSectionSize(tmp47);
         case 27:
-          final tmp48 = i1.memory.loadUint8(
+          final tmp48 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp51;
+          final i0.Option<String> tmp51;
           if (tmp48.toBool()) {
-            final tmp49 = i1.memory.loadInt32(
+            final tmp49 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp50 = i1.memory.loadInt32(
+            final tmp50 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp51 = .some(i1.AllocatedString.read(tmp49, tmp50));
+            tmp51 = .some(i0.AllocatedString.read(tmp49, tmp50));
           } else {
             tmp51 = .none;
           }
 
-          final tmp52 = i1.memory.loadUint8(
+          final tmp52 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 28,
           );
-          final i1.Option<int> tmp54;
+          final i0.Option<int> tmp54;
           if (tmp52.toBool()) {
-            final tmp53 = i1.memory.loadInt32(
+            final tmp53 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 32,
             );
@@ -3691,13 +3691,13 @@ final class _Vtable151
 
           tmp82 = i5.TypesErrorCodeHttpResponseHeaderSize(tmp55);
         case 28:
-          final tmp56 = i1.memory.loadUint8(
+          final tmp56 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp58;
+          final i0.Option<int> tmp58;
           if (tmp56.toBool()) {
-            final tmp57 = i1.memory.loadInt64(
+            final tmp57 = i0.memory.loadInt64(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
@@ -3709,13 +3709,13 @@ final class _Vtable151
 
           tmp82 = i5.TypesErrorCodeHttpResponseBodySize(tmp58);
         case 29:
-          final tmp59 = i1.memory.loadUint8(
+          final tmp59 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<int> tmp61;
+          final i0.Option<int> tmp61;
           if (tmp59.toBool()) {
-            final tmp60 = i1.memory.loadInt32(
+            final tmp60 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
@@ -3727,33 +3727,33 @@ final class _Vtable151
 
           tmp82 = i5.TypesErrorCodeHttpResponseTrailerSectionSize(tmp61);
         case 30:
-          final tmp62 = i1.memory.loadUint8(
+          final tmp62 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp65;
+          final i0.Option<String> tmp65;
           if (tmp62.toBool()) {
-            final tmp63 = i1.memory.loadInt32(
+            final tmp63 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp64 = i1.memory.loadInt32(
+            final tmp64 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp65 = .some(i1.AllocatedString.read(tmp63, tmp64));
+            tmp65 = .some(i0.AllocatedString.read(tmp63, tmp64));
           } else {
             tmp65 = .none;
           }
 
-          final tmp66 = i1.memory.loadUint8(
+          final tmp66 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 28,
           );
-          final i1.Option<int> tmp68;
+          final i0.Option<int> tmp68;
           if (tmp66.toBool()) {
-            final tmp67 = i1.memory.loadInt32(
+            final tmp67 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 32,
             );
@@ -3767,44 +3767,44 @@ final class _Vtable151
 
           tmp82 = i5.TypesErrorCodeHttpResponseTrailerSize(tmp69);
         case 31:
-          final tmp70 = i1.memory.loadUint8(
+          final tmp70 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp73;
+          final i0.Option<String> tmp73;
           if (tmp70.toBool()) {
-            final tmp71 = i1.memory.loadInt32(
+            final tmp71 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp72 = i1.memory.loadInt32(
+            final tmp72 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp73 = .some(i1.AllocatedString.read(tmp71, tmp72));
+            tmp73 = .some(i0.AllocatedString.read(tmp71, tmp72));
           } else {
             tmp73 = .none;
           }
 
           tmp82 = i5.TypesErrorCodeHttpResponseTransferCoding(tmp73);
         case 32:
-          final tmp74 = i1.memory.loadUint8(
+          final tmp74 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp77;
+          final i0.Option<String> tmp77;
           if (tmp74.toBool()) {
-            final tmp75 = i1.memory.loadInt32(
+            final tmp75 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp76 = i1.memory.loadInt32(
+            final tmp76 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp77 = .some(i1.AllocatedString.read(tmp75, tmp76));
+            tmp77 = .some(i0.AllocatedString.read(tmp75, tmp76));
           } else {
             tmp77 = .none;
           }
@@ -3821,22 +3821,22 @@ final class _Vtable151
         case 37:
           tmp82 = i5.TypesErrorCodeConfigurationError();
         case 38:
-          final tmp78 = i1.memory.loadUint8(
+          final tmp78 = i0.memory.loadUint8(
             wasmAddress.toIntUnsigned(),
             offset: 16,
           );
-          final i1.Option<String> tmp81;
+          final i0.Option<String> tmp81;
           if (tmp78.toBool()) {
-            final tmp79 = i1.memory.loadInt32(
+            final tmp79 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 20,
             );
-            final tmp80 = i1.memory.loadInt32(
+            final tmp80 = i0.memory.loadInt32(
               wasmAddress.toIntUnsigned(),
               offset: 24,
             );
 
-            tmp81 = .some(i1.AllocatedString.read(tmp79, tmp80));
+            tmp81 = .some(i0.AllocatedString.read(tmp79, tmp80));
           } else {
             tmp81 = .none;
           }
@@ -4048,34 +4048,34 @@ external i2.WasmVoid _import78(i2.WasmI32 p0, i2.WasmI32 p1, i2.WasmI32 p2);
 final class _Imported$23 implements i5.Types {
   const _Imported$23();
   @override
-  i1.Owned<i5.TypesFields> constructorFields() {
+  i0.Owned<i5.TypesFields> constructorFields() {
     final tmp0 = _import39();
-    final tmp1 = i1.Owned<i5.TypesFields>(tmp0.toIntUnsigned(), _drop$127);
+    final tmp1 = i0.Owned<i5.TypesFields>(tmp0.toIntUnsigned(), _drop$127);
     return tmp1;
   }
 
   @override
-  i1.Result<i1.Owned<i5.TypesFields>, i5.TypesHeaderError>
+  i0.Result<i0.Owned<i5.TypesFields>, i5.TypesHeaderError>
   staticFieldsFromList({required List<(String, List<int>)> entries}) {
     final tmp4 = i2.WasmI32.fromInt(16 * entries.length);
-    final tmp5 = i1.mallocAligned(const i2.WasmI32(4), tmp4);
+    final tmp5 = i0.mallocAligned(const i2.WasmI32(4), tmp4);
     var tmp6 = tmp5;
     for (final element in entries) {
       final elementPtr = tmp6;
-      final tmp0 = i1.AllocatedString.allocateUtf16(element.$1);
-      i1.memory.storeInt32(
+      final tmp0 = i0.AllocatedString.allocateUtf16(element.$1);
+      i0.memory.storeInt32(
         elementPtr.toIntUnsigned(),
         tmp0.packedLength,
         offset: 4,
       );
-      i1.memory.storeInt32(elementPtr.toIntUnsigned(), tmp0.ptr, offset: 0);
+      i0.memory.storeInt32(elementPtr.toIntUnsigned(), tmp0.ptr, offset: 0);
 
       final tmp1 = i2.WasmI32.fromInt(1 * element.$2.length);
-      final tmp2 = i1.mallocAligned(const i2.WasmI32(1), tmp1);
+      final tmp2 = i0.mallocAligned(const i2.WasmI32(1), tmp1);
       var tmp3 = tmp2;
       for (final element in element.$2) {
         final elementPtr = tmp3;
-        i1.memory.storeInt8(
+        i0.memory.storeInt8(
           elementPtr.toIntUnsigned(),
           i2.WasmI32.uint8FromInt(element),
           offset: 0,
@@ -4084,24 +4084,24 @@ final class _Imported$23 implements i5.Types {
         tmp3 += const i2.WasmI32(1);
       }
 
-      i1.memory.storeInt32(
+      i0.memory.storeInt32(
         elementPtr.toIntUnsigned(),
         i2.WasmI32.fromInt(element.$2.length),
         offset: 12,
       );
-      i1.memory.storeInt32(elementPtr.toIntUnsigned(), tmp2, offset: 8);
+      i0.memory.storeInt32(elementPtr.toIntUnsigned(), tmp2, offset: 8);
 
       tmp6 += const i2.WasmI32(16);
       tmp0.free();
-      i1.dartFree(tmp2, tmp1, const i2.WasmI32(1));
+      i0.dartFree(tmp2, tmp1, const i2.WasmI32(1));
     }
 
-    var tmp7 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
+    var tmp7 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
     _import41(tmp5, i2.WasmI32.fromInt(entries.length), tmp7);
-    final tmp8 = i1.memory.loadUint8(tmp7.toIntUnsigned(), offset: 0);
-    final i1.Result<i1.Owned<i5.TypesFields>, i5.TypesHeaderError> tmp17;
+    final tmp8 = i0.memory.loadUint8(tmp7.toIntUnsigned(), offset: 0);
+    final i0.Result<i0.Owned<i5.TypesFields>, i5.TypesHeaderError> tmp17;
     if (tmp8.toBool()) {
-      final tmp11 = i1.memory.loadUint8(tmp7.toIntUnsigned(), offset: 4);
+      final tmp11 = i0.memory.loadUint8(tmp7.toIntUnsigned(), offset: 4);
       final i5.TypesHeaderError tmp16;
       switch (tmp11.toIntUnsigned()) {
         case 0:
@@ -4113,13 +4113,13 @@ final class _Imported$23 implements i5.Types {
         case 3:
           tmp16 = i5.TypesHeaderErrorSizeExceeded();
         case 4:
-          final tmp12 = i1.memory.loadUint8(tmp7.toIntUnsigned(), offset: 8);
-          final i1.Option<String> tmp15;
+          final tmp12 = i0.memory.loadUint8(tmp7.toIntUnsigned(), offset: 8);
+          final i0.Option<String> tmp15;
           if (tmp12.toBool()) {
-            final tmp13 = i1.memory.loadInt32(tmp7.toIntUnsigned(), offset: 12);
-            final tmp14 = i1.memory.loadInt32(tmp7.toIntUnsigned(), offset: 16);
+            final tmp13 = i0.memory.loadInt32(tmp7.toIntUnsigned(), offset: 12);
+            final tmp14 = i0.memory.loadInt32(tmp7.toIntUnsigned(), offset: 16);
 
-            tmp15 = .some(i1.AllocatedString.read(tmp13, tmp14));
+            tmp15 = .some(i0.AllocatedString.read(tmp13, tmp14));
           } else {
             tmp15 = .none;
           }
@@ -4132,42 +4132,42 @@ final class _Imported$23 implements i5.Types {
 
       tmp17 = .error(tmp16);
     } else {
-      final tmp9 = i1.memory.loadInt32(tmp7.toIntUnsigned(), offset: 4);
-      final tmp10 = i1.Owned<i5.TypesFields>(tmp9.toIntUnsigned(), _drop$127);
+      final tmp9 = i0.memory.loadInt32(tmp7.toIntUnsigned(), offset: 4);
+      final tmp10 = i0.Owned<i5.TypesFields>(tmp9.toIntUnsigned(), _drop$127);
       tmp17 = .ok(tmp10);
     }
 
-    i1.dartFree(tmp5, tmp4, const i2.WasmI32(4));
-    i1.dartFree(tmp7, const i2.WasmI32(20), const i2.WasmI32(4));
+    i0.dartFree(tmp5, tmp4, const i2.WasmI32(4));
+    i0.dartFree(tmp7, const i2.WasmI32(20), const i2.WasmI32(4));
     return tmp17;
   }
 
   @override
   List<List<int>> methodFieldsGet({
-    required i1.Borrowed<i5.TypesFields> self,
+    required i0.Borrowed<i5.TypesFields> self,
     required String name,
   }) {
-    final tmp0 = i1.AllocatedString.allocateUtf16(name);
-    var tmp1 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
+    final tmp0 = i0.AllocatedString.allocateUtf16(name);
+    var tmp1 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
     _import42(
       i2.WasmI32.fromInt(self.handle),
       tmp0.ptr,
       tmp0.packedLength,
       tmp1,
     );
-    final tmp2 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 0);
-    final tmp3 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 4);
+    final tmp2 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 0);
+    final tmp3 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 4);
 
     final tmp10 = tmp2.toIntUnsigned();
     final tmp9 = List.generate(tmp3.toIntUnsigned(), growable: false, (i) {
       final elementPtr = i2.WasmI32.fromInt(tmp10 + i * 8);
-      final tmp4 = i1.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 0);
-      final tmp5 = i1.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 4);
+      final tmp4 = i0.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 0);
+      final tmp5 = i0.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 4);
 
       final tmp8 = tmp4.toIntUnsigned();
       final tmp7 = List.generate(tmp5.toIntUnsigned(), growable: false, (i) {
         final elementPtr = i2.WasmI32.fromInt(tmp8 + i * 1);
-        final tmp6 = i1.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
+        final tmp6 = i0.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
 
         return tmp6.toIntUnsigned();
       });
@@ -4176,16 +4176,16 @@ final class _Imported$23 implements i5.Types {
     });
 
     tmp0.free();
-    i1.dartFree(tmp1, const i2.WasmI32(8), const i2.WasmI32(4));
+    i0.dartFree(tmp1, const i2.WasmI32(8), const i2.WasmI32(4));
     return tmp9;
   }
 
   @override
   bool methodFieldsHas({
-    required i1.Borrowed<i5.TypesFields> self,
+    required i0.Borrowed<i5.TypesFields> self,
     required String name,
   }) {
-    final tmp0 = i1.AllocatedString.allocateUtf16(name);
+    final tmp0 = i0.AllocatedString.allocateUtf16(name);
     final tmp1 = _import43(
       i2.WasmI32.fromInt(self.handle),
       tmp0.ptr,
@@ -4196,25 +4196,25 @@ final class _Imported$23 implements i5.Types {
   }
 
   @override
-  i1.Result<void, i5.TypesHeaderError> methodFieldsSet({
-    required i1.Borrowed<i5.TypesFields> self,
+  i0.Result<void, i5.TypesHeaderError> methodFieldsSet({
+    required i0.Borrowed<i5.TypesFields> self,
     required String name,
     required List<List<int>> value,
   }) {
-    final tmp0 = i1.AllocatedString.allocateUtf16(name);
+    final tmp0 = i0.AllocatedString.allocateUtf16(name);
 
     final tmp4 = i2.WasmI32.fromInt(8 * value.length);
-    final tmp5 = i1.mallocAligned(const i2.WasmI32(4), tmp4);
+    final tmp5 = i0.mallocAligned(const i2.WasmI32(4), tmp4);
     var tmp6 = tmp5;
     for (final element in value) {
       final elementPtr = tmp6;
 
       final tmp1 = i2.WasmI32.fromInt(1 * element.length);
-      final tmp2 = i1.mallocAligned(const i2.WasmI32(1), tmp1);
+      final tmp2 = i0.mallocAligned(const i2.WasmI32(1), tmp1);
       var tmp3 = tmp2;
       for (final element in element) {
         final elementPtr = tmp3;
-        i1.memory.storeInt8(
+        i0.memory.storeInt8(
           elementPtr.toIntUnsigned(),
           i2.WasmI32.uint8FromInt(element),
           offset: 0,
@@ -4223,18 +4223,18 @@ final class _Imported$23 implements i5.Types {
         tmp3 += const i2.WasmI32(1);
       }
 
-      i1.memory.storeInt32(
+      i0.memory.storeInt32(
         elementPtr.toIntUnsigned(),
         i2.WasmI32.fromInt(element.length),
         offset: 4,
       );
-      i1.memory.storeInt32(elementPtr.toIntUnsigned(), tmp2, offset: 0);
+      i0.memory.storeInt32(elementPtr.toIntUnsigned(), tmp2, offset: 0);
 
       tmp6 += const i2.WasmI32(8);
-      i1.dartFree(tmp2, tmp1, const i2.WasmI32(1));
+      i0.dartFree(tmp2, tmp1, const i2.WasmI32(1));
     }
 
-    var tmp7 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
+    var tmp7 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
     _import44(
       i2.WasmI32.fromInt(self.handle),
       tmp0.ptr,
@@ -4243,10 +4243,10 @@ final class _Imported$23 implements i5.Types {
       i2.WasmI32.fromInt(value.length),
       tmp7,
     );
-    final tmp8 = i1.memory.loadUint8(tmp7.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i5.TypesHeaderError> tmp15;
+    final tmp8 = i0.memory.loadUint8(tmp7.toIntUnsigned(), offset: 0);
+    final i0.Result<void, i5.TypesHeaderError> tmp15;
     if (tmp8.toBool()) {
-      final tmp9 = i1.memory.loadUint8(tmp7.toIntUnsigned(), offset: 4);
+      final tmp9 = i0.memory.loadUint8(tmp7.toIntUnsigned(), offset: 4);
       final i5.TypesHeaderError tmp14;
       switch (tmp9.toIntUnsigned()) {
         case 0:
@@ -4258,13 +4258,13 @@ final class _Imported$23 implements i5.Types {
         case 3:
           tmp14 = i5.TypesHeaderErrorSizeExceeded();
         case 4:
-          final tmp10 = i1.memory.loadUint8(tmp7.toIntUnsigned(), offset: 8);
-          final i1.Option<String> tmp13;
+          final tmp10 = i0.memory.loadUint8(tmp7.toIntUnsigned(), offset: 8);
+          final i0.Option<String> tmp13;
           if (tmp10.toBool()) {
-            final tmp11 = i1.memory.loadInt32(tmp7.toIntUnsigned(), offset: 12);
-            final tmp12 = i1.memory.loadInt32(tmp7.toIntUnsigned(), offset: 16);
+            final tmp11 = i0.memory.loadInt32(tmp7.toIntUnsigned(), offset: 12);
+            final tmp12 = i0.memory.loadInt32(tmp7.toIntUnsigned(), offset: 16);
 
-            tmp13 = .some(i1.AllocatedString.read(tmp11, tmp12));
+            tmp13 = .some(i0.AllocatedString.read(tmp11, tmp12));
           } else {
             tmp13 = .none;
           }
@@ -4281,28 +4281,28 @@ final class _Imported$23 implements i5.Types {
     }
 
     tmp0.free();
-    i1.dartFree(tmp5, tmp4, const i2.WasmI32(4));
-    i1.dartFree(tmp7, const i2.WasmI32(20), const i2.WasmI32(4));
+    i0.dartFree(tmp5, tmp4, const i2.WasmI32(4));
+    i0.dartFree(tmp7, const i2.WasmI32(20), const i2.WasmI32(4));
     return tmp15;
   }
 
   @override
-  i1.Result<void, i5.TypesHeaderError> methodFieldsDelete({
-    required i1.Borrowed<i5.TypesFields> self,
+  i0.Result<void, i5.TypesHeaderError> methodFieldsDelete({
+    required i0.Borrowed<i5.TypesFields> self,
     required String name,
   }) {
-    final tmp0 = i1.AllocatedString.allocateUtf16(name);
-    var tmp1 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
+    final tmp0 = i0.AllocatedString.allocateUtf16(name);
+    var tmp1 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
     _import45(
       i2.WasmI32.fromInt(self.handle),
       tmp0.ptr,
       tmp0.packedLength,
       tmp1,
     );
-    final tmp2 = i1.memory.loadUint8(tmp1.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i5.TypesHeaderError> tmp9;
+    final tmp2 = i0.memory.loadUint8(tmp1.toIntUnsigned(), offset: 0);
+    final i0.Result<void, i5.TypesHeaderError> tmp9;
     if (tmp2.toBool()) {
-      final tmp3 = i1.memory.loadUint8(tmp1.toIntUnsigned(), offset: 4);
+      final tmp3 = i0.memory.loadUint8(tmp1.toIntUnsigned(), offset: 4);
       final i5.TypesHeaderError tmp8;
       switch (tmp3.toIntUnsigned()) {
         case 0:
@@ -4314,13 +4314,13 @@ final class _Imported$23 implements i5.Types {
         case 3:
           tmp8 = i5.TypesHeaderErrorSizeExceeded();
         case 4:
-          final tmp4 = i1.memory.loadUint8(tmp1.toIntUnsigned(), offset: 8);
-          final i1.Option<String> tmp7;
+          final tmp4 = i0.memory.loadUint8(tmp1.toIntUnsigned(), offset: 8);
+          final i0.Option<String> tmp7;
           if (tmp4.toBool()) {
-            final tmp5 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 12);
-            final tmp6 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 16);
+            final tmp5 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 12);
+            final tmp6 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 16);
 
-            tmp7 = .some(i1.AllocatedString.read(tmp5, tmp6));
+            tmp7 = .some(i0.AllocatedString.read(tmp5, tmp6));
           } else {
             tmp7 = .none;
           }
@@ -4337,27 +4337,27 @@ final class _Imported$23 implements i5.Types {
     }
 
     tmp0.free();
-    i1.dartFree(tmp1, const i2.WasmI32(20), const i2.WasmI32(4));
+    i0.dartFree(tmp1, const i2.WasmI32(20), const i2.WasmI32(4));
     return tmp9;
   }
 
   @override
-  i1.Result<List<List<int>>, i5.TypesHeaderError> methodFieldsGetAndDelete({
-    required i1.Borrowed<i5.TypesFields> self,
+  i0.Result<List<List<int>>, i5.TypesHeaderError> methodFieldsGetAndDelete({
+    required i0.Borrowed<i5.TypesFields> self,
     required String name,
   }) {
-    final tmp0 = i1.AllocatedString.allocateUtf16(name);
-    var tmp1 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
+    final tmp0 = i0.AllocatedString.allocateUtf16(name);
+    var tmp1 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
     _import46(
       i2.WasmI32.fromInt(self.handle),
       tmp0.ptr,
       tmp0.packedLength,
       tmp1,
     );
-    final tmp2 = i1.memory.loadUint8(tmp1.toIntUnsigned(), offset: 0);
-    final i1.Result<List<List<int>>, i5.TypesHeaderError> tmp18;
+    final tmp2 = i0.memory.loadUint8(tmp1.toIntUnsigned(), offset: 0);
+    final i0.Result<List<List<int>>, i5.TypesHeaderError> tmp18;
     if (tmp2.toBool()) {
-      final tmp12 = i1.memory.loadUint8(tmp1.toIntUnsigned(), offset: 4);
+      final tmp12 = i0.memory.loadUint8(tmp1.toIntUnsigned(), offset: 4);
       final i5.TypesHeaderError tmp17;
       switch (tmp12.toIntUnsigned()) {
         case 0:
@@ -4369,13 +4369,13 @@ final class _Imported$23 implements i5.Types {
         case 3:
           tmp17 = i5.TypesHeaderErrorSizeExceeded();
         case 4:
-          final tmp13 = i1.memory.loadUint8(tmp1.toIntUnsigned(), offset: 8);
-          final i1.Option<String> tmp16;
+          final tmp13 = i0.memory.loadUint8(tmp1.toIntUnsigned(), offset: 8);
+          final i0.Option<String> tmp16;
           if (tmp13.toBool()) {
-            final tmp14 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 12);
-            final tmp15 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 16);
+            final tmp14 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 12);
+            final tmp15 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 16);
 
-            tmp16 = .some(i1.AllocatedString.read(tmp14, tmp15));
+            tmp16 = .some(i0.AllocatedString.read(tmp14, tmp15));
           } else {
             tmp16 = .none;
           }
@@ -4388,19 +4388,19 @@ final class _Imported$23 implements i5.Types {
 
       tmp18 = .error(tmp17);
     } else {
-      final tmp3 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 4);
-      final tmp4 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 8);
+      final tmp3 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 4);
+      final tmp4 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 8);
 
       final tmp11 = tmp3.toIntUnsigned();
       final tmp10 = List.generate(tmp4.toIntUnsigned(), growable: false, (i) {
         final elementPtr = i2.WasmI32.fromInt(tmp11 + i * 8);
-        final tmp5 = i1.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 0);
-        final tmp6 = i1.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 4);
+        final tmp5 = i0.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 0);
+        final tmp6 = i0.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 4);
 
         final tmp9 = tmp5.toIntUnsigned();
         final tmp8 = List.generate(tmp6.toIntUnsigned(), growable: false, (i) {
           final elementPtr = i2.WasmI32.fromInt(tmp9 + i * 1);
-          final tmp7 = i1.memory.loadUint8(
+          final tmp7 = i0.memory.loadUint8(
             elementPtr.toIntUnsigned(),
             offset: 0,
           );
@@ -4415,24 +4415,24 @@ final class _Imported$23 implements i5.Types {
     }
 
     tmp0.free();
-    i1.dartFree(tmp1, const i2.WasmI32(20), const i2.WasmI32(4));
+    i0.dartFree(tmp1, const i2.WasmI32(20), const i2.WasmI32(4));
     return tmp18;
   }
 
   @override
-  i1.Result<void, i5.TypesHeaderError> methodFieldsAppend({
-    required i1.Borrowed<i5.TypesFields> self,
+  i0.Result<void, i5.TypesHeaderError> methodFieldsAppend({
+    required i0.Borrowed<i5.TypesFields> self,
     required String name,
     required List<int> value,
   }) {
-    final tmp0 = i1.AllocatedString.allocateUtf16(name);
+    final tmp0 = i0.AllocatedString.allocateUtf16(name);
 
     final tmp1 = i2.WasmI32.fromInt(1 * value.length);
-    final tmp2 = i1.mallocAligned(const i2.WasmI32(1), tmp1);
+    final tmp2 = i0.mallocAligned(const i2.WasmI32(1), tmp1);
     var tmp3 = tmp2;
     for (final element in value) {
       final elementPtr = tmp3;
-      i1.memory.storeInt8(
+      i0.memory.storeInt8(
         elementPtr.toIntUnsigned(),
         i2.WasmI32.uint8FromInt(element),
         offset: 0,
@@ -4441,7 +4441,7 @@ final class _Imported$23 implements i5.Types {
       tmp3 += const i2.WasmI32(1);
     }
 
-    var tmp4 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
+    var tmp4 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
     _import47(
       i2.WasmI32.fromInt(self.handle),
       tmp0.ptr,
@@ -4450,10 +4450,10 @@ final class _Imported$23 implements i5.Types {
       i2.WasmI32.fromInt(value.length),
       tmp4,
     );
-    final tmp5 = i1.memory.loadUint8(tmp4.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i5.TypesHeaderError> tmp12;
+    final tmp5 = i0.memory.loadUint8(tmp4.toIntUnsigned(), offset: 0);
+    final i0.Result<void, i5.TypesHeaderError> tmp12;
     if (tmp5.toBool()) {
-      final tmp6 = i1.memory.loadUint8(tmp4.toIntUnsigned(), offset: 4);
+      final tmp6 = i0.memory.loadUint8(tmp4.toIntUnsigned(), offset: 4);
       final i5.TypesHeaderError tmp11;
       switch (tmp6.toIntUnsigned()) {
         case 0:
@@ -4465,13 +4465,13 @@ final class _Imported$23 implements i5.Types {
         case 3:
           tmp11 = i5.TypesHeaderErrorSizeExceeded();
         case 4:
-          final tmp7 = i1.memory.loadUint8(tmp4.toIntUnsigned(), offset: 8);
-          final i1.Option<String> tmp10;
+          final tmp7 = i0.memory.loadUint8(tmp4.toIntUnsigned(), offset: 8);
+          final i0.Option<String> tmp10;
           if (tmp7.toBool()) {
-            final tmp8 = i1.memory.loadInt32(tmp4.toIntUnsigned(), offset: 12);
-            final tmp9 = i1.memory.loadInt32(tmp4.toIntUnsigned(), offset: 16);
+            final tmp8 = i0.memory.loadInt32(tmp4.toIntUnsigned(), offset: 12);
+            final tmp9 = i0.memory.loadInt32(tmp4.toIntUnsigned(), offset: 16);
 
-            tmp10 = .some(i1.AllocatedString.read(tmp8, tmp9));
+            tmp10 = .some(i0.AllocatedString.read(tmp8, tmp9));
           } else {
             tmp10 = .none;
           }
@@ -4488,78 +4488,78 @@ final class _Imported$23 implements i5.Types {
     }
 
     tmp0.free();
-    i1.dartFree(tmp2, tmp1, const i2.WasmI32(1));
-    i1.dartFree(tmp4, const i2.WasmI32(20), const i2.WasmI32(4));
+    i0.dartFree(tmp2, tmp1, const i2.WasmI32(1));
+    i0.dartFree(tmp4, const i2.WasmI32(20), const i2.WasmI32(4));
     return tmp12;
   }
 
   @override
   List<(String, List<int>)> methodFieldsCopyAll({
-    required i1.Borrowed<i5.TypesFields> self,
+    required i0.Borrowed<i5.TypesFields> self,
   }) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
     _import48(i2.WasmI32.fromInt(self.handle), tmp0);
-    final tmp1 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
-    final tmp2 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
+    final tmp1 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
+    final tmp2 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
 
     final tmp12 = tmp1.toIntUnsigned();
     final tmp11 = List.generate(tmp2.toIntUnsigned(), growable: false, (i) {
       final elementPtr = i2.WasmI32.fromInt(tmp12 + i * 16);
-      final tmp3 = i1.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 0);
-      final tmp4 = i1.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 4);
-      final tmp5 = i1.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 8);
-      final tmp6 = i1.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 12);
+      final tmp3 = i0.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 0);
+      final tmp4 = i0.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 4);
+      final tmp5 = i0.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 8);
+      final tmp6 = i0.memory.loadInt32(elementPtr.toIntUnsigned(), offset: 12);
 
       final tmp9 = tmp5.toIntUnsigned();
       final tmp8 = List.generate(tmp6.toIntUnsigned(), growable: false, (i) {
         final elementPtr = i2.WasmI32.fromInt(tmp9 + i * 1);
-        final tmp7 = i1.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
+        final tmp7 = i0.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
 
         return tmp7.toIntUnsigned();
       });
 
-      final tmp10 = (i1.AllocatedString.read(tmp3, tmp4), tmp8);
+      final tmp10 = (i0.AllocatedString.read(tmp3, tmp4), tmp8);
 
       return tmp10;
     });
 
-    i1.dartFree(tmp0, const i2.WasmI32(8), const i2.WasmI32(4));
+    i0.dartFree(tmp0, const i2.WasmI32(8), const i2.WasmI32(4));
     return tmp11;
   }
 
   @override
-  i1.Owned<i5.TypesFields> methodFieldsClone({
-    required i1.Borrowed<i5.TypesFields> self,
+  i0.Owned<i5.TypesFields> methodFieldsClone({
+    required i0.Borrowed<i5.TypesFields> self,
   }) {
     final tmp0 = _import49(i2.WasmI32.fromInt(self.handle));
-    final tmp1 = i1.Owned<i5.TypesFields>(tmp0.toIntUnsigned(), _drop$127);
+    final tmp1 = i0.Owned<i5.TypesFields>(tmp0.toIntUnsigned(), _drop$127);
     return tmp1;
   }
 
   @override
-  (i1.Owned<i5.TypesRequest>, Future<i1.Result<void, i5.TypesErrorCode>>)
+  (i0.Owned<i5.TypesRequest>, Future<i0.Result<void, i5.TypesErrorCode>>)
   staticRequestNew({
-    required i1.Owned<i5.TypesFields> headers,
-    required i1.Option<Stream<i3.Uint8List>> contents,
+    required i0.Owned<i5.TypesFields> headers,
+    required i0.Option<Stream<i3.Uint8List>> contents,
     required Future<
-      i1.Result<i1.Option<i1.Owned<i5.TypesFields>>, i5.TypesErrorCode>
+      i0.Result<i0.Option<i0.Owned<i5.TypesFields>>, i5.TypesErrorCode>
     >
     trailers,
-    required i1.Option<i1.Owned<i5.TypesRequestOptions>> options,
+    required i0.Option<i0.Owned<i5.TypesRequestOptions>> options,
   }) {
     i2.WasmI32 tmp1;
     i2.WasmI32 tmp2;
     final tmp3 = contents;
     if (tmp3.hasValue) {
       final value = tmp3.requireValue();
-      final tmp0 = i1.newReadableStream(const _Vtable142(), value).toWasmI32();
+      final tmp0 = i0.newReadableStream(const _Vtable142(), value).toWasmI32();
       tmp1 = const i2.WasmI32(1);
       tmp2 = tmp0;
     } else {
       tmp1 = const i2.WasmI32(0);
       tmp2 = const i2.WasmI32(0);
     }
-    final tmp4 = i1.writeFuture(trailers, const _Vtable147());
+    final tmp4 = i0.writeFuture(trailers, const _Vtable147());
     i2.WasmI32 tmp5;
     i2.WasmI32 tmp6;
     final tmp7 = options;
@@ -4571,7 +4571,7 @@ final class _Imported$23 implements i5.Types {
       tmp5 = const i2.WasmI32(0);
       tmp6 = const i2.WasmI32(0);
     }
-    var tmp8 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
+    var tmp8 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
     _import50(
       i2.WasmI32.fromInt(headers.handle),
       tmp1,
@@ -4581,22 +4581,22 @@ final class _Imported$23 implements i5.Types {
       tmp6,
       tmp8,
     );
-    final tmp9 = i1.memory.loadInt32(tmp8.toIntUnsigned(), offset: 0);
-    final tmp10 = i1.Owned<i5.TypesRequest>(tmp9.toIntUnsigned(), _drop$130);
-    final tmp11 = i1.memory.loadInt32(tmp8.toIntUnsigned(), offset: 4);
-    final tmp12 = i1.readFuture(const _Vtable151(), tmp11.toIntUnsigned());
+    final tmp9 = i0.memory.loadInt32(tmp8.toIntUnsigned(), offset: 0);
+    final tmp10 = i0.Owned<i5.TypesRequest>(tmp9.toIntUnsigned(), _drop$130);
+    final tmp11 = i0.memory.loadInt32(tmp8.toIntUnsigned(), offset: 4);
+    final tmp12 = i0.readFuture(const _Vtable151(), tmp11.toIntUnsigned());
     final tmp13 = (tmp10, tmp12);
-    i1.dartFree(tmp8, const i2.WasmI32(8), const i2.WasmI32(4));
+    i0.dartFree(tmp8, const i2.WasmI32(8), const i2.WasmI32(4));
     return tmp13;
   }
 
   @override
   i5.TypesMethod methodRequestGetMethod({
-    required i1.Borrowed<i5.TypesRequest> self,
+    required i0.Borrowed<i5.TypesRequest> self,
   }) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(12));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(12));
     _import52(i2.WasmI32.fromInt(self.handle), tmp0);
-    final tmp1 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
+    final tmp1 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
     final i5.TypesMethod tmp4;
     switch (tmp1.toIntUnsigned()) {
       case 0:
@@ -4618,21 +4618,21 @@ final class _Imported$23 implements i5.Types {
       case 8:
         tmp4 = i5.TypesMethodPatch();
       case 9:
-        final tmp2 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
-        final tmp3 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
+        final tmp2 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
+        final tmp3 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
 
-        tmp4 = i5.TypesMethodOther(i1.AllocatedString.read(tmp2, tmp3));
+        tmp4 = i5.TypesMethodOther(i0.AllocatedString.read(tmp2, tmp3));
 
       default:
         throw ArgumentError('Invalid discrimant value for variant');
     }
-    i1.dartFree(tmp0, const i2.WasmI32(12), const i2.WasmI32(4));
+    i0.dartFree(tmp0, const i2.WasmI32(12), const i2.WasmI32(4));
     return tmp4;
   }
 
   @override
-  i1.Result<void, void> methodRequestSetMethod({
-    required i1.Borrowed<i5.TypesRequest> self,
+  i0.Result<void, void> methodRequestSetMethod({
+    required i0.Borrowed<i5.TypesRequest> self,
     required i5.TypesMethod method,
   }) {
     i2.WasmI32 tmp1;
@@ -4685,14 +4685,14 @@ final class _Imported$23 implements i5.Types {
         tmp3 = const i2.WasmI32(0);
 
       case i5.TypesMethodOther(payload: final value):
-        final tmp0 = i1.AllocatedString.allocateUtf16(value);
+        final tmp0 = i0.AllocatedString.allocateUtf16(value);
         tmp1 = const i2.WasmI32(9);
         tmp2 = tmp0.ptr;
         tmp3 = tmp0.packedLength;
         tmp0.free();
     }
     final tmp4 = _import53(i2.WasmI32.fromInt(self.handle), tmp1, tmp2, tmp3);
-    final i1.Result<void, void> tmp5;
+    final i0.Result<void, void> tmp5;
     if (tmp4.toBool()) {
       tmp5 = .error(null);
     } else {
@@ -4703,30 +4703,30 @@ final class _Imported$23 implements i5.Types {
   }
 
   @override
-  i1.Option<String> methodRequestGetPathWithQuery({
-    required i1.Borrowed<i5.TypesRequest> self,
+  i0.Option<String> methodRequestGetPathWithQuery({
+    required i0.Borrowed<i5.TypesRequest> self,
   }) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(12));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(12));
     _import54(i2.WasmI32.fromInt(self.handle), tmp0);
-    final tmp1 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
-    final i1.Option<String> tmp4;
+    final tmp1 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
+    final i0.Option<String> tmp4;
     if (tmp1.toBool()) {
-      final tmp2 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
-      final tmp3 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
+      final tmp2 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
+      final tmp3 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
 
-      tmp4 = .some(i1.AllocatedString.read(tmp2, tmp3));
+      tmp4 = .some(i0.AllocatedString.read(tmp2, tmp3));
     } else {
       tmp4 = .none;
     }
 
-    i1.dartFree(tmp0, const i2.WasmI32(12), const i2.WasmI32(4));
+    i0.dartFree(tmp0, const i2.WasmI32(12), const i2.WasmI32(4));
     return tmp4;
   }
 
   @override
-  i1.Result<void, void> methodRequestSetPathWithQuery({
-    required i1.Borrowed<i5.TypesRequest> self,
-    required i1.Option<String> pathWithQuery,
+  i0.Result<void, void> methodRequestSetPathWithQuery({
+    required i0.Borrowed<i5.TypesRequest> self,
+    required i0.Option<String> pathWithQuery,
   }) {
     i2.WasmI32 tmp1;
     i2.WasmI32 tmp2;
@@ -4734,7 +4734,7 @@ final class _Imported$23 implements i5.Types {
     final tmp4 = pathWithQuery;
     if (tmp4.hasValue) {
       final value = tmp4.requireValue();
-      final tmp0 = i1.AllocatedString.allocateUtf16(value);
+      final tmp0 = i0.AllocatedString.allocateUtf16(value);
       tmp1 = const i2.WasmI32(1);
       tmp2 = tmp0.ptr;
       tmp3 = tmp0.packedLength;
@@ -4745,7 +4745,7 @@ final class _Imported$23 implements i5.Types {
       tmp3 = const i2.WasmI32(0);
     }
     final tmp5 = _import55(i2.WasmI32.fromInt(self.handle), tmp1, tmp2, tmp3);
-    final i1.Result<void, void> tmp6;
+    final i0.Result<void, void> tmp6;
     if (tmp5.toBool()) {
       tmp6 = .error(null);
     } else {
@@ -4756,15 +4756,15 @@ final class _Imported$23 implements i5.Types {
   }
 
   @override
-  i1.Option<i5.TypesScheme> methodRequestGetScheme({
-    required i1.Borrowed<i5.TypesRequest> self,
+  i0.Option<i5.TypesScheme> methodRequestGetScheme({
+    required i0.Borrowed<i5.TypesRequest> self,
   }) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(16));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(16));
     _import56(i2.WasmI32.fromInt(self.handle), tmp0);
-    final tmp1 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
-    final i1.Option<i5.TypesScheme> tmp6;
+    final tmp1 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
+    final i0.Option<i5.TypesScheme> tmp6;
     if (tmp1.toBool()) {
-      final tmp2 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 4);
+      final tmp2 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 4);
       final i5.TypesScheme tmp5;
       switch (tmp2.toIntUnsigned()) {
         case 0:
@@ -4772,10 +4772,10 @@ final class _Imported$23 implements i5.Types {
         case 1:
           tmp5 = i5.TypesSchemeHttps();
         case 2:
-          final tmp3 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
-          final tmp4 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 12);
+          final tmp3 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
+          final tmp4 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 12);
 
-          tmp5 = i5.TypesSchemeOther(i1.AllocatedString.read(tmp3, tmp4));
+          tmp5 = i5.TypesSchemeOther(i0.AllocatedString.read(tmp3, tmp4));
 
         default:
           throw ArgumentError('Invalid discrimant value for variant');
@@ -4786,14 +4786,14 @@ final class _Imported$23 implements i5.Types {
       tmp6 = .none;
     }
 
-    i1.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(4));
+    i0.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(4));
     return tmp6;
   }
 
   @override
-  i1.Result<void, void> methodRequestSetScheme({
-    required i1.Borrowed<i5.TypesRequest> self,
-    required i1.Option<i5.TypesScheme> scheme,
+  i0.Result<void, void> methodRequestSetScheme({
+    required i0.Borrowed<i5.TypesRequest> self,
+    required i0.Option<i5.TypesScheme> scheme,
   }) {
     i2.WasmI32 tmp4;
     i2.WasmI32 tmp5;
@@ -4817,7 +4817,7 @@ final class _Imported$23 implements i5.Types {
           tmp3 = const i2.WasmI32(0);
 
         case i5.TypesSchemeOther(payload: final value):
-          final tmp0 = i1.AllocatedString.allocateUtf16(value);
+          final tmp0 = i0.AllocatedString.allocateUtf16(value);
           tmp1 = const i2.WasmI32(2);
           tmp2 = tmp0.ptr;
           tmp3 = tmp0.packedLength;
@@ -4840,7 +4840,7 @@ final class _Imported$23 implements i5.Types {
       tmp6,
       tmp7,
     );
-    final i1.Result<void, void> tmp10;
+    final i0.Result<void, void> tmp10;
     if (tmp9.toBool()) {
       tmp10 = .error(null);
     } else {
@@ -4851,30 +4851,30 @@ final class _Imported$23 implements i5.Types {
   }
 
   @override
-  i1.Option<String> methodRequestGetAuthority({
-    required i1.Borrowed<i5.TypesRequest> self,
+  i0.Option<String> methodRequestGetAuthority({
+    required i0.Borrowed<i5.TypesRequest> self,
   }) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(12));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(12));
     _import58(i2.WasmI32.fromInt(self.handle), tmp0);
-    final tmp1 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
-    final i1.Option<String> tmp4;
+    final tmp1 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
+    final i0.Option<String> tmp4;
     if (tmp1.toBool()) {
-      final tmp2 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
-      final tmp3 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
+      final tmp2 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
+      final tmp3 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
 
-      tmp4 = .some(i1.AllocatedString.read(tmp2, tmp3));
+      tmp4 = .some(i0.AllocatedString.read(tmp2, tmp3));
     } else {
       tmp4 = .none;
     }
 
-    i1.dartFree(tmp0, const i2.WasmI32(12), const i2.WasmI32(4));
+    i0.dartFree(tmp0, const i2.WasmI32(12), const i2.WasmI32(4));
     return tmp4;
   }
 
   @override
-  i1.Result<void, void> methodRequestSetAuthority({
-    required i1.Borrowed<i5.TypesRequest> self,
-    required i1.Option<String> authority,
+  i0.Result<void, void> methodRequestSetAuthority({
+    required i0.Borrowed<i5.TypesRequest> self,
+    required i0.Option<String> authority,
   }) {
     i2.WasmI32 tmp1;
     i2.WasmI32 tmp2;
@@ -4882,7 +4882,7 @@ final class _Imported$23 implements i5.Types {
     final tmp4 = authority;
     if (tmp4.hasValue) {
       final value = tmp4.requireValue();
-      final tmp0 = i1.AllocatedString.allocateUtf16(value);
+      final tmp0 = i0.AllocatedString.allocateUtf16(value);
       tmp1 = const i2.WasmI32(1);
       tmp2 = tmp0.ptr;
       tmp3 = tmp0.packedLength;
@@ -4893,7 +4893,7 @@ final class _Imported$23 implements i5.Types {
       tmp3 = const i2.WasmI32(0);
     }
     final tmp5 = _import59(i2.WasmI32.fromInt(self.handle), tmp1, tmp2, tmp3);
-    final i1.Result<void, void> tmp6;
+    final i0.Result<void, void> tmp6;
     if (tmp5.toBool()) {
       tmp6 = .error(null);
     } else {
@@ -4904,16 +4904,16 @@ final class _Imported$23 implements i5.Types {
   }
 
   @override
-  i1.Option<i1.Owned<i5.TypesRequestOptions>> methodRequestGetOptions({
-    required i1.Borrowed<i5.TypesRequest> self,
+  i0.Option<i0.Owned<i5.TypesRequestOptions>> methodRequestGetOptions({
+    required i0.Borrowed<i5.TypesRequest> self,
   }) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
     _import60(i2.WasmI32.fromInt(self.handle), tmp0);
-    final tmp1 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
-    final i1.Option<i1.Owned<i5.TypesRequestOptions>> tmp4;
+    final tmp1 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
+    final i0.Option<i0.Owned<i5.TypesRequestOptions>> tmp4;
     if (tmp1.toBool()) {
-      final tmp2 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
-      final tmp3 = i1.Owned<i5.TypesRequestOptions>(
+      final tmp2 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
+      final tmp3 = i0.Owned<i5.TypesRequestOptions>(
         tmp2.toIntUnsigned(),
         _drop$131,
       );
@@ -4922,44 +4922,44 @@ final class _Imported$23 implements i5.Types {
       tmp4 = .none;
     }
 
-    i1.dartFree(tmp0, const i2.WasmI32(8), const i2.WasmI32(4));
+    i0.dartFree(tmp0, const i2.WasmI32(8), const i2.WasmI32(4));
     return tmp4;
   }
 
   @override
-  i1.Owned<i5.TypesFields> methodRequestGetHeaders({
-    required i1.Borrowed<i5.TypesRequest> self,
+  i0.Owned<i5.TypesFields> methodRequestGetHeaders({
+    required i0.Borrowed<i5.TypesRequest> self,
   }) {
     final tmp0 = _import62(i2.WasmI32.fromInt(self.handle));
-    final tmp1 = i1.Owned<i5.TypesFields>(tmp0.toIntUnsigned(), _drop$128);
+    final tmp1 = i0.Owned<i5.TypesFields>(tmp0.toIntUnsigned(), _drop$128);
     return tmp1;
   }
 
   @override
   (
     Stream<i3.Uint8List>,
-    Future<i1.Result<i1.Option<i1.Owned<i5.TypesFields>>, i5.TypesErrorCode>>,
+    Future<i0.Result<i0.Option<i0.Owned<i5.TypesFields>>, i5.TypesErrorCode>>,
   )
   staticRequestConsumeBody({
-    required i1.Owned<i5.TypesRequest> $this,
-    required Future<i1.Result<void, i5.TypesErrorCode>> res,
+    required i0.Owned<i5.TypesRequest> $this,
+    required Future<i0.Result<void, i5.TypesErrorCode>> res,
   }) {
-    final tmp0 = i1.writeFuture(res, const _Vtable151());
-    var tmp1 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
+    final tmp0 = i0.writeFuture(res, const _Vtable151());
+    var tmp1 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
     _import64(i2.WasmI32.fromInt($this.handle), tmp0, tmp1);
-    final tmp2 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 0);
-    final tmp3 = i1.ReadableStream(tmp2.toIntUnsigned(), const _Vtable142());
-    final tmp4 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 4);
-    final tmp5 = i1.readFuture(const _Vtable147(), tmp4.toIntUnsigned());
+    final tmp2 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 0);
+    final tmp3 = i0.ReadableStream(tmp2.toIntUnsigned(), const _Vtable142());
+    final tmp4 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 4);
+    final tmp5 = i0.readFuture(const _Vtable147(), tmp4.toIntUnsigned());
     final tmp6 = (tmp3, tmp5);
-    i1.dartFree(tmp1, const i2.WasmI32(8), const i2.WasmI32(4));
+    i0.dartFree(tmp1, const i2.WasmI32(8), const i2.WasmI32(4));
     return tmp6;
   }
 
   @override
-  i1.Owned<i5.TypesRequestOptions> constructorRequestOptions() {
+  i0.Owned<i5.TypesRequestOptions> constructorRequestOptions() {
     final tmp0 = _import65();
-    final tmp1 = i1.Owned<i5.TypesRequestOptions>(
+    final tmp1 = i0.Owned<i5.TypesRequestOptions>(
       tmp0.toIntUnsigned(),
       _drop$131,
     );
@@ -4967,30 +4967,30 @@ final class _Imported$23 implements i5.Types {
   }
 
   @override
-  i1.Option<int> methodRequestOptionsGetConnectTimeout({
-    required i1.Borrowed<i5.TypesRequestOptions> self,
+  i0.Option<int> methodRequestOptionsGetConnectTimeout({
+    required i0.Borrowed<i5.TypesRequestOptions> self,
   }) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(16));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(16));
     _import66(i2.WasmI32.fromInt(self.handle), tmp0);
-    final tmp1 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
-    final i1.Option<int> tmp3;
+    final tmp1 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
+    final i0.Option<int> tmp3;
     if (tmp1.toBool()) {
-      final tmp2 = i1.memory.loadInt64(tmp0.toIntUnsigned(), offset: 8);
+      final tmp2 = i0.memory.loadInt64(tmp0.toIntUnsigned(), offset: 8);
 
       tmp3 = .some(tmp2.toInt());
     } else {
       tmp3 = .none;
     }
 
-    i1.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(8));
+    i0.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(8));
     return tmp3;
   }
 
   @override
-  i1.Result<void, i5.TypesRequestOptionsError>
+  i0.Result<void, i5.TypesRequestOptionsError>
   methodRequestOptionsSetConnectTimeout({
-    required i1.Borrowed<i5.TypesRequestOptions> self,
-    required i1.Option<int> duration,
+    required i0.Borrowed<i5.TypesRequestOptions> self,
+    required i0.Option<int> duration,
   }) {
     i2.WasmI32 tmp0;
     i2.WasmI64 tmp1;
@@ -5003,12 +5003,12 @@ final class _Imported$23 implements i5.Types {
       tmp0 = const i2.WasmI32(0);
       tmp1 = const i2.WasmI64(0);
     }
-    var tmp3 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
+    var tmp3 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
     _import67(i2.WasmI32.fromInt(self.handle), tmp0, tmp1, tmp3);
-    final tmp4 = i1.memory.loadUint8(tmp3.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i5.TypesRequestOptionsError> tmp11;
+    final tmp4 = i0.memory.loadUint8(tmp3.toIntUnsigned(), offset: 0);
+    final i0.Result<void, i5.TypesRequestOptionsError> tmp11;
     if (tmp4.toBool()) {
-      final tmp5 = i1.memory.loadUint8(tmp3.toIntUnsigned(), offset: 4);
+      final tmp5 = i0.memory.loadUint8(tmp3.toIntUnsigned(), offset: 4);
       final i5.TypesRequestOptionsError tmp10;
       switch (tmp5.toIntUnsigned()) {
         case 0:
@@ -5016,13 +5016,13 @@ final class _Imported$23 implements i5.Types {
         case 1:
           tmp10 = i5.TypesRequestOptionsErrorImmutable();
         case 2:
-          final tmp6 = i1.memory.loadUint8(tmp3.toIntUnsigned(), offset: 8);
-          final i1.Option<String> tmp9;
+          final tmp6 = i0.memory.loadUint8(tmp3.toIntUnsigned(), offset: 8);
+          final i0.Option<String> tmp9;
           if (tmp6.toBool()) {
-            final tmp7 = i1.memory.loadInt32(tmp3.toIntUnsigned(), offset: 12);
-            final tmp8 = i1.memory.loadInt32(tmp3.toIntUnsigned(), offset: 16);
+            final tmp7 = i0.memory.loadInt32(tmp3.toIntUnsigned(), offset: 12);
+            final tmp8 = i0.memory.loadInt32(tmp3.toIntUnsigned(), offset: 16);
 
-            tmp9 = .some(i1.AllocatedString.read(tmp7, tmp8));
+            tmp9 = .some(i0.AllocatedString.read(tmp7, tmp8));
           } else {
             tmp9 = .none;
           }
@@ -5038,35 +5038,35 @@ final class _Imported$23 implements i5.Types {
       tmp11 = .ok(null);
     }
 
-    i1.dartFree(tmp3, const i2.WasmI32(20), const i2.WasmI32(4));
+    i0.dartFree(tmp3, const i2.WasmI32(20), const i2.WasmI32(4));
     return tmp11;
   }
 
   @override
-  i1.Option<int> methodRequestOptionsGetFirstByteTimeout({
-    required i1.Borrowed<i5.TypesRequestOptions> self,
+  i0.Option<int> methodRequestOptionsGetFirstByteTimeout({
+    required i0.Borrowed<i5.TypesRequestOptions> self,
   }) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(16));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(16));
     _import68(i2.WasmI32.fromInt(self.handle), tmp0);
-    final tmp1 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
-    final i1.Option<int> tmp3;
+    final tmp1 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
+    final i0.Option<int> tmp3;
     if (tmp1.toBool()) {
-      final tmp2 = i1.memory.loadInt64(tmp0.toIntUnsigned(), offset: 8);
+      final tmp2 = i0.memory.loadInt64(tmp0.toIntUnsigned(), offset: 8);
 
       tmp3 = .some(tmp2.toInt());
     } else {
       tmp3 = .none;
     }
 
-    i1.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(8));
+    i0.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(8));
     return tmp3;
   }
 
   @override
-  i1.Result<void, i5.TypesRequestOptionsError>
+  i0.Result<void, i5.TypesRequestOptionsError>
   methodRequestOptionsSetFirstByteTimeout({
-    required i1.Borrowed<i5.TypesRequestOptions> self,
-    required i1.Option<int> duration,
+    required i0.Borrowed<i5.TypesRequestOptions> self,
+    required i0.Option<int> duration,
   }) {
     i2.WasmI32 tmp0;
     i2.WasmI64 tmp1;
@@ -5079,12 +5079,12 @@ final class _Imported$23 implements i5.Types {
       tmp0 = const i2.WasmI32(0);
       tmp1 = const i2.WasmI64(0);
     }
-    var tmp3 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
+    var tmp3 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
     _import69(i2.WasmI32.fromInt(self.handle), tmp0, tmp1, tmp3);
-    final tmp4 = i1.memory.loadUint8(tmp3.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i5.TypesRequestOptionsError> tmp11;
+    final tmp4 = i0.memory.loadUint8(tmp3.toIntUnsigned(), offset: 0);
+    final i0.Result<void, i5.TypesRequestOptionsError> tmp11;
     if (tmp4.toBool()) {
-      final tmp5 = i1.memory.loadUint8(tmp3.toIntUnsigned(), offset: 4);
+      final tmp5 = i0.memory.loadUint8(tmp3.toIntUnsigned(), offset: 4);
       final i5.TypesRequestOptionsError tmp10;
       switch (tmp5.toIntUnsigned()) {
         case 0:
@@ -5092,13 +5092,13 @@ final class _Imported$23 implements i5.Types {
         case 1:
           tmp10 = i5.TypesRequestOptionsErrorImmutable();
         case 2:
-          final tmp6 = i1.memory.loadUint8(tmp3.toIntUnsigned(), offset: 8);
-          final i1.Option<String> tmp9;
+          final tmp6 = i0.memory.loadUint8(tmp3.toIntUnsigned(), offset: 8);
+          final i0.Option<String> tmp9;
           if (tmp6.toBool()) {
-            final tmp7 = i1.memory.loadInt32(tmp3.toIntUnsigned(), offset: 12);
-            final tmp8 = i1.memory.loadInt32(tmp3.toIntUnsigned(), offset: 16);
+            final tmp7 = i0.memory.loadInt32(tmp3.toIntUnsigned(), offset: 12);
+            final tmp8 = i0.memory.loadInt32(tmp3.toIntUnsigned(), offset: 16);
 
-            tmp9 = .some(i1.AllocatedString.read(tmp7, tmp8));
+            tmp9 = .some(i0.AllocatedString.read(tmp7, tmp8));
           } else {
             tmp9 = .none;
           }
@@ -5114,35 +5114,35 @@ final class _Imported$23 implements i5.Types {
       tmp11 = .ok(null);
     }
 
-    i1.dartFree(tmp3, const i2.WasmI32(20), const i2.WasmI32(4));
+    i0.dartFree(tmp3, const i2.WasmI32(20), const i2.WasmI32(4));
     return tmp11;
   }
 
   @override
-  i1.Option<int> methodRequestOptionsGetBetweenBytesTimeout({
-    required i1.Borrowed<i5.TypesRequestOptions> self,
+  i0.Option<int> methodRequestOptionsGetBetweenBytesTimeout({
+    required i0.Borrowed<i5.TypesRequestOptions> self,
   }) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(16));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(16));
     _import70(i2.WasmI32.fromInt(self.handle), tmp0);
-    final tmp1 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
-    final i1.Option<int> tmp3;
+    final tmp1 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
+    final i0.Option<int> tmp3;
     if (tmp1.toBool()) {
-      final tmp2 = i1.memory.loadInt64(tmp0.toIntUnsigned(), offset: 8);
+      final tmp2 = i0.memory.loadInt64(tmp0.toIntUnsigned(), offset: 8);
 
       tmp3 = .some(tmp2.toInt());
     } else {
       tmp3 = .none;
     }
 
-    i1.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(8));
+    i0.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(8));
     return tmp3;
   }
 
   @override
-  i1.Result<void, i5.TypesRequestOptionsError>
+  i0.Result<void, i5.TypesRequestOptionsError>
   methodRequestOptionsSetBetweenBytesTimeout({
-    required i1.Borrowed<i5.TypesRequestOptions> self,
-    required i1.Option<int> duration,
+    required i0.Borrowed<i5.TypesRequestOptions> self,
+    required i0.Option<int> duration,
   }) {
     i2.WasmI32 tmp0;
     i2.WasmI64 tmp1;
@@ -5155,12 +5155,12 @@ final class _Imported$23 implements i5.Types {
       tmp0 = const i2.WasmI32(0);
       tmp1 = const i2.WasmI64(0);
     }
-    var tmp3 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
+    var tmp3 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(20));
     _import71(i2.WasmI32.fromInt(self.handle), tmp0, tmp1, tmp3);
-    final tmp4 = i1.memory.loadUint8(tmp3.toIntUnsigned(), offset: 0);
-    final i1.Result<void, i5.TypesRequestOptionsError> tmp11;
+    final tmp4 = i0.memory.loadUint8(tmp3.toIntUnsigned(), offset: 0);
+    final i0.Result<void, i5.TypesRequestOptionsError> tmp11;
     if (tmp4.toBool()) {
-      final tmp5 = i1.memory.loadUint8(tmp3.toIntUnsigned(), offset: 4);
+      final tmp5 = i0.memory.loadUint8(tmp3.toIntUnsigned(), offset: 4);
       final i5.TypesRequestOptionsError tmp10;
       switch (tmp5.toIntUnsigned()) {
         case 0:
@@ -5168,13 +5168,13 @@ final class _Imported$23 implements i5.Types {
         case 1:
           tmp10 = i5.TypesRequestOptionsErrorImmutable();
         case 2:
-          final tmp6 = i1.memory.loadUint8(tmp3.toIntUnsigned(), offset: 8);
-          final i1.Option<String> tmp9;
+          final tmp6 = i0.memory.loadUint8(tmp3.toIntUnsigned(), offset: 8);
+          final i0.Option<String> tmp9;
           if (tmp6.toBool()) {
-            final tmp7 = i1.memory.loadInt32(tmp3.toIntUnsigned(), offset: 12);
-            final tmp8 = i1.memory.loadInt32(tmp3.toIntUnsigned(), offset: 16);
+            final tmp7 = i0.memory.loadInt32(tmp3.toIntUnsigned(), offset: 12);
+            final tmp8 = i0.memory.loadInt32(tmp3.toIntUnsigned(), offset: 16);
 
-            tmp9 = .some(i1.AllocatedString.read(tmp7, tmp8));
+            tmp9 = .some(i0.AllocatedString.read(tmp7, tmp8));
           } else {
             tmp9 = .none;
           }
@@ -5190,16 +5190,16 @@ final class _Imported$23 implements i5.Types {
       tmp11 = .ok(null);
     }
 
-    i1.dartFree(tmp3, const i2.WasmI32(20), const i2.WasmI32(4));
+    i0.dartFree(tmp3, const i2.WasmI32(20), const i2.WasmI32(4));
     return tmp11;
   }
 
   @override
-  i1.Owned<i5.TypesRequestOptions> methodRequestOptionsClone({
-    required i1.Borrowed<i5.TypesRequestOptions> self,
+  i0.Owned<i5.TypesRequestOptions> methodRequestOptionsClone({
+    required i0.Borrowed<i5.TypesRequestOptions> self,
   }) {
     final tmp0 = _import72(i2.WasmI32.fromInt(self.handle));
-    final tmp1 = i1.Owned<i5.TypesRequestOptions>(
+    final tmp1 = i0.Owned<i5.TypesRequestOptions>(
       tmp0.toIntUnsigned(),
       _drop$131,
     );
@@ -5207,12 +5207,12 @@ final class _Imported$23 implements i5.Types {
   }
 
   @override
-  (i1.Owned<i5.TypesResponse>, Future<i1.Result<void, i5.TypesErrorCode>>)
+  (i0.Owned<i5.TypesResponse>, Future<i0.Result<void, i5.TypesErrorCode>>)
   staticResponseNew({
-    required i1.Owned<i5.TypesFields> headers,
-    required i1.Option<Stream<i3.Uint8List>> contents,
+    required i0.Owned<i5.TypesFields> headers,
+    required i0.Option<Stream<i3.Uint8List>> contents,
     required Future<
-      i1.Result<i1.Option<i1.Owned<i5.TypesFields>>, i5.TypesErrorCode>
+      i0.Result<i0.Option<i0.Owned<i5.TypesFields>>, i5.TypesErrorCode>
     >
     trailers,
   }) {
@@ -5221,43 +5221,43 @@ final class _Imported$23 implements i5.Types {
     final tmp3 = contents;
     if (tmp3.hasValue) {
       final value = tmp3.requireValue();
-      final tmp0 = i1.newReadableStream(const _Vtable142(), value).toWasmI32();
+      final tmp0 = i0.newReadableStream(const _Vtable142(), value).toWasmI32();
       tmp1 = const i2.WasmI32(1);
       tmp2 = tmp0;
     } else {
       tmp1 = const i2.WasmI32(0);
       tmp2 = const i2.WasmI32(0);
     }
-    final tmp4 = i1.writeFuture(trailers, const _Vtable147());
-    var tmp5 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
+    final tmp4 = i0.writeFuture(trailers, const _Vtable147());
+    var tmp5 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
     _import73(i2.WasmI32.fromInt(headers.handle), tmp1, tmp2, tmp4, tmp5);
-    final tmp6 = i1.memory.loadInt32(tmp5.toIntUnsigned(), offset: 0);
-    final tmp7 = i1.Owned<i5.TypesResponse>(tmp6.toIntUnsigned(), _drop$133);
-    final tmp8 = i1.memory.loadInt32(tmp5.toIntUnsigned(), offset: 4);
-    final tmp9 = i1.readFuture(const _Vtable151(), tmp8.toIntUnsigned());
+    final tmp6 = i0.memory.loadInt32(tmp5.toIntUnsigned(), offset: 0);
+    final tmp7 = i0.Owned<i5.TypesResponse>(tmp6.toIntUnsigned(), _drop$133);
+    final tmp8 = i0.memory.loadInt32(tmp5.toIntUnsigned(), offset: 4);
+    final tmp9 = i0.readFuture(const _Vtable151(), tmp8.toIntUnsigned());
     final tmp10 = (tmp7, tmp9);
-    i1.dartFree(tmp5, const i2.WasmI32(8), const i2.WasmI32(4));
+    i0.dartFree(tmp5, const i2.WasmI32(8), const i2.WasmI32(4));
     return tmp10;
   }
 
   @override
   int methodResponseGetStatusCode({
-    required i1.Borrowed<i5.TypesResponse> self,
+    required i0.Borrowed<i5.TypesResponse> self,
   }) {
     final tmp0 = _import75(i2.WasmI32.fromInt(self.handle));
     return tmp0.toIntUnsigned();
   }
 
   @override
-  i1.Result<void, void> methodResponseSetStatusCode({
-    required i1.Borrowed<i5.TypesResponse> self,
+  i0.Result<void, void> methodResponseSetStatusCode({
+    required i0.Borrowed<i5.TypesResponse> self,
     required int statusCode,
   }) {
     final tmp0 = _import76(
       i2.WasmI32.fromInt(self.handle),
       i2.WasmI32.uint16FromInt(statusCode),
     );
-    final i1.Result<void, void> tmp1;
+    final i0.Result<void, void> tmp1;
     if (tmp0.toBool()) {
       tmp1 = .error(null);
     } else {
@@ -5268,32 +5268,32 @@ final class _Imported$23 implements i5.Types {
   }
 
   @override
-  i1.Owned<i5.TypesFields> methodResponseGetHeaders({
-    required i1.Borrowed<i5.TypesResponse> self,
+  i0.Owned<i5.TypesFields> methodResponseGetHeaders({
+    required i0.Borrowed<i5.TypesResponse> self,
   }) {
     final tmp0 = _import77(i2.WasmI32.fromInt(self.handle));
-    final tmp1 = i1.Owned<i5.TypesFields>(tmp0.toIntUnsigned(), _drop$128);
+    final tmp1 = i0.Owned<i5.TypesFields>(tmp0.toIntUnsigned(), _drop$128);
     return tmp1;
   }
 
   @override
   (
     Stream<i3.Uint8List>,
-    Future<i1.Result<i1.Option<i1.Owned<i5.TypesFields>>, i5.TypesErrorCode>>,
+    Future<i0.Result<i0.Option<i0.Owned<i5.TypesFields>>, i5.TypesErrorCode>>,
   )
   staticResponseConsumeBody({
-    required i1.Owned<i5.TypesResponse> $this,
-    required Future<i1.Result<void, i5.TypesErrorCode>> res,
+    required i0.Owned<i5.TypesResponse> $this,
+    required Future<i0.Result<void, i5.TypesErrorCode>> res,
   }) {
-    final tmp0 = i1.writeFuture(res, const _Vtable151());
-    var tmp1 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
+    final tmp0 = i0.writeFuture(res, const _Vtable151());
+    var tmp1 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
     _import78(i2.WasmI32.fromInt($this.handle), tmp0, tmp1);
-    final tmp2 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 0);
-    final tmp3 = i1.ReadableStream(tmp2.toIntUnsigned(), const _Vtable142());
-    final tmp4 = i1.memory.loadInt32(tmp1.toIntUnsigned(), offset: 4);
-    final tmp5 = i1.readFuture(const _Vtable147(), tmp4.toIntUnsigned());
+    final tmp2 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 0);
+    final tmp3 = i0.ReadableStream(tmp2.toIntUnsigned(), const _Vtable142());
+    final tmp4 = i0.memory.loadInt32(tmp1.toIntUnsigned(), offset: 4);
+    final tmp5 = i0.readFuture(const _Vtable147(), tmp4.toIntUnsigned());
     final tmp6 = (tmp3, tmp5);
-    i1.dartFree(tmp1, const i2.WasmI32(8), const i2.WasmI32(4));
+    i0.dartFree(tmp1, const i2.WasmI32(8), const i2.WasmI32(4));
     return tmp6;
   }
 }
@@ -5311,37 +5311,37 @@ external i2.WasmI32 _import79(i2.WasmI32 p0, i2.WasmI32 p1);
 final class _Imported$25 implements i5.Client {
   const _Imported$25();
   @override
-  Future<i1.Result<i1.Owned<i5.TypesResponse>, i5.TypesErrorCode>> send({
-    required i1.Owned<i5.TypesRequest> request,
+  Future<i0.Result<i0.Owned<i5.TypesResponse>, i5.TypesErrorCode>> send({
+    required i0.Owned<i5.TypesRequest> request,
   }) async {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(40));
-    await i1
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(40));
+    await i0
         .createSubtask(_import79(i2.WasmI32.fromInt(request.handle), tmp0))
         .completion;
-    final tmp1 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
-    final i1.Result<i1.Owned<i5.TypesResponse>, i5.TypesErrorCode> tmp86;
+    final tmp1 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 0);
+    final i0.Result<i0.Owned<i5.TypesResponse>, i5.TypesErrorCode> tmp86;
     if (tmp1.toBool()) {
-      final tmp4 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 8);
+      final tmp4 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 8);
       final i5.TypesErrorCode tmp85;
       switch (tmp4.toIntUnsigned()) {
         case 0:
           tmp85 = i5.TypesErrorCodeDnsTimeout();
         case 1:
-          final tmp5 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<String> tmp8;
+          final tmp5 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<String> tmp8;
           if (tmp5.toBool()) {
-            final tmp6 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
-            final tmp7 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
+            final tmp6 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp7 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
 
-            tmp8 = .some(i1.AllocatedString.read(tmp6, tmp7));
+            tmp8 = .some(i0.AllocatedString.read(tmp6, tmp7));
           } else {
             tmp8 = .none;
           }
 
-          final tmp9 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 28);
-          final i1.Option<int> tmp11;
+          final tmp9 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 28);
+          final i0.Option<int> tmp11;
           if (tmp9.toBool()) {
-            final tmp10 = i1.memory.loadUint16(
+            final tmp10 = i0.memory.loadUint16(
               tmp0.toIntUnsigned(),
               offset: 30,
             );
@@ -5379,23 +5379,23 @@ final class _Imported$25 implements i5.Client {
         case 13:
           tmp85 = i5.TypesErrorCodeTlsCertificateError();
         case 14:
-          final tmp13 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<int> tmp15;
+          final tmp13 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<int> tmp15;
           if (tmp13.toBool()) {
-            final tmp14 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 17);
+            final tmp14 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 17);
 
             tmp15 = .some(tmp14.toIntUnsigned());
           } else {
             tmp15 = .none;
           }
 
-          final tmp16 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 20);
-          final i1.Option<String> tmp19;
+          final tmp16 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 20);
+          final i0.Option<String> tmp19;
           if (tmp16.toBool()) {
-            final tmp17 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
-            final tmp18 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 28);
+            final tmp17 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
+            final tmp18 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 28);
 
-            tmp19 = .some(i1.AllocatedString.read(tmp17, tmp18));
+            tmp19 = .some(i0.AllocatedString.read(tmp17, tmp18));
           } else {
             tmp19 = .none;
           }
@@ -5408,10 +5408,10 @@ final class _Imported$25 implements i5.Client {
         case 16:
           tmp85 = i5.TypesErrorCodeHttpRequestLengthRequired();
         case 17:
-          final tmp21 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<int> tmp23;
+          final tmp21 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<int> tmp23;
           if (tmp21.toBool()) {
-            final tmp22 = i1.memory.loadInt64(tmp0.toIntUnsigned(), offset: 24);
+            final tmp22 = i0.memory.loadInt64(tmp0.toIntUnsigned(), offset: 24);
 
             tmp23 = .some(tmp22.toInt());
           } else {
@@ -5426,10 +5426,10 @@ final class _Imported$25 implements i5.Client {
         case 20:
           tmp85 = i5.TypesErrorCodeHttpRequestUriTooLong();
         case 21:
-          final tmp24 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<int> tmp26;
+          final tmp24 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<int> tmp26;
           if (tmp24.toBool()) {
-            final tmp25 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp25 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
 
             tmp26 = .some(tmp25.toIntUnsigned());
           } else {
@@ -5438,33 +5438,33 @@ final class _Imported$25 implements i5.Client {
 
           tmp85 = i5.TypesErrorCodeHttpRequestHeaderSectionSize(tmp26);
         case 22:
-          final tmp27 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<
-            ({i1.Option<String> fieldName, i1.Option<int> fieldSize})
+          final tmp27 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<
+            ({i0.Option<String> fieldName, i0.Option<int> fieldSize})
           >
           tmp36;
           if (tmp27.toBool()) {
-            final tmp28 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 20);
-            final i1.Option<String> tmp31;
+            final tmp28 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 20);
+            final i0.Option<String> tmp31;
             if (tmp28.toBool()) {
-              final tmp29 = i1.memory.loadInt32(
+              final tmp29 = i0.memory.loadInt32(
                 tmp0.toIntUnsigned(),
                 offset: 24,
               );
-              final tmp30 = i1.memory.loadInt32(
+              final tmp30 = i0.memory.loadInt32(
                 tmp0.toIntUnsigned(),
                 offset: 28,
               );
 
-              tmp31 = .some(i1.AllocatedString.read(tmp29, tmp30));
+              tmp31 = .some(i0.AllocatedString.read(tmp29, tmp30));
             } else {
               tmp31 = .none;
             }
 
-            final tmp32 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 32);
-            final i1.Option<int> tmp34;
+            final tmp32 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 32);
+            final i0.Option<int> tmp34;
             if (tmp32.toBool()) {
-              final tmp33 = i1.memory.loadInt32(
+              final tmp33 = i0.memory.loadInt32(
                 tmp0.toIntUnsigned(),
                 offset: 36,
               );
@@ -5483,10 +5483,10 @@ final class _Imported$25 implements i5.Client {
 
           tmp85 = i5.TypesErrorCodeHttpRequestHeaderSize(tmp36);
         case 23:
-          final tmp37 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<int> tmp39;
+          final tmp37 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<int> tmp39;
           if (tmp37.toBool()) {
-            final tmp38 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp38 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
 
             tmp39 = .some(tmp38.toIntUnsigned());
           } else {
@@ -5495,21 +5495,21 @@ final class _Imported$25 implements i5.Client {
 
           tmp85 = i5.TypesErrorCodeHttpRequestTrailerSectionSize(tmp39);
         case 24:
-          final tmp40 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<String> tmp43;
+          final tmp40 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<String> tmp43;
           if (tmp40.toBool()) {
-            final tmp41 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
-            final tmp42 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
+            final tmp41 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp42 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
 
-            tmp43 = .some(i1.AllocatedString.read(tmp41, tmp42));
+            tmp43 = .some(i0.AllocatedString.read(tmp41, tmp42));
           } else {
             tmp43 = .none;
           }
 
-          final tmp44 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 28);
-          final i1.Option<int> tmp46;
+          final tmp44 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 28);
+          final i0.Option<int> tmp46;
           if (tmp44.toBool()) {
-            final tmp45 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 32);
+            final tmp45 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 32);
 
             tmp46 = .some(tmp45.toIntUnsigned());
           } else {
@@ -5522,10 +5522,10 @@ final class _Imported$25 implements i5.Client {
         case 25:
           tmp85 = i5.TypesErrorCodeHttpResponseIncomplete();
         case 26:
-          final tmp48 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<int> tmp50;
+          final tmp48 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<int> tmp50;
           if (tmp48.toBool()) {
-            final tmp49 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp49 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
 
             tmp50 = .some(tmp49.toIntUnsigned());
           } else {
@@ -5534,21 +5534,21 @@ final class _Imported$25 implements i5.Client {
 
           tmp85 = i5.TypesErrorCodeHttpResponseHeaderSectionSize(tmp50);
         case 27:
-          final tmp51 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<String> tmp54;
+          final tmp51 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<String> tmp54;
           if (tmp51.toBool()) {
-            final tmp52 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
-            final tmp53 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
+            final tmp52 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp53 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
 
-            tmp54 = .some(i1.AllocatedString.read(tmp52, tmp53));
+            tmp54 = .some(i0.AllocatedString.read(tmp52, tmp53));
           } else {
             tmp54 = .none;
           }
 
-          final tmp55 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 28);
-          final i1.Option<int> tmp57;
+          final tmp55 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 28);
+          final i0.Option<int> tmp57;
           if (tmp55.toBool()) {
-            final tmp56 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 32);
+            final tmp56 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 32);
 
             tmp57 = .some(tmp56.toIntUnsigned());
           } else {
@@ -5559,10 +5559,10 @@ final class _Imported$25 implements i5.Client {
 
           tmp85 = i5.TypesErrorCodeHttpResponseHeaderSize(tmp58);
         case 28:
-          final tmp59 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<int> tmp61;
+          final tmp59 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<int> tmp61;
           if (tmp59.toBool()) {
-            final tmp60 = i1.memory.loadInt64(tmp0.toIntUnsigned(), offset: 24);
+            final tmp60 = i0.memory.loadInt64(tmp0.toIntUnsigned(), offset: 24);
 
             tmp61 = .some(tmp60.toInt());
           } else {
@@ -5571,10 +5571,10 @@ final class _Imported$25 implements i5.Client {
 
           tmp85 = i5.TypesErrorCodeHttpResponseBodySize(tmp61);
         case 29:
-          final tmp62 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<int> tmp64;
+          final tmp62 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<int> tmp64;
           if (tmp62.toBool()) {
-            final tmp63 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp63 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
 
             tmp64 = .some(tmp63.toIntUnsigned());
           } else {
@@ -5583,21 +5583,21 @@ final class _Imported$25 implements i5.Client {
 
           tmp85 = i5.TypesErrorCodeHttpResponseTrailerSectionSize(tmp64);
         case 30:
-          final tmp65 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<String> tmp68;
+          final tmp65 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<String> tmp68;
           if (tmp65.toBool()) {
-            final tmp66 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
-            final tmp67 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
+            final tmp66 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp67 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
 
-            tmp68 = .some(i1.AllocatedString.read(tmp66, tmp67));
+            tmp68 = .some(i0.AllocatedString.read(tmp66, tmp67));
           } else {
             tmp68 = .none;
           }
 
-          final tmp69 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 28);
-          final i1.Option<int> tmp71;
+          final tmp69 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 28);
+          final i0.Option<int> tmp71;
           if (tmp69.toBool()) {
-            final tmp70 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 32);
+            final tmp70 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 32);
 
             tmp71 = .some(tmp70.toIntUnsigned());
           } else {
@@ -5608,26 +5608,26 @@ final class _Imported$25 implements i5.Client {
 
           tmp85 = i5.TypesErrorCodeHttpResponseTrailerSize(tmp72);
         case 31:
-          final tmp73 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<String> tmp76;
+          final tmp73 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<String> tmp76;
           if (tmp73.toBool()) {
-            final tmp74 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
-            final tmp75 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
+            final tmp74 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp75 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
 
-            tmp76 = .some(i1.AllocatedString.read(tmp74, tmp75));
+            tmp76 = .some(i0.AllocatedString.read(tmp74, tmp75));
           } else {
             tmp76 = .none;
           }
 
           tmp85 = i5.TypesErrorCodeHttpResponseTransferCoding(tmp76);
         case 32:
-          final tmp77 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<String> tmp80;
+          final tmp77 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<String> tmp80;
           if (tmp77.toBool()) {
-            final tmp78 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
-            final tmp79 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
+            final tmp78 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp79 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
 
-            tmp80 = .some(i1.AllocatedString.read(tmp78, tmp79));
+            tmp80 = .some(i0.AllocatedString.read(tmp78, tmp79));
           } else {
             tmp80 = .none;
           }
@@ -5644,13 +5644,13 @@ final class _Imported$25 implements i5.Client {
         case 37:
           tmp85 = i5.TypesErrorCodeConfigurationError();
         case 38:
-          final tmp81 = i1.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
-          final i1.Option<String> tmp84;
+          final tmp81 = i0.memory.loadUint8(tmp0.toIntUnsigned(), offset: 16);
+          final i0.Option<String> tmp84;
           if (tmp81.toBool()) {
-            final tmp82 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
-            final tmp83 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
+            final tmp82 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 20);
+            final tmp83 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 24);
 
-            tmp84 = .some(i1.AllocatedString.read(tmp82, tmp83));
+            tmp84 = .some(i0.AllocatedString.read(tmp82, tmp83));
           } else {
             tmp84 = .none;
           }
@@ -5663,12 +5663,12 @@ final class _Imported$25 implements i5.Client {
 
       tmp86 = .error(tmp85);
     } else {
-      final tmp2 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
-      final tmp3 = i1.Owned<i5.TypesResponse>(tmp2.toIntUnsigned(), _drop$170);
+      final tmp2 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
+      final tmp3 = i0.Owned<i5.TypesResponse>(tmp2.toIntUnsigned(), _drop$170);
       tmp86 = .ok(tmp3);
     }
 
-    i1.dartFree(tmp0, const i2.WasmI32(40), const i2.WasmI32(8));
+    i0.dartFree(tmp0, const i2.WasmI32(40), const i2.WasmI32(8));
     return tmp86;
   }
 }
@@ -5698,12 +5698,12 @@ final class _Imported$1 implements i4.MonotonicClock {
 
   @override
   Future<void> waitUntil({required int when}) async {
-    await i1.createSubtask(_import83(i2.WasmI64.fromInt(when))).completion;
+    await i0.createSubtask(_import83(i2.WasmI64.fromInt(when))).completion;
   }
 
   @override
   Future<void> waitFor({required int howLong}) async {
-    await i1.createSubtask(_import84(i2.WasmI64.fromInt(howLong))).completion;
+    await i0.createSubtask(_import84(i2.WasmI64.fromInt(howLong))).completion;
   }
 }
 
@@ -5716,12 +5716,12 @@ final class _Imported$2 implements i4.SystemClock {
   const _Imported$2();
   @override
   ({int seconds, int nanoseconds}) now() {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(16));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(16));
     _import85(tmp0);
-    final tmp1 = i1.memory.loadInt64(tmp0.toIntUnsigned(), offset: 0);
-    final tmp2 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
+    final tmp1 = i0.memory.loadInt64(tmp0.toIntUnsigned(), offset: 0);
+    final tmp2 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 8);
     final tmp3 = (seconds: tmp1.toInt(), nanoseconds: tmp2.toIntUnsigned());
-    i1.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(8));
+    i0.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(8));
     return tmp3;
   }
 
@@ -5741,20 +5741,20 @@ final class _Imported$8 implements i6.Random {
   const _Imported$8();
   @override
   List<int> getRandomBytes({required int maxLen}) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
     _import87(i2.WasmI64.fromInt(maxLen), tmp0);
-    final tmp1 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
-    final tmp2 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
+    final tmp1 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
+    final tmp2 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
 
     final tmp5 = tmp1.toIntUnsigned();
     final tmp4 = List.generate(tmp2.toIntUnsigned(), growable: false, (i) {
       final elementPtr = i2.WasmI32.fromInt(tmp5 + i * 1);
-      final tmp3 = i1.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
+      final tmp3 = i0.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
 
       return tmp3.toIntUnsigned();
     });
 
-    i1.dartFree(tmp0, const i2.WasmI32(8), const i2.WasmI32(4));
+    i0.dartFree(tmp0, const i2.WasmI32(8), const i2.WasmI32(4));
     return tmp4;
   }
 
@@ -5774,20 +5774,20 @@ final class _Imported$9 implements i6.Insecure {
   const _Imported$9();
   @override
   List<int> getInsecureRandomBytes({required int maxLen}) {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(4), const i2.WasmI32(8));
     _import89(i2.WasmI64.fromInt(maxLen), tmp0);
-    final tmp1 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
-    final tmp2 = i1.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
+    final tmp1 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 0);
+    final tmp2 = i0.memory.loadInt32(tmp0.toIntUnsigned(), offset: 4);
 
     final tmp5 = tmp1.toIntUnsigned();
     final tmp4 = List.generate(tmp2.toIntUnsigned(), growable: false, (i) {
       final elementPtr = i2.WasmI32.fromInt(tmp5 + i * 1);
-      final tmp3 = i1.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
+      final tmp3 = i0.memory.loadUint8(elementPtr.toIntUnsigned(), offset: 0);
 
       return tmp3.toIntUnsigned();
     });
 
-    i1.dartFree(tmp0, const i2.WasmI32(8), const i2.WasmI32(4));
+    i0.dartFree(tmp0, const i2.WasmI32(8), const i2.WasmI32(4));
     return tmp4;
   }
 
@@ -5805,12 +5805,12 @@ final class _Imported$10 implements i6.InsecureSeed {
   const _Imported$10();
   @override
   (int, int) getInsecureSeed() {
-    var tmp0 = i1.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(16));
+    var tmp0 = i0.mallocAligned(const i2.WasmI32(8), const i2.WasmI32(16));
     _import91(tmp0);
-    final tmp1 = i1.memory.loadInt64(tmp0.toIntUnsigned(), offset: 0);
-    final tmp2 = i1.memory.loadInt64(tmp0.toIntUnsigned(), offset: 8);
+    final tmp1 = i0.memory.loadInt64(tmp0.toIntUnsigned(), offset: 0);
+    final tmp2 = i0.memory.loadInt64(tmp0.toIntUnsigned(), offset: 8);
     final tmp3 = (tmp1.toInt(), tmp2.toInt());
-    i1.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(8));
+    i0.dartFree(tmp0, const i2.WasmI32(16), const i2.WasmI32(8));
     return tmp3;
   }
 }
@@ -5820,9 +5820,9 @@ late i5.Handler _unnamedExport24;
 final class ServiceImports {
   const ServiceImports._();
 
-  i0.Stdout get cliStdout => const _Imported$16();
-  i0.Stderr get cliStderr => const _Imported$17();
-  i0.Stdin get cliStdin => const _Imported$15();
+  i1.Stdout get cliStdout => const _Imported$16();
+  i1.Stderr get cliStderr => const _Imported$17();
+  i1.Stdin get cliStdin => const _Imported$15();
   i5.Types get httpTypes => const _Imported$23();
   i5.Client get httpClient => const _Imported$25();
   i4.MonotonicClock get clocksMonotonicClock => const _Imported$1();
@@ -5847,9 +5847,9 @@ void serviceComponent(i5.Handler Function(ServiceImports) defineComponent) {
 
 @pragma('wasm:export', r'component_0')
 i2.WasmI32 _component_0(i2.WasmI32 p0) {
-  final asyncExitCode = i1.spawnTask(
+  final asyncExitCode = i0.spawnTask(
     run: () async {
-      final tmp0 = i1.Owned<i5.TypesRequest>(p0.toIntUnsigned(), _drop$164);
+      final tmp0 = i0.Owned<i5.TypesRequest>(p0.toIntUnsigned(), _drop$164);
       final tmp1 = await _unnamedExport24.handle(request: tmp0);
       i2.WasmI32 tmp97;
       i2.WasmI32 tmp98;
@@ -5860,7 +5860,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
       i2.WasmI32 tmp103;
       i2.WasmI32 tmp104;
       switch (tmp1) {
-        case i1.OkResult(:final value):
+        case i0.OkResult(:final value):
           tmp97 = const i2.WasmI32(0);
           tmp98 = i2.WasmI32.fromInt(value.handle);
           tmp99 = const i2.WasmI32(0);
@@ -5870,7 +5870,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
           tmp103 = const i2.WasmI32(0);
           tmp104 = const i2.WasmI32(0);
 
-        case i1.ErrorResult(:final value):
+        case i0.ErrorResult(:final value):
           i2.WasmI32 tmp90;
           i2.WasmI32 tmp91;
           i2.WasmI64 tmp92;
@@ -5895,7 +5895,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
               final tmp6 = value.rcode;
               if (tmp6.hasValue) {
                 final value = tmp6.requireValue();
-                final tmp2 = i1.AllocatedString.allocateUtf16(value);
+                final tmp2 = i0.AllocatedString.allocateUtf16(value);
                 tmp3 = const i2.WasmI32(1);
                 tmp4 = tmp2.ptr;
                 tmp5 = tmp2.packedLength;
@@ -6050,7 +6050,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
               final tmp17 = value.alertMessage;
               if (tmp17.hasValue) {
                 final value = tmp17.requireValue();
-                final tmp13 = i1.AllocatedString.allocateUtf16(value);
+                final tmp13 = i0.AllocatedString.allocateUtf16(value);
                 tmp14 = const i2.WasmI32(1);
                 tmp15 = tmp13.ptr;
                 tmp16 = tmp13.packedLength;
@@ -6171,7 +6171,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
                 final tmp28 = value.fieldName;
                 if (tmp28.hasValue) {
                   final value = tmp28.requireValue();
-                  final tmp24 = i1.AllocatedString.allocateUtf16(value);
+                  final tmp24 = i0.AllocatedString.allocateUtf16(value);
                   tmp25 = const i2.WasmI32(1);
                   tmp26 = tmp24.ptr;
                   tmp27 = tmp24.packedLength;
@@ -6243,7 +6243,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
               final tmp46 = value.fieldName;
               if (tmp46.hasValue) {
                 final value = tmp46.requireValue();
-                final tmp42 = i1.AllocatedString.allocateUtf16(value);
+                final tmp42 = i0.AllocatedString.allocateUtf16(value);
                 tmp43 = const i2.WasmI32(1);
                 tmp44 = tmp42.ptr;
                 tmp45 = tmp42.packedLength;
@@ -6310,7 +6310,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
               final tmp57 = value.fieldName;
               if (tmp57.hasValue) {
                 final value = tmp57.requireValue();
-                final tmp53 = i1.AllocatedString.allocateUtf16(value);
+                final tmp53 = i0.AllocatedString.allocateUtf16(value);
                 tmp54 = const i2.WasmI32(1);
                 tmp55 = tmp53.ptr;
                 tmp56 = tmp53.packedLength;
@@ -6388,7 +6388,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
               final tmp71 = value.fieldName;
               if (tmp71.hasValue) {
                 final value = tmp71.requireValue();
-                final tmp67 = i1.AllocatedString.allocateUtf16(value);
+                final tmp67 = i0.AllocatedString.allocateUtf16(value);
                 tmp68 = const i2.WasmI32(1);
                 tmp69 = tmp67.ptr;
                 tmp70 = tmp67.packedLength;
@@ -6426,7 +6426,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
               final tmp79 = value;
               if (tmp79.hasValue) {
                 final value = tmp79.requireValue();
-                final tmp75 = i1.AllocatedString.allocateUtf16(value);
+                final tmp75 = i0.AllocatedString.allocateUtf16(value);
                 tmp76 = const i2.WasmI32(1);
                 tmp77 = tmp75.ptr;
                 tmp78 = tmp75.packedLength;
@@ -6453,7 +6453,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
               final tmp84 = value;
               if (tmp84.hasValue) {
                 final value = tmp84.requireValue();
-                final tmp80 = i1.AllocatedString.allocateUtf16(value);
+                final tmp80 = i0.AllocatedString.allocateUtf16(value);
                 tmp81 = const i2.WasmI32(1);
                 tmp82 = tmp80.ptr;
                 tmp83 = tmp80.packedLength;
@@ -6523,7 +6523,7 @@ i2.WasmI32 _component_0(i2.WasmI32 p0) {
               final tmp89 = value;
               if (tmp89.hasValue) {
                 final value = tmp89.requireValue();
-                final tmp85 = i1.AllocatedString.allocateUtf16(value);
+                final tmp85 = i0.AllocatedString.allocateUtf16(value);
                 tmp86 = const i2.WasmI32(1);
                 tmp87 = tmp85.ptr;
                 tmp88 = tmp85.packedLength;

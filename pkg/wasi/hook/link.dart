@@ -27,6 +27,7 @@ void main(List<String> args) => link(args, (input, output) async {
     for (final used in usedWorlds) {
       final abiUri = input.packageRoot.resolve(used);
       output.dependencies.add(abiUri);
+
       output.assets.webAssemblyComponents.add(
         WasmComponentAsset(
           encoded: json.decode(

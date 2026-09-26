@@ -69,18 +69,6 @@
     {
       "implements": 1,
       "functions": {
-        "count-tests": {
-          "exported_name": "component_0",
-          "options": {
-            "uses_memory": false,
-            "uses_strings": false,
-            "uses_realloc": false,
-            "is_async": false,
-            "uses_callback": false
-          },
-          "parameters": [],
-          "result": "u32"
-        },
         "invoke-test": {
           "exported_name": "component_1",
           "options": {
@@ -97,6 +85,18 @@
             }
           ],
           "result": null
+        },
+        "count-tests": {
+          "exported_name": "component_0",
+          "options": {
+            "uses_memory": false,
+            "uses_strings": false,
+            "uses_realloc": false,
+            "is_async": false,
+            "uses_callback": false
+          },
+          "parameters": [],
+          "result": "u32"
         }
       }
     }

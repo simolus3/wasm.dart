@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import '../../debug_info.dart';
 import '../ir/ir.dart' as ir;
 import 'deserializer.dart';
 import 'printer.dart' show IndentPrinter;
@@ -12,7 +13,9 @@ import 'serializer.dart';
 const Set<String> _reservedCustomSectionNames = {
   NameSection.customSectionName,
   SourceMapSection.customSectionName,
-  RemovableIfUnusedSection.customSectionName,
+  BinaryenRemovableIfUnusedSection.customSectionName,
+  BinaryenInlineHintSection.customSectionName,
+  BinaryenJSCalledSection.customSectionName,
 };
 
 abstract class Section implements Serializable {
@@ -21,17 +24,13 @@ abstract class Section implements Serializable {
   Section(this.watchPoints);
 
   @override
-  void serialize(Serializer s) {
+  void serialize(Serializer s, [DebugInfoSerializer? debugInfoSerializer]) {
     final contents = Serializer();
     serializeContents(contents);
     final data = contents.data;
     if (data.isNotEmpty) {
       s.writeByte(id);
       s.writeUnsigned(data.length);
-      s.sourceMapSerializer.copyMappings(
-        contents.sourceMapSerializer,
-        s.offset,
-      );
       s.writeData(contents, watchPoints);
     }
   }
@@ -687,9 +686,29 @@ class CodeSection extends Section {
   int get id => sectionId;
 
   @override
-  void serializeContents(Serializer s) {
+  void serializeContents(
+    Serializer s, [
+    DebugInfoSerializer? debugInfoSerializer,
+  ]) {
     if (functions.isNotEmpty) {
-      s.writeList(functions);
+      s.writeUnsigned(functions.length);
+      for (int i = 0; i < functions.length; i++) {
+        functions[i].serialize(s, debugInfoSerializer);
+      }
+    }
+  }
+
+  @override
+  void serialize(Serializer s, [DebugInfoSerializer? debugInfoSerializer]) {
+    final contents = Serializer();
+    serializeContents(contents, debugInfoSerializer);
+    final data = contents.data;
+    if (data.isNotEmpty) {
+      s.writeByte(id);
+      s.writeUnsigned(data.length);
+      final fileOffset = s.offset;
+      s.writeData(contents, watchPoints);
+      debugInfoSerializer?.setCodeSectionFileOffset(fileOffset);
     }
   }
 
@@ -703,11 +722,14 @@ class CodeSection extends Section {
     ir.Memories memories,
     ir.Tags tags,
     ir.Globals globals,
-    ir.DataSegments dataSegments,
-  ) {
+    ir.DataSegments dataSegments, {
+    int? sectionFileOffset,
+    DebugInfoDeserializer? debugInfoDeserializer,
+  }) {
     if (d == null) {
       return;
     }
+    assert(debugInfoDeserializer == null || sectionFileOffset != null);
 
     final count = d.readUnsigned();
     if (count != functions.defined.length) {
@@ -725,6 +747,7 @@ class CodeSection extends Section {
       final instructions = <ir.Instruction>[];
 
       final bodySize = d.readUnsigned();
+      final bodyOffset = d.offset;
       final bodyDeserializer = Deserializer(d.readBytes(bodySize));
 
       final localDeclCount = bodyDeserializer.readUnsigned();
@@ -735,7 +758,24 @@ class CodeSection extends Section {
           locals.add(ir.Local(locals.length, type));
         }
       }
+
+      if (debugInfoDeserializer != null) {
+        final functionCodeOffset = bodyOffset + bodyDeserializer.offset;
+        debugInfoDeserializer.startFunction(
+          sectionFileOffset! + functionCodeOffset,
+        );
+      }
+
+      int instructionIdx = 0;
       while (!bodyDeserializer.isAtEnd) {
+        if (debugInfoDeserializer != null) {
+          final instructionFileOffset =
+              sectionFileOffset! + bodyOffset + bodyDeserializer.offset;
+          debugInfoDeserializer.onInstruction(
+            instructionIdx,
+            instructionFileOffset,
+          );
+        }
         final instruction = ir.Instruction.deserialize(
           bodyDeserializer,
           types,
@@ -747,9 +787,21 @@ class CodeSection extends Section {
           functions,
         );
         instructions.add(instruction);
+        instructionIdx++;
       }
 
-      function.body = ir.Instructions(locals, {}, instructions, null, [], []);
+      final debugInfo = debugInfoDeserializer?.endFunction(
+        sectionFileOffset! + bodyOffset + bodyDeserializer.offset,
+      );
+
+      function.body = ir.Instructions(
+        locals,
+        {},
+        instructions,
+        null,
+        [],
+        debugInfo,
+      );
     }
   }
 }
@@ -1103,12 +1155,12 @@ class SourceMapSection extends CustomSection {
   }
 }
 
-class RemovableIfUnusedSection extends CustomSection {
+class BinaryenRemovableIfUnusedSection extends CustomSection {
   static const String customSectionName = 'binaryen.removable.if.unused';
 
   final ir.Functions functions;
 
-  RemovableIfUnusedSection(this.functions) : super([]);
+  BinaryenRemovableIfUnusedSection(this.functions) : super([]);
 
   @override
   void serializeContents(Serializer s) {
@@ -1123,7 +1175,7 @@ class RemovableIfUnusedSection extends CustomSection {
         s.writeUnsigned(function.index);
         s.writeUnsigned(1); // Number of hints
         s.writeUnsigned(0); // Offset (0 == function-level)
-        s.writeUnsigned(0); // always 0
+        s.writeUnsigned(0); // hint length (always 0)
       }
     }
   }
@@ -1147,6 +1199,114 @@ class RemovableIfUnusedSection extends CustomSection {
           throw StateError('Expected 0 but got $data');
         }
         functions[functionIndex].isPure = true;
+      }
+    }
+  }
+}
+
+class BinaryenInlineHintSection extends CustomSection {
+  static const String customSectionName = 'binaryen.inline';
+
+  final ir.Functions functions;
+
+  BinaryenInlineHintSection(this.functions) : super([]);
+
+  @override
+  void serializeContents(Serializer s) {
+    final functionsToAnnotate = [
+      ...functions.imported.where((f) => f.inlineHint != null),
+      ...functions.defined.where((f) => f.inlineHint != null),
+    ];
+    if (functionsToAnnotate.isNotEmpty) {
+      s.writeName(customSectionName);
+      s.writeUnsigned(functionsToAnnotate.length);
+      for (final function in functionsToAnnotate) {
+        final hint = function.inlineHint!;
+        assert(hint >= 0 && hint <= 127);
+        s.writeUnsigned(function.index);
+        s.writeUnsigned(1); // Number of hints
+        s.writeUnsigned(0); // Offset (0 == function-level)
+        s.writeUnsigned(1); // hint length (always 1 for inline hint)
+        s.writeByte(hint);
+      }
+    }
+  }
+
+  static void deserialize(Deserializer? d, ir.Functions functions) {
+    if (d == null) return;
+
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final functionIndex = d.readUnsigned();
+      final numHints = d.readUnsigned();
+      for (int j = 0; j < numHints; j++) {
+        final offset = d.readUnsigned(); // Offset (0 == function-level)
+        if (offset != 0) {
+          throw UnsupportedError(
+            'Only function-level ($customSectionName) annotation supported.',
+          );
+        }
+        final hintLength = d.readUnsigned();
+        if (hintLength != 1) {
+          throw StateError('Expected hint length 1 but got $hintLength');
+        }
+        final hint = d.readByte();
+        if (hint < 0 || hint > 127) {
+          throw StateError('Expected hint in range [0..127] but got $hint');
+        }
+        // Stale indices from post-optimized binaries are ignored.
+        if (functionIndex < functions.length) {
+          functions[functionIndex].inlineHint = hint;
+        }
+      }
+    }
+  }
+}
+
+class BinaryenJSCalledSection extends CustomSection {
+  static const String customSectionName = 'binaryen.js.called';
+
+  final ir.Functions functions;
+
+  BinaryenJSCalledSection(this.functions) : super([]);
+
+  @override
+  void serializeContents(Serializer s) {
+    final functionsToAnnotate = [
+      ...functions.imported.where((f) => f.isJSCalled),
+      ...functions.defined.where((f) => f.isJSCalled),
+    ];
+    if (functionsToAnnotate.isNotEmpty) {
+      s.writeName(customSectionName);
+      s.writeUnsigned(functionsToAnnotate.length);
+      for (final function in functionsToAnnotate) {
+        s.writeUnsigned(function.index);
+        s.writeUnsigned(1); // Number of hints
+        s.writeUnsigned(0); // Offset (0 == function-level)
+        s.writeUnsigned(0); // hint length (always 0)
+      }
+    }
+  }
+
+  static void deserialize(Deserializer? d, ir.Functions functions) {
+    if (d == null) return;
+
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final functionIndex = d.readUnsigned();
+      final numHints = d.readUnsigned();
+      for (int j = 0; j < numHints; j++) {
+        final offset = d.readUnsigned(); // Offset (0 == function-level)
+        if (offset != 0) {
+          throw UnsupportedError(
+            'Only function-level ($customSectionName) annotation supported.',
+          );
+        }
+        final data = d.readUnsigned(); // always 0
+        if (data != 0) {
+          throw StateError('Expected 0 but got $data');
+        }
+        functions[functionIndex].isJSCalled = true;
       }
     }
   }

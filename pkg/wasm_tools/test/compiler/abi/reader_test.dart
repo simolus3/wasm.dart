@@ -5,6 +5,7 @@ import 'package:wasm_tools/src/compiler/abi/abi.dart';
 import 'package:wasm_tools/src/compiler/abi/linker.dart';
 import 'package:wasm_tools/src/compiler/abi/reader.dart';
 import 'package:wasm_tools/src/compiler/components/component.dart';
+import 'package:wasm_tools/src/compiler/components/definition.dart';
 
 import '../components/utils.dart';
 
@@ -110,6 +111,28 @@ void main() {
         await componentToWit(component),
         allOf(
           contains('use wasi:clocks/types@0.3.0.{duration};'),
+          contains('type field-name = string;'),
+          contains('type status-code = u16;'),
+        ),
+      );
+    });
+
+    test('exported interface skips imported type aliases', () async {
+      final abi = ProgramAbi();
+      readAbi(abi, json.decode(_primitiveAliasAbi) as Map<String, Object?>);
+
+      final component = ComponentBuilder();
+      final linker = Linker(component);
+      final httpTypes = abi.interfaces['wasi:http/types@0.3.0']!;
+      final exportedInstance = abi.exports.single.instantiate(linker);
+      component.export(
+        Export(httpTypes.fullName, .componentInstance, exportedInstance),
+      );
+
+      expect(
+        await componentToWit(component),
+        allOf(
+          contains('export wasi:http/types@0.3.0;'),
           contains('type field-name = string;'),
           contains('type status-code = u16;'),
         ),
@@ -463,7 +486,12 @@ const _exampleAbi = r'''
 const _primitiveAliasAbi = r'''
 {
   "imports": [],
-  "exports": [],
+  "exports": [
+    {
+      "implements": 1,
+      "functions": {}
+    }
+  ],
   "world": {
     "worlds": [
       {

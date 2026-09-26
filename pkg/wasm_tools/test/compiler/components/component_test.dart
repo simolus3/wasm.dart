@@ -115,13 +115,10 @@ void main() {
 
   test('Module.deserialize preserves start function', () {
     final builder = w.ModuleBuilder('withStart', null);
-    final startSig = builder.types.defineFunction(const [], const []);
-    final startFunc = builder.functions.define(startSig, '#init');
-    startFunc.body.end();
+    builder.startFunction;
 
     final module = builder.build();
-    module.start = startFunc;
-    expect(module.start, same(startFunc));
+    expect(module.start, isNotNull);
 
     final serializer = w.Serializer();
     module.serialize(serializer);
@@ -145,7 +142,7 @@ w.Module _defineModuleCallingExit0() {
     ..i32_const(0)
     ..return_()
     ..end();
-  builder.exports.export('main', main);
+  builder.exports.export('main', main.build());
 
   return builder.build();
 }

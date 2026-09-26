@@ -140,6 +140,13 @@ fn wit_bindgen_dart_internal(input: GenerateDartOptions) -> anyhow::Result<Vec<G
 
         let mut abi = ImportsAndExports::default();
         let mut generator = DartWorldGenerator::new(&mut abi, &import_map);
+
+        // Even if nothing otherwise imports pacakge:wasm_components, import it unconditionally as
+        // it pulls in required embedder functions.
+        generator
+            .main
+            .import(dart_source::KnownDartUri::PkgWasmComponents);
+
         let mut files = Files::default();
         generator.generate(&mut resolve, world, &mut files)?;
 
