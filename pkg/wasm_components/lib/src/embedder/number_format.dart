@@ -2,6 +2,7 @@
 import 'dart:_wasm';
 
 import 'constants.dart';
+import 'libc.dart';
 import 'string.dart';
 
 Latin1String intToString(int value, int radix) {
@@ -111,7 +112,7 @@ double? parseDoubleFromWasmString(WasmStringImplementation str) {
   }
   if (i >= end) return null;
 
-  // Check Infinity / NaN
+  // Check exact Dart Infinity / NaN literals.
   if (_matchesAscii(str, i, end, 'Infinity')) {
     return negative ? double.negativeInfinity : double.infinity;
   }
@@ -119,81 +120,41 @@ double? parseDoubleFromWasmString(WasmStringImplementation str) {
     return double.nan;
   }
 
-  var intPart = 0.0;
-  var fracPart = 0.0;
-  var fracScale = 1.0;
-  var hasDigits = false;
-
-  while (i < end) {
-    final c = str.codeUnitAtUnchecked(i);
-    if (c >= 0x30 && c <= 0x39) {
-      hasDigits = true;
-      intPart = intPart * 10.0 + (c - 0x30);
-      i++;
-    } else {
-      break;
-    }
+  // Reject Rust-specific 'inf'/'nan' literals: first char after sign must be
+  // '0'..'9' or '.'.
+  final firstAfterSign = str.codeUnitAtUnchecked(i);
+  if (firstAfterSign != 0x2e &&
+      (firstAfterSign < 0x30 || firstAfterSign > 0x39)) {
+    return null;
   }
 
-  if (i < end && str.codeUnitAtUnchecked(i) == 0x2e) {
-    // '.'
-    i++;
-    while (i < end) {
-      final c = str.codeUnitAtUnchecked(i);
-      if (c >= 0x30 && c <= 0x39) {
-        hasDigits = true;
-        fracPart = fracPart * 10.0 + (c - 0x30);
-        fracScale *= 10.0;
-        i++;
-      } else {
-        break;
-      }
-    }
+  final sliceLen = end - start;
+  for (var k = start; k < end; k++) {
+    final c = str.codeUnitAtUnchecked(k);
+    if (c >= 0x80) return null;
   }
 
-  if (!hasDigits) return null;
-
-  var result = intPart + (fracPart / fracScale);
-
-  if (i < end) {
-    final c = str.codeUnitAtUnchecked(i);
-    if (c == 0x65 || c == 0x45) {
-      // 'e' or 'E'
-      i++;
-      if (i >= end) return null;
-      var expNeg = false;
-      final expSign = str.codeUnitAtUnchecked(i);
-      if (expSign == 0x2d) {
-        expNeg = true;
-        i++;
-      } else if (expSign == 0x2b) {
-        i++;
-      }
-      if (i >= end) return null;
-      var expVal = 0;
-      var hasExpDigits = false;
-      while (i < end) {
-        final ec = str.codeUnitAtUnchecked(i);
-        if (ec >= 0x30 && ec <= 0x39) {
-          hasExpDigits = true;
-          expVal = expVal * 10 + (ec - 0x30);
-          i++;
-        } else {
-          return null;
-        }
-      }
-      if (!hasExpDigits) return null;
-      var pow10 = 1.0;
-      for (var k = 0; k < expVal; k++) {
-        pow10 *= 10.0;
-      }
-      result = expNeg ? (result / pow10) : (result * pow10);
-    } else {
-      return null;
-    }
+  final bufPtr = mallocAligned(const WasmI32(1), sliceLen.toWasmI32());
+  final bufAddr = bufPtr.toIntUnsigned();
+  for (var k = 0; k < sliceLen; k++) {
+    memory.storeInt8(
+      bufAddr + k,
+      WasmI32.fromInt(str.codeUnitAtUnchecked(start + k)),
+    );
   }
 
-  return negative ? -result : result;
+  final outValPtr = mallocAligned(const WasmI32(8), const WasmI32(8));
+  final ok = dartDoubleParse(bufPtr, sliceLen.toWasmI32(), outValPtr);
+  dartFree(bufPtr, sliceLen.toWasmI32(), const WasmI32(1));
+
+  if (ok.toIntSigned() == 0) {
+    dartFree(outValPtr, const WasmI32(8), const WasmI32(8));
+    return null;
+  }
+
+  final parsed = memory.loadFloat64(outValPtr.toIntUnsigned()).toDouble();
+  dartFree(outValPtr, const WasmI32(8), const WasmI32(8));
+  return parsed;
 }
 
 bool _isWhitespace(int c) =>
@@ -248,28 +209,29 @@ WasmStringImplementation doubleToWasmString(double value) {
             ]),
           );
   }
-  final neg = value.isNegative;
-  final absVal = neg ? -value : value;
-  var whole = absVal.truncate();
-  var frac = ((absVal - whole) * 1000000).round();
-  if (frac >= 1000000) {
-    whole += 1;
-    frac = 0;
+  if (value == 0.0) {
+    return value.isNegative
+        ? Latin1String.unsafeWrap(
+            WasmArray<WasmI8>.literal([0x2d, 0x30, 0x2e, 0x30]),
+          )
+        : Latin1String.unsafeWrap(
+            WasmArray<WasmI8>.literal([0x30, 0x2e, 0x30]),
+          );
   }
-  final minus = Latin1String.unsafeWrap(WasmArray<WasmI8>.literal([0x2d]));
-  final wholePart = intToString(whole, 10);
-  final wholeStr = neg ? minus.concat(wholePart) : wholePart;
-  final dot = Latin1String.unsafeWrap(WasmArray<WasmI8>.literal([0x2e]));
-  if (frac == 0) {
-    return wholeStr.concat(dot).concat($0);
+
+  const maxLen = 64;
+  final bufPtr = mallocAligned(const WasmI32(1), const WasmI32(maxLen));
+  final written = dartDoubleToString(
+    WasmF64.fromDouble(value),
+    bufPtr,
+    const WasmI32(maxLen),
+  ).toIntUnsigned();
+
+  final bytes = WasmArray<WasmI8>(written);
+  final bufAddr = bufPtr.toIntUnsigned();
+  for (var i = 0; i < written; i++) {
+    bytes.write(i, memory.loadUint8(bufAddr + i).toIntUnsigned());
   }
-  var prefix = wholeStr.concat(dot);
-  for (var scale = 100000; scale > frac; scale ~/= 10) {
-    prefix = prefix.concat($0);
-  }
-  var fracTemp = frac;
-  while (fracTemp > 0 && fracTemp % 10 == 0) {
-    fracTemp ~/= 10;
-  }
-  return prefix.concat(intToString(fracTemp, 10));
+  dartFree(bufPtr, const WasmI32(maxLen), const WasmI32(1));
+  return Latin1String.unsafeWrap(bytes);
 }

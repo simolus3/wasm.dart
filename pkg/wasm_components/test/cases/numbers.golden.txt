@@ -5,6 +5,11 @@
 {"type":"string","value":"-0.5"}
 {"type":"string","value":"1.05"}
 {"type":"string","value":"0.0025"}
+{"type":"string","value":"0.123456789"}
+{"type":"string","value":"1500.0"}
+{"type":"string","value":"100000000000000000000.0"}
+{"type":"string","value":"1e+21"}
+{"type":"string","value":"1e-7"}
 {"type":"string","value":"Infinity"}
 {"type":"string","value":"-Infinity"}
 {"type":"string","value":"NaN"}
@@ -14,6 +19,12 @@
 {"type":"string","value":"-42.5"}
 {"type":"string","value":"1500.0"}
 {"type":"string","value":"0.025"}
+{"type":"string","value":"0.5"}
+{"type":"string","value":"2.0"}
+{"type":"string","value":"0.0"}
+{"type":"bool","value":true}
+{"type":"bool","value":true}
+{"type":"bool","value":true}
 {"type":"bool","value":true}
 {"type":"bool","value":true}
 {"type":"bool","value":true}
@@ -22,7 +33,12 @@
 {"type":"end","test":1}
 {"type":"start","test":2}
 {"type":"string","value":"hello dart"}
+{"type":"string","value":">hello"}
+{"type":"string","value":"hello!"}
 {"type":"int","value":5}
 {"type":"int","value":68}
 {"type":"int","value":33}
+{"type":"string","value":"3.1415"}
+{"type":"string","value":"0.025"}
+{"type":"string","value":"100000000000000000000.0"}
 {"type":"end","test":2}

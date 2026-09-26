@@ -52,7 +52,9 @@ WasmExternRef embedderRegexpCreateOrFailWithString(
 ) {
   final pattern = WasmStringImplementation.fromExtern(stringRef);
   final length = pattern.length;
-  final patternPtr = mallocAligned(const WasmI32(2), (length * 2).toWasmI32());
+  final patternPtr = length > 0
+      ? mallocAligned(const WasmI32(2), (length * 2).toWasmI32())
+      : const WasmI32(2);
   final addr = patternPtr.toIntUnsigned();
   for (int i = 0; i < length; i++) {
     memory.storeInt16(
@@ -70,7 +72,9 @@ WasmExternRef embedderRegexpCreateOrFailWithString(
     dotAll,
   );
 
-  dartFree(patternPtr, (length * 2).toWasmI32(), const WasmI32(2));
+  if (length > 0) {
+    dartFree(patternPtr, (length * 2).toWasmI32(), const WasmI32(2));
+  }
 
   if (dartRegexpIsError(handle).toIntSigned() != 0) {
     final errPtr = dartRegexpGetErrorPtr(handle);
@@ -174,7 +178,6 @@ WasmExternRef embedderRegexpEscape(WasmExternRef? stringRef) {
         char == 123 || // {
         char == 125 || // }
         char == 124 || // |
-        char == 45 || // -
         char ==
             46 // .
             ) {
@@ -203,7 +206,9 @@ WasmExternRef? embedderRegexpMatch(
   final string = WasmStringImplementation.fromExtern(stringRef);
 
   final length = string.length;
-  final stringPtr = mallocAligned(const WasmI32(2), (length * 2).toWasmI32());
+  final stringPtr = length > 0
+      ? mallocAligned(const WasmI32(2), (length * 2).toWasmI32())
+      : const WasmI32(2);
   final addr = stringPtr.toIntUnsigned();
   for (int i = 0; i < length; i++) {
     memory.storeInt16(
@@ -225,7 +230,9 @@ WasmExternRef? embedderRegexpMatch(
     outPtr,
   );
 
-  dartFree(stringPtr, (length * 2).toWasmI32(), const WasmI32(2));
+  if (length > 0) {
+    dartFree(stringPtr, (length * 2).toWasmI32(), const WasmI32(2));
+  }
 
   if (matchSuccess.toIntSigned() == 0) {
     dartFree(outPtr, (arraySize * 4).toWasmI32(), const WasmI32(4));

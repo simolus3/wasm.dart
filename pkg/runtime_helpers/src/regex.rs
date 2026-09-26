@@ -231,14 +231,16 @@ fn utf16_to_utf8_index(utf16_indices: &[usize], utf16_target: usize) -> usize {
 fn normalize_ecmascript_pattern(pattern: &str) -> String {
     let mut out = String::with_capacity(pattern.len() + 4);
     let mut in_char_class = false;
-    let mut after_class_open = false;
+    let mut class_start = false;
+    let mut can_negate = false;
     let mut escaped = false;
 
     for c in pattern.chars() {
         if escaped {
             out.push(c);
             escaped = false;
-            after_class_open = false;
+            class_start = false;
+            can_negate = false;
         } else if c == '\\' {
             out.push('\\');
             escaped = true;
@@ -246,22 +248,26 @@ fn normalize_ecmascript_pattern(pattern: &str) -> String {
             if c == '[' {
                 out.push('[');
                 in_char_class = true;
-                after_class_open = true;
+                class_start = true;
+                can_negate = true;
             } else {
                 out.push(c);
             }
-        } else if after_class_open && c == '^' {
+        } else if can_negate && c == '^' {
             out.push('^');
-        } else if c == ']' && !after_class_open {
+            can_negate = false;
+        } else if c == ']' && !class_start {
             out.push(']');
             in_char_class = false;
         } else if c == '[' {
             out.push('\\');
             out.push('[');
-            after_class_open = false;
+            class_start = false;
+            can_negate = false;
         } else {
             out.push(c);
-            after_class_open = false;
+            class_start = false;
+            can_negate = false;
         }
     }
     out
