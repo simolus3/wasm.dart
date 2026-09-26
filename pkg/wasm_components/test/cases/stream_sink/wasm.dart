@@ -60,6 +60,42 @@ void testStreamSinkBackpressure(BaseResultCollector collector) {
   collector.recordBool(e: vtable.droppedWritable);
 }
 
+/// Verifies multi-step partial writes advance the pointer by
+/// `pending.acknowledged * _elementSize` (not just `_elementSize`) and that
+/// `CopyResult.dropped` frees the in-flight buffer, cancels the subscription,
+/// and drops the writable end.
+void testStreamSinkPartialWritesAndReaderDrop(BaseResultCollector collector) {
+  final vtable = _FakeStreamVtable();
+  final sub = _DirectSubscription<List<int>>(bufferWhenPaused: true);
+
+  final state = StreamSinkState<List<int>>(vtable, null, sub, 77);
+  state.dispatchEvent(CopyResult.completed.index);
+
+  // Write 5 bytes: [10, 20, 30, 40, 50].
+  sub.emitData(const [10, 20, 30, 40, 50]);
+  collector.recordInt(e: vtable.writtenChunks.single.length);
+  collector.recordInt(e: vtable.writtenChunks.single.first);
+
+  // Acknowledge 2 bytes; continuation write must start at offset 2 ([30, 40, 50]).
+  state.dispatchEvent(CopyResult.completed.index | (2 << 4));
+  collector.recordInt(e: vtable.writtenChunks.length);
+  collector.recordInt(e: vtable.writtenChunks[1].length);
+  collector.recordInt(e: vtable.writtenChunks[1].first);
+  collector.recordInt(e: vtable.writtenChunks[1].last);
+
+  // Acknowledge remaining 3 bytes; buffer is freed and subscription resumes.
+  state.dispatchEvent(CopyResult.completed.index | (3 << 4));
+  collector.recordInt(e: vtable.activeBufferCount);
+  collector.recordBool(e: sub.isPaused);
+
+  // Start another write, then simulate reader dropping the stream.
+  sub.emitData(const [60, 70]);
+  collector.recordInt(e: vtable.activeBufferCount);
+  state.dispatchEvent(CopyResult.dropped.index);
+  collector.recordInt(e: vtable.activeBufferCount);
+  collector.recordBool(e: vtable.droppedWritable);
+}
+
 final class _DirectSubscription<T> implements StreamSubscription<T> {
   final bool bufferWhenPaused;
   final List<void Function()> _pending = [];
@@ -143,41 +179,56 @@ final class _DummyFuture<T> implements Future<T> {
       this;
 
   @override
-  Future<T> whenComplete(FutureOr<void> Function() action) => this;
+  Future<T> whenComplete(FutureOr<void> Function() action) {
+    action();
+    return this;
+  }
 }
 
 final class _FakeStreamVtable implements StreamVtable<List<int>> {
   final List<List<int>> writtenChunks = [];
-  final Map<int, List<int>> _buffers = {};
-  var _nextAddress = 1;
+  final Map<int, int> _memory = {};
+  final Set<int> _allocatedBases = {};
+  var _nextAddress = 16;
   var droppedWritable = false;
+
+  int get activeBufferCount => _allocatedBases.length;
 
   @override
   int get elementSize => 1;
 
   @override
   int allocateBuffer(int size) {
-    final addr = _nextAddress++;
-    _buffers[addr] = List<int>.filled(size, 0);
+    final addr = _nextAddress;
+    _nextAddress += size + 16;
+    _allocatedBases.add(addr);
+    for (var i = 0; i < size; i++) {
+      _memory[addr + i] = 0;
+    }
     return addr;
   }
 
   @override
   void writeToBuffer(int address, List<int> elements) {
-    _buffers[address] = List<int>.of(elements);
+    for (var i = 0; i < elements.length; i++) {
+      _memory[address + i] = elements[i];
+    }
   }
 
   @override
   int write(int stream, int ptr, int n) {
     if (n > 0) {
-      writtenChunks.add(_buffers[ptr]!);
+      writtenChunks.add([for (var i = 0; i < n; i++) _memory[ptr + i]!]);
     }
     return blockedCode;
   }
 
   @override
   void freeBuffer(int address, int totalSize, int start, int end) {
-    _buffers.remove(address);
+    _allocatedBases.remove(address);
+    for (var i = 0; i < totalSize; i++) {
+      _memory.remove(address + i);
+    }
   }
 
   @override

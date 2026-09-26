@@ -215,7 +215,7 @@ final class StreamSinkState<T extends List<Object?>> {
               // Continue partial write.
               code = _vtable.write(
                 _id,
-                pending.startPointer + _elementSize,
+                pending.startPointer + pending.acknowledged * _elementSize,
                 pending.totalLength - pending.acknowledged,
               );
               continue writeLoop;
@@ -233,10 +233,15 @@ final class StreamSinkState<T extends List<Object?>> {
         case CopyResult.dropped:
           _pendingWrite?.advance(elementsTransferred);
           _dropPendingWriteBuffer();
+          _pendingWrite = null;
           _otherEndDropped = true;
           // The other end has been dropped, this corresponds to a cancelled
           // subscription in Dart.
-          _subscription.cancel().whenComplete(drop);
+          if (_done) {
+            drop();
+          } else {
+            _subscription.cancel().whenComplete(drop);
+          }
         case CopyResult.cancelled:
           // Cancelled means that we tried to cancel an in-progress write, which
           // is something we don't currently do.
