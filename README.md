@@ -48,7 +48,7 @@ __Legend__:
 | queueMicrotask                           | ✅          | 🎯        |                               |
 | clearSchedule                            | ✅          | 📦        |                               |
 | currentTimeMicros                        | ✅          | 📦        |                               |
-| stringFromCharCodeArray                  |             | 🎯        |                               |
+| stringFromCharCodeArray                  | ✅          | 🎯        |                               |
 | stringFromAsciiBytes                     | ✅          | 🎯        |                               |
 | stringLength                             | ✅          | 🎯        |                               |
 | stringEquals                             | ✅          | 🎯        |                               |
@@ -56,15 +56,15 @@ __Legend__:
 | stringCodeUnitAt                         | ✅          | 🎯        |                               |
 | stringIndexOfString                      | ✅          | 🎯        |                               |
 | stringLastIndexOfString                  | ✅          | 🎯        |                               |
-| stringReplaceAllString                   |             | 🎯        |                               |
-| stringReplaceAllRegExp                   |             | 🎯        |                               |
+| stringReplaceAllString                   | ✅          | 🎯        |                               |
+| stringReplaceAllRegExp                   | ✅          | 🎯        |                               |
 | stringSubstring                          | ✅          | 🎯        |                               |
 | stringToLowerCase                        | ✅          | 🎯        |                               |
 | stringToUpperCase                        | ✅          | 🎯        |                               |
 | stringConcat                             | ✅          | 🎯        |                               |
 | stringRepeat                             | ✅          | 🎯        |                               |
-| stringReplaceRange                       |             | 🎯        |                               |
-| stringToCodeUnits                        |             | 🎯        |                               |
+| stringReplaceRange                       | ✅          | 🎯        |                               |
+| stringToCodeUnits                        | ✅          | 🎯        |                               |
 | monotonicClockFrequency                  | ✅          | 📦        |                               |
 | monotonicClockTicks                      | ✅          | 📦        |                               |
 | weakRefCreate                            |             | 🛑        |                               |
@@ -79,32 +79,32 @@ __Legend__:
 | isWindows                                |             | 📦        |                               |
 | stackTraceGetCurrent                     | ✅          | 🛑        | Impossible, stub used         |
 | stackTraceToString                       | ✅          | 🛑        | Impossible, stub used         |
-| doubleTryParse                           |             | 🎯        |                               |
-| tryParseResultGetDouble                  |             | 🎯        |                               |
-| doubleParseInfallible                    |             | 🎯        |                               |
+| doubleTryParse                           | ✅          | 🎯        |                               |
+| tryParseResultGetDouble                  | ✅          | 🎯        |                               |
+| doubleParseInfallible                    | ✅          | 🎯        |                               |
 | i64ToString                              | ✅          | 🎯        | Needs optimization for base10 |
 | f64ToExponential                         |             | 🎯        |                               |
 | f64ToExponentialWithFractionDigits       |             | 🎯        |                               |
 | f64ToPrecision                           |             | 🎯        |                               |
 | f64ToFixed                               |             | 🎯        |                               |
-| f64ToString                              |             | 🎯        | Currently a stub              |
+| f64ToString                              | ✅          | 🎯        |                               |
 | stringBufferCreate                       | ✅          | 🎯        |                               |
 | stringBufferWriteString                  | ✅          | 🎯        |                               |
 | stringBufferWriteCharCode                | ✅          | 🎯        |                               |
 | stringBufferClear                        | ✅          | 🎯        |                               |
 | stringBufferLength                       | ✅          | 🎯        |                               |
 | stringBufferToString                     | ✅          | 🎯        |                               |
-| regexpCreateOrFailWithString             |             | 🎯        | See [what Kotlin does](https://github.com/JetBrains/kotlin/tree/master/libraries/stdlib/native-wasm/src/kotlin/text/regex)          |
-| regexpIsRegexp                           |             | 🎯        |                               |
-| regexpEscape                             |             | 🎯        |                               |
-| regexpMatch                              |             | 🎯        |                               |
-| regexpMatchGetStart                      |             | 🎯        |                               |
-| regexpMatchGetEnd                        |             | 🎯        |                               |
-| regexpMatchGetGroupCount                 |             | 🎯        |                               |
-| regexpMatchGetGroup                      |             | 🎯        |                               |
-| regexpMatchGetNamedGroups                |             | 🎯        |                               |
-| regexpMatchGetGroupName                  |             | 🎯        |                               |
-| regexpMatchGetGroupByName                |             | 🎯        |                               |
+| regexpCreateOrFailWithString             | ✅          | 🎯        | Using `regex` crate in Rust.  |
+| regexpIsRegexp                           | ✅          | 🎯        | Using `regex` crate in Rust.  |
+| regexpEscape                             | ✅          | 🎯        |                               |
+| regexpMatch                              | ✅          | 🎯        | Using `regex` crate in Rust.  |
+| regexpMatchGetStart                      | ✅          | 🎯        | Using `regex` crate in Rust.  |
+| regexpMatchGetEnd                        | ✅          | 🎯        | Using `regex` crate in Rust.  |
+| regexpMatchGetGroupCount                 | ✅          | 🎯        | Using `regex` crate in Rust.  |
+| regexpMatchGetGroup                      | ✅          | 🎯        | Using `regex` crate in Rust.  |
+| regexpMatchGetNamedGroups                | ✅          | 🎯        | Using `regex` crate in Rust.  |
+| regexpMatchGetGroupName                  | ✅          | 🎯        | Using `regex` crate in Rust.  |
+| regexpMatchGetGroupByName                | ✅          | 🎯        | Using `regex` crate in Rust.  |
 | timeZoneNameForClampedSeconds            |             | 📦        | Unimplemented in wasmtime     |
 | timeZoneOffsetInSecondsForClampedSeconds |             | 📦        | Unimplemented in wasmtime     |
 | mathPow                                  | ✅          | 🎯        | Using `libm` in Rust.         |

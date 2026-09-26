@@ -80,3 +80,196 @@ Latin1String _minInt64ToRadixString(int value, int radix) {
   }
   return Latin1String.unsafeWrap(charCodeArray);
 }
+
+final class BoxedDoubleResult {
+  final double value;
+  const BoxedDoubleResult(this.value);
+}
+
+double? parseDoubleFromWasmString(WasmStringImplementation str) {
+  final len = str.length;
+  var start = 0;
+  var end = len;
+  while (start < end && _isWhitespace(str.codeUnitAtUnchecked(start))) {
+    start++;
+  }
+  while (end > start && _isWhitespace(str.codeUnitAtUnchecked(end - 1))) {
+    end--;
+  }
+  if (start >= end) return null;
+
+  var i = start;
+  var negative = false;
+  final first = str.codeUnitAtUnchecked(i);
+  if (first == 0x2d) {
+    // '-'
+    negative = true;
+    i++;
+  } else if (first == 0x2b) {
+    // '+'
+    i++;
+  }
+  if (i >= end) return null;
+
+  // Check Infinity / NaN
+  if (_matchesAscii(str, i, end, 'Infinity')) {
+    return negative ? double.negativeInfinity : double.infinity;
+  }
+  if (!negative && first != 0x2b && _matchesAscii(str, i, end, 'NaN')) {
+    return double.nan;
+  }
+
+  var intPart = 0.0;
+  var fracPart = 0.0;
+  var fracScale = 1.0;
+  var hasDigits = false;
+
+  while (i < end) {
+    final c = str.codeUnitAtUnchecked(i);
+    if (c >= 0x30 && c <= 0x39) {
+      hasDigits = true;
+      intPart = intPart * 10.0 + (c - 0x30);
+      i++;
+    } else {
+      break;
+    }
+  }
+
+  if (i < end && str.codeUnitAtUnchecked(i) == 0x2e) {
+    // '.'
+    i++;
+    while (i < end) {
+      final c = str.codeUnitAtUnchecked(i);
+      if (c >= 0x30 && c <= 0x39) {
+        hasDigits = true;
+        fracPart = fracPart * 10.0 + (c - 0x30);
+        fracScale *= 10.0;
+        i++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  if (!hasDigits) return null;
+
+  var result = intPart + (fracPart / fracScale);
+
+  if (i < end) {
+    final c = str.codeUnitAtUnchecked(i);
+    if (c == 0x65 || c == 0x45) {
+      // 'e' or 'E'
+      i++;
+      if (i >= end) return null;
+      var expNeg = false;
+      final expSign = str.codeUnitAtUnchecked(i);
+      if (expSign == 0x2d) {
+        expNeg = true;
+        i++;
+      } else if (expSign == 0x2b) {
+        i++;
+      }
+      if (i >= end) return null;
+      var expVal = 0;
+      var hasExpDigits = false;
+      while (i < end) {
+        final ec = str.codeUnitAtUnchecked(i);
+        if (ec >= 0x30 && ec <= 0x39) {
+          hasExpDigits = true;
+          expVal = expVal * 10 + (ec - 0x30);
+          i++;
+        } else {
+          return null;
+        }
+      }
+      if (!hasExpDigits) return null;
+      var pow10 = 1.0;
+      for (var k = 0; k < expVal; k++) {
+        pow10 *= 10.0;
+      }
+      result = expNeg ? (result / pow10) : (result * pow10);
+    } else {
+      return null;
+    }
+  }
+
+  return negative ? -result : result;
+}
+
+bool _isWhitespace(int c) =>
+    c == 0x20 || (c >= 0x09 && c <= 0x0d) || c == 0x85 || c == 0xa0;
+
+bool _matchesAscii(
+  WasmStringImplementation str,
+  int start,
+  int end,
+  String target,
+) {
+  if (end - start != target.length) return false;
+  for (var j = 0; j < target.length; j++) {
+    if (str.codeUnitAtUnchecked(start + j) != target.codeUnitAt(j)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+WasmStringImplementation doubleToWasmString(double value) {
+  if (value.isNaN) {
+    return Latin1String.unsafeWrap(
+      WasmArray<WasmI8>.literal([0x4e, 0x61, 0x4e]),
+    );
+  }
+  if (value.isInfinite) {
+    return value.isNegative
+        ? Latin1String.unsafeWrap(
+            WasmArray<WasmI8>.literal([
+              0x2d,
+              0x49,
+              0x6e,
+              0x66,
+              0x69,
+              0x6e,
+              0x69,
+              0x74,
+              0x79,
+            ]),
+          )
+        : Latin1String.unsafeWrap(
+            WasmArray<WasmI8>.literal([
+              0x49,
+              0x6e,
+              0x66,
+              0x69,
+              0x6e,
+              0x69,
+              0x74,
+              0x79,
+            ]),
+          );
+  }
+  final neg = value.isNegative;
+  final absVal = neg ? -value : value;
+  var whole = absVal.truncate();
+  var frac = ((absVal - whole) * 1000000).round();
+  if (frac >= 1000000) {
+    whole += 1;
+    frac = 0;
+  }
+  final minus = Latin1String.unsafeWrap(WasmArray<WasmI8>.literal([0x2d]));
+  final wholePart = intToString(whole, 10);
+  final wholeStr = neg ? minus.concat(wholePart) : wholePart;
+  final dot = Latin1String.unsafeWrap(WasmArray<WasmI8>.literal([0x2e]));
+  if (frac == 0) {
+    return wholeStr.concat(dot).concat($0);
+  }
+  var prefix = wholeStr.concat(dot);
+  for (var scale = 100000; scale > frac; scale ~/= 10) {
+    prefix = prefix.concat($0);
+  }
+  var fracTemp = frac;
+  while (fracTemp > 0 && fracTemp % 10 == 0) {
+    fracTemp ~/= 10;
+  }
+  return prefix.concat(intToString(fracTemp, 10));
+}
