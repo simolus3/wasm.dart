@@ -233,6 +233,16 @@ WasmVoid stringToCodeUnits(
 }
 
 @pragma('wasm:export')
+WasmI32 isWindows() {
+  return const WasmI32(0);
+}
+
+@pragma('wasm:export')
+WasmExternRef? baseUri() {
+  return WasmExternRef.nullRef;
+}
+
+@pragma('wasm:export')
 WasmExternRef stringBufferCreate() {
   return WasmStringBuffer().externalize();
 }
