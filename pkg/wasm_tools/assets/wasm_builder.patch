@@ -119,7 +119,7 @@ index 5f277ca427a..c3ab103854c 100644
      _moduleName = moduleName;
      _functions = functions;
 -    _start = start;
-+    start = start;
++    this.start = start;
      _tables = tables;
      _elements = elements;
      _tags = tags;
