@@ -27,6 +27,8 @@ jobs:
       with:
         persist-credentials: false
     - uses: dart-lang/setup-dart@v1 # This will request an OIDC token for pub.dev
+      with:
+        flavor: raw
     - name: Download libraries
       uses: actions/download-artifact@v8
       with:
