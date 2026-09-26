@@ -16,6 +16,12 @@ final class ExportedInterface {
 
   ComponentInstanceIndex instantiate(Linker linker) {
     final inlineExports = <(String, Sort, Index)>[];
+
+    for (final MapEntry(:key, :value) in interface.exportedTypes.entries) {
+      final typeIndex = linker.mapType(value).index;
+      inlineExports.add((key, .componentType, typeIndex));
+    }
+
     for (final MapEntry(:key, :value) in functions.entries) {
       inlineExports.add((key, .componentFunction, value.lift(linker)));
     }

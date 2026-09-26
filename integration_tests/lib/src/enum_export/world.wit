@@ -1,0 +1,12 @@
+package dart:enum-export;
+
+interface calculate {
+    enum op {
+        add,
+    }
+    eval-expression: func(op: op, x: u32, y: u32) -> u32;
+}
+
+world root {
+    export calculate;
+}
