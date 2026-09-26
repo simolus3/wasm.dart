@@ -14,6 +14,8 @@ void main(List<String> args) => link(args, (input, output) async {
             .cast<String>();
 
     final abi = Uri.parse(entrypoint).resolve('./generated/abi.json');
+    if (!await File.fromUri(abi).exists()) return;
+
     output.dependencies.add(abi);
     output.assets.webAssemblyComponents.add(
       WasmComponentAsset(

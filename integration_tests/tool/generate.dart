@@ -19,10 +19,11 @@ void main() async {
 }
 
 Future<void> _generate(Directory root) async {
+  final world = File.fromUri(root.uri.resolve('world.wit'));
+  if (!await world.exists()) return;
+
   final options = GenerateDartOptions(
-    files: [
-      WitInputFile(root.uri.resolve('world.wit').toFilePath(), isMain: true),
-    ],
+    files: [WitInputFile(world.path, isMain: true)],
     runs: [.new('root')],
   );
 

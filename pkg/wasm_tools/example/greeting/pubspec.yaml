@@ -9,5 +9,6 @@ environment:
 
 dependencies:
   hooks: ^2.0.2
+  meta: ^1.19.0
   wasm_components:
   wasm_tools:
