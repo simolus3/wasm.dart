@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import '../../debug_info.dart';
 import '../serialize/printer.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
@@ -35,8 +36,10 @@ class Module implements Serializable {
   late final DataSegments _dataSegments;
   late final Imports _imports;
   late final List<int> _watchPoints;
-  late final Uri? _sourceMapUrl;
+  // Allow source map URL to be updated for deserialized modules.
+  late Uri? sourceMapUrl;
   late final List<ExtraCustomSection> _extraCustomSections;
+  DebugInfoTables? debugInfoTables;
 
   Module.uninitialized() : _initialized = false;
 
@@ -55,14 +58,15 @@ class Module implements Serializable {
     Imports imports,
     List<int> watchPoints,
     Uri? sourceMapUrl,
-    List<ExtraCustomSection> extraCustomSections,
-  ) {
+    List<ExtraCustomSection> extraCustomSections, [
+    DebugInfoTables? debugInfoTables,
+  ]) {
     if (_initialized) throw 'Already initialized';
 
     _initialized = true;
     _moduleName = moduleName;
     _functions = functions;
-    start = start;
+    this.start = start;
     _tables = tables;
     _elements = elements;
     _tags = tags;
@@ -73,8 +77,9 @@ class Module implements Serializable {
     _dataSegments = dataSegments;
     _imports = imports;
     _watchPoints = watchPoints;
-    _sourceMapUrl = sourceMapUrl;
+    this.sourceMapUrl = sourceMapUrl;
     _extraCustomSections = extraCustomSections;
+    this.debugInfoTables = debugInfoTables;
   }
 
   String? get moduleName => _moduleName;
@@ -89,12 +94,11 @@ class Module implements Serializable {
   DataSegments get dataSegments => _dataSegments;
   Imports get imports => _imports;
   List<int> get watchPoints => _watchPoints;
-  Uri? get sourceMapUrl => _sourceMapUrl;
   List<ExtraCustomSection> get extraCustomSections => _extraCustomSections;
 
   /// Serialize a module to its binary representation.
   @override
-  void serialize(Serializer s) {
+  void serialize(Serializer s, [DebugInfoSerializer? debugInfoSerializer]) {
     if (watchPoints.isNotEmpty) {
       Serializer.traceEnabled = true;
     }
@@ -122,7 +126,10 @@ class Module implements Serializable {
     StartSection(start, watchPoints).serialize(s);
     ElementSection(elements, watchPoints).serialize(s);
     DataCountSection(dataSegments.defined, watchPoints).serialize(s);
-    CodeSection(functions.defined, watchPoints).serialize(s);
+    CodeSection(
+      functions.defined,
+      watchPoints,
+    ).serialize(s, debugInfoSerializer);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
     NameSection(
       moduleName,
@@ -131,14 +138,20 @@ class Module implements Serializable {
       globals,
       watchPoints,
     ).serialize(s);
-    RemovableIfUnusedSection(functions).serialize(s);
+    BinaryenRemovableIfUnusedSection(functions).serialize(s);
+    BinaryenInlineHintSection(functions).serialize(s);
+    BinaryenJSCalledSection(functions).serialize(s);
     SourceMapSection(sourceMapUrl).serialize(s);
     for (final customSection in _extraCustomSections) {
       customSection.serialize(s);
     }
   }
 
-  static (Map<int, List<Deserializer>>, Map<String, List<Deserializer>>)
+  static (
+    Map<int, List<Deserializer>>,
+    Map<String, List<Deserializer>>,
+    Map<int, int>,
+  )
   _deserializeTopLevel(Deserializer d) {
     final preamble = d.readBytes(8);
     if (preamble[0] != 0x00 ||
@@ -157,9 +170,11 @@ class Module implements Serializable {
     // section easier.
     final sections = <int, List<Deserializer>>{};
     final customSections = <String, List<Deserializer>>{};
+    final sectionOffsets = <int, int>{};
     while (!d.isAtEnd) {
       final id = d.readByte();
       final size = d.readUnsigned();
+      final sectionPayloadOffset = d.offset;
       final deserializer = Deserializer(d.readBytes(size));
 
       if (id == CustomSection.sectionId) {
@@ -168,14 +183,18 @@ class Module implements Serializable {
         customSections.putIfAbsent(name, () => []).add(deserializer);
       } else {
         sections.putIfAbsent(id, () => []).add(deserializer);
+        sectionOffsets[id] = sectionPayloadOffset;
       }
     }
 
-    return (sections, customSections);
+    return (sections, customSections, sectionOffsets);
   }
 
-  static Module deserialize(Deserializer d) {
-    final (sections, customSections) = _deserializeTopLevel(d);
+  static Module deserialize(
+    Deserializer d, {
+    DebugInfoDeserializer? debugInfoDeserializer,
+  }) {
+    final (sections, customSections, sectionOffsets) = _deserializeTopLevel(d);
 
     final Module module = Module.uninitialized();
 
@@ -262,6 +281,7 @@ class Module implements Serializable {
       dataCountSections?.single,
     );
 
+    final codeSectionOffset = sectionOffsets[CodeSection.sectionId];
     final codeSections = sections[CodeSection.sectionId];
     CodeSection.deserialize(
       codeSections?.single,
@@ -274,6 +294,8 @@ class Module implements Serializable {
       tags,
       globals,
       dataSegments,
+      sectionFileOffset: codeSectionOffset,
+      debugInfoDeserializer: debugInfoDeserializer,
     );
 
     final dataSections = sections[DataSection.sectionId];
@@ -286,8 +308,20 @@ class Module implements Serializable {
       types,
       globals,
     );
-    RemovableIfUnusedSection.deserialize(
-      customSections.remove(RemovableIfUnusedSection.customSectionName)?.single,
+    BinaryenRemovableIfUnusedSection.deserialize(
+      customSections
+          .remove(BinaryenRemovableIfUnusedSection.customSectionName)
+          ?.single,
+      functions,
+    );
+    BinaryenInlineHintSection.deserialize(
+      customSections
+          .remove(BinaryenInlineHintSection.customSectionName)
+          ?.single,
+      functions,
+    );
+    BinaryenJSCalledSection.deserialize(
+      customSections.remove(BinaryenJSCalledSection.customSectionName)?.single,
       functions,
     );
     final sourceMapUrl = SourceMapSection.deserialize(
@@ -302,7 +336,7 @@ class Module implements Serializable {
       }
     });
 
-    return module..initialize(
+    module.initialize(
       moduleName ?? '',
       functions,
       start,
@@ -318,12 +352,15 @@ class Module implements Serializable {
       [],
       sourceMapUrl,
       extraCustomSections,
+      debugInfoDeserializer?.debugInfoTables,
     );
+
+    return module;
   }
 
   /// Deserialize just the `sourceMapUrl` section of a module as a [Uri].
   static Uri? deserializeSourceMapUrl(Deserializer d) {
-    final (sections, customSections) = _deserializeTopLevel(d);
+    final (sections, customSections, _) = _deserializeTopLevel(d);
     final sourceMapUrl = SourceMapSection.deserialize(
       customSections[SourceMapSection.customSectionName]?.single,
     );

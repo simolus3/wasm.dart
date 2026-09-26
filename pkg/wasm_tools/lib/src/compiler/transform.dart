@@ -240,41 +240,35 @@ final class ModuleTransformer {
         (mainFunction.type.inputs[0] as w.RefType).containedDefType
             as w.ArrayType;
 
-    final existingStart = module.start;
     final instructionsToInvokeMain = [
+      if (module.start case final oldStart?) w.Call(oldStart),
+
       w.I32Const(0),
       w.ArrayNewDefault(argsArrayType),
       w.Call(mainFunction),
     ];
+    final emptyFunctionType = module.types.defined
+        .whereType<w.FunctionType>()
+        .firstWhere((e) => e.inputs.isEmpty && e.outputs.isEmpty);
 
-    if (existingStart != null) {
-      final body = (existingStart as w.DefinedFunction).body.instructions;
-      assert(body.last is w.End);
-      body.insertAll(body.length - 1, instructionsToInvokeMain);
-    } else {
-      final emptyFunctionType = module.types.defined
-          .whereType<w.FunctionType>()
-          .firstWhere((e) => e.inputs.isEmpty && e.outputs.isEmpty);
-
-      final startFunction = w.DefinedFunction(
-        module,
-        w.Instructions(
-          [],
-          {},
-          [...instructionsToInvokeMain, w.End()],
-          null,
-          [],
-          [],
-        ),
-        w.FinalizableIndex(),
-        emptyFunctionType,
-        '_start',
-      );
-      startFunction.finalizableIndex.value =
-          module.functions.defined.last.index + 1;
-      module.functions.defined.add(startFunction);
-      module.start = startFunction;
-    }
+    final startFunction = w.DefinedFunction(
+      module,
+      w.Instructions(
+        [],
+        {},
+        [...instructionsToInvokeMain, w.End()],
+        null,
+        [],
+        null,
+      ),
+      w.FinalizableIndex(),
+      emptyFunctionType,
+      '_componentStart',
+    );
+    startFunction.finalizableIndex.value =
+        module.functions.defined.last.index + 1;
+    module.functions.defined.add(startFunction);
+    module.start = startFunction;
   }
 }
 
@@ -491,7 +485,7 @@ final class _ClockImports extends _ComponentImport {
   ) {
     final stubFunction = w.DefinedFunction(
       transformer.module,
-      w.Instructions([], {}, [w.End()], null, [], []),
+      w.Instructions([], {}, [w.End()], null, [], null),
       w.FinalizableIndex(),
       importedFunction.type,
     );
@@ -506,7 +500,7 @@ final class _ClockImports extends _ComponentImport {
   ) {
     final stubFunction = w.DefinedFunction(
       transformer.module,
-      w.Instructions([], {}, [w.I64Const(0), w.End()], null, [], []),
+      w.Instructions([], {}, [w.I64Const(0), w.End()], null, [], null),
       w.FinalizableIndex(),
       importedFunction.type,
     );

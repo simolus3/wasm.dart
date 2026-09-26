@@ -127,7 +127,7 @@ w.Module _defineModuleCallingExit0() {
     ..i32_const(0)
     ..return_()
     ..end();
-  builder.exports.export('main', main);
+  builder.exports.export('main', main.build());
 
   return builder.build();
 }
