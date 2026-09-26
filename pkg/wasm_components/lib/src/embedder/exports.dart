@@ -10,6 +10,7 @@ import '../runtime/async/task.dart';
 import 'clock.dart';
 import 'constants.dart';
 import 'number_format.dart';
+import 'regexp.dart';
 import 'stack_trace.dart';
 import 'string.dart';
 import 'string_buffer.dart';
@@ -93,7 +94,30 @@ WasmExternRef i64ToString(WasmI64 value, WasmI32 radix) {
 
 @pragma('wasm:export')
 WasmExternRef f64ToString(WasmF64 value) {
-  throw UnimplementedError('f64ToString');
+  return doubleToWasmString(value.toDouble()).externalize();
+}
+
+@pragma('wasm:export')
+WasmExternRef? doubleTryParse(WasmExternRef? string) {
+  final parsed = parseDoubleFromWasmString(
+    WasmStringImplementation.fromExtern(string),
+  );
+  if (parsed == null) return WasmExternRef.nullRef;
+  return WasmAnyRef.fromObject(BoxedDoubleResult(parsed)).externalize();
+}
+
+@pragma('wasm:export')
+WasmF64 tryParseResultGetDouble(WasmExternRef? parseResult) {
+  final boxed = parseResult!.internalize().toObject() as BoxedDoubleResult;
+  return WasmF64.fromDouble(boxed.value);
+}
+
+@pragma('wasm:export')
+WasmF64 doubleParseInfallible(WasmExternRef? string) {
+  final parsed = parseDoubleFromWasmString(
+    WasmStringImplementation.fromExtern(string),
+  );
+  return WasmF64.fromDouble(parsed ?? double.nan);
 }
 
 @pragma('wasm:export')
@@ -180,6 +204,35 @@ WasmExternRef? stringRepeat(WasmExternRef? string, WasmI32 amount) {
 }
 
 @pragma('wasm:export')
+WasmExternRef? stringReplaceRange(
+  WasmExternRef? string,
+  WasmI32 start,
+  WasmI32 end,
+  WasmExternRef? replacement,
+) {
+  final wasmString = WasmStringImplementation.fromExtern(string);
+  final wasmReplacement = WasmStringImplementation.fromExtern(replacement);
+  final prefix = wasmString.substring(const WasmI32(0), start);
+  final suffix = wasmString.substring(end, wasmString.length.toWasmI32());
+  return prefix.concat(wasmReplacement).concat(suffix).externalize();
+}
+
+@pragma('wasm:export')
+WasmVoid stringToCodeUnits(
+  WasmExternRef? string,
+  WasmArray<WasmI16> outArray,
+  WasmI32 startIndex,
+) {
+  final wasmString = WasmStringImplementation.fromExtern(string);
+  final len = wasmString.length;
+  final start = startIndex.toIntUnsigned();
+  for (var i = 0; i < len; i++) {
+    outArray.write(start + i, wasmString.codeUnitAtUnchecked(i));
+  }
+  return WasmVoid();
+}
+
+@pragma('wasm:export')
 WasmExternRef stringBufferCreate() {
   return WasmStringBuffer().externalize();
 }
@@ -245,6 +298,99 @@ WasmVoid debugger(WasmExternRef? message) {
 WasmVoid wasiPrint(WasmExternRef? string) {
   printImpl(.fromExtern(string));
   return WasmVoid();
+}
+
+@pragma('wasm:export')
+WasmExternRef? stringReplaceAllString(
+  WasmExternRef? string,
+  WasmExternRef? needle,
+  WasmExternRef? replacement,
+) {
+  return embedderStringReplaceAllString(string, needle, replacement);
+}
+
+@pragma('wasm:export')
+WasmExternRef? stringReplaceAllRegExp(
+  WasmExternRef? string,
+  WasmExternRef? needle,
+  WasmExternRef? replacement,
+) {
+  return embedderStringReplaceAllRegExp(string, needle, replacement);
+}
+
+@pragma('wasm:export')
+WasmExternRef regexpCreateOrFailWithString(
+  WasmExternRef? string,
+  WasmI32 multiLine,
+  WasmI32 caseSensitive,
+  WasmI32 unicode,
+  WasmI32 dotAll,
+) {
+  return embedderRegexpCreateOrFailWithString(
+    string,
+    multiLine,
+    caseSensitive,
+    unicode,
+    dotAll,
+  );
+}
+
+@pragma('wasm:export')
+WasmI32 regexpIsRegexp(WasmExternRef? ref) {
+  return embedderRegexpIsRegexp(ref);
+}
+
+@pragma('wasm:export')
+WasmExternRef regexpEscape(WasmExternRef? string) {
+  return embedderRegexpEscape(string);
+}
+
+@pragma('wasm:export')
+WasmExternRef? regexpMatch(
+  WasmExternRef? regexp,
+  WasmExternRef? string,
+  WasmI32 start,
+  WasmI32 asPrefix,
+) {
+  return embedderRegexpMatch(regexp, string, start, asPrefix);
+}
+
+@pragma('wasm:export')
+WasmI32 regexpMatchGetStart(WasmExternRef? match) {
+  return embedderRegexpMatchGetStart(match);
+}
+
+@pragma('wasm:export')
+WasmI32 regexpMatchGetEnd(WasmExternRef? match) {
+  return embedderRegexpMatchGetEnd(match);
+}
+
+@pragma('wasm:export')
+WasmI32 regexpMatchGetGroupCount(WasmExternRef? match) {
+  return embedderRegexpMatchGetGroupCount(match);
+}
+
+@pragma('wasm:export')
+WasmExternRef? regexpMatchGetGroup(WasmExternRef? match, WasmI32 index) {
+  return embedderRegexpMatchGetGroup(match, index);
+}
+
+@pragma('wasm:export')
+WasmI32 regexpMatchGetNamedGroups(WasmExternRef? match) {
+  return embedderRegexpMatchGetNamedGroups(match);
+}
+
+@pragma('wasm:export')
+WasmExternRef regexpMatchGetGroupName(WasmExternRef? match, WasmI32 index) {
+  return embedderRegexpMatchGetGroupName(match, index);
+}
+
+@pragma('wasm:export')
+WasmExternRef? regexpMatchGetGroupByName(
+  WasmExternRef? match,
+  WasmI32 nameIndex,
+) {
+  return embedderRegexpMatchGetGroupByName(match, nameIndex);
 }
 
 @pragma('wasm:export', 'randomInt')

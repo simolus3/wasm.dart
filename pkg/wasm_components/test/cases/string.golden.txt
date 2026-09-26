@@ -10,3 +10,7 @@
 {"type":"bool","value":true}
 {"type":"bool","value":true}
 {"type":"end","test":2}
+{"type":"start","test":3}
+{"type":"int","value":17}
+{"type":"string","value":"Hello, Wasm! 👋"}
+{"type":"end","test":3}
