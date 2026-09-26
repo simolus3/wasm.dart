@@ -46,12 +46,12 @@ sealed class WasmStringImplementation {
       var charA = codeUnitAtUnchecked(i);
       var charB = other.codeUnitAtUnchecked(i);
 
-      if (charA != charB) return WasmI32.fromInt(charB - charA);
+      if (charA != charB) return WasmI32.fromInt(charA - charB);
     }
 
     // If one string is a prefix of the other, then the shorter string is
     // ordered before the longer string.
-    return WasmI32.fromInt(bLength - aLength);
+    return WasmI32.fromInt(aLength - bLength);
   }
 
   int indexOfString(WasmStringImplementation substring, int start) {

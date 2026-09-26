@@ -6,8 +6,6 @@ import 'package:wasm_tools/hooks.dart';
 
 void main(List<String> args) => link(args, (input, output) async {
   if (input.config.buildWasmComponent) {
-    output.dependencies.add(Uri.parse('hook/wasm_abi.json'));
-
     final uses = input.recordedUses!;
     final usedWorlds = <String>{};
 
@@ -27,10 +25,12 @@ void main(List<String> args) => link(args, (input, output) async {
     }
 
     for (final used in usedWorlds) {
+      final abiUri = input.packageRoot.resolve(used);
+      output.dependencies.add(abiUri);
       output.assets.webAssemblyComponents.add(
         WasmComponentAsset(
           encoded: json.decode(
-            File(used).readAsStringSync(),
+            File.fromUri(abiUri).readAsStringSync(),
           ) as Map<String, Object?>,
         ),
       );

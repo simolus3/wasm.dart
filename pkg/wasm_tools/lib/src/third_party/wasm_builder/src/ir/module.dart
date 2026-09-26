@@ -62,7 +62,7 @@ class Module implements Serializable {
     _initialized = true;
     _moduleName = moduleName;
     _functions = functions;
-    start = start;
+    this.start = start;
     _tables = tables;
     _elements = elements;
     _tags = tags;

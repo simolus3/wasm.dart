@@ -26,6 +26,19 @@ Future<String> componentToWat(ComponentBuilder builder) async {
   return stdout;
 }
 
+Future<String> componentToWit(ComponentBuilder builder) async {
+  final bytes = builder.serializeToBytes();
+  final (exitCode, stdout, stderr) = await _runWasmTool([
+    'component',
+    'wit',
+  ], bytes);
+  if (exitCode != 0) {
+    throw ArgumentError('wasm-tools component wit failed: $stderr');
+  }
+
+  return stdout;
+}
+
 Future<(int, String, String)> _runWasmTool(
   List<String> args,
   Uint8List stdin,
