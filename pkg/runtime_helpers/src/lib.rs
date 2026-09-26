@@ -15,6 +15,7 @@ extern crate alloc;
 
 pub mod math;
 pub mod memory;
+pub mod regex;
 
 #[cfg(all(target_family = "wasm"))]
 #[global_allocator]

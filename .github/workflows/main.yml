@@ -51,6 +51,7 @@ jobs:
     - uses: dart-lang/setup-dart@v1
       with:
         sdk: ${{ matrix.dart }}
+        flavor: raw
     - uses: actions/cache@v5
       with:
         path: "${{ env.PUB_CACHE }}"
@@ -84,6 +85,7 @@ jobs:
     - uses: dart-lang/setup-dart@v1
       with:
         sdk: ${{ matrix.dart }}
+        flavor: raw
     - uses: actions/cache@v5
       with:
         path: "${{ env.PUB_CACHE }}"

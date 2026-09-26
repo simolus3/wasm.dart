@@ -39,5 +39,8 @@ pub extern "C" fn dart_realloc(
 
 #[unsafe(no_mangle)]
 pub extern "C" fn dart_free(ptr: *mut u8, num_bytes: usize, align: usize) {
+    if num_bytes == 0 {
+        return;
+    }
     unsafe { dealloc(ptr, Layout::from_size_align_unchecked(num_bytes, align)) }
 }

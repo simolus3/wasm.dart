@@ -1,7 +1,14 @@
+import 'dart:convert';
+
 import 'package:test_runner/test_runner.dart';
 
 void main() {
-  defineTests(const [_stringLength, _stringRepeat, _lowerUpper]);
+  defineTests(const [
+    _stringLength,
+    _stringRepeat,
+    _lowerUpper,
+    _utf8RoundTrip,
+  ]);
 }
 
 void _stringLength(BaseResultCollector collector) {
@@ -25,4 +32,10 @@ void _lowerUpper(BaseResultCollector collector) {
   collector.recordBool(
     e: identical(alreadyUpperCase.toUpperCase(), alreadyUpperCase),
   );
+}
+
+void _utf8RoundTrip(BaseResultCollector collector) {
+  final encoded = utf8.encode('Hello, Wasm! 👋');
+  collector.recordInt(e: encoded.length);
+  collector.recordString(e: utf8.decode(encoded));
 }
