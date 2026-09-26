@@ -6,7 +6,9 @@ import 'package:wasm_tools/hooks.dart';
 
 void main(List<String> args) => link(args, (input, output) async {
   if (input.config.buildWasmComponent) {
-    final abi = input.packageRoot.resolve('hook/wasm_abi.json');
+    final abi = input.packageRoot.resolve(
+      'lib/src/components/demo_component_root.json',
+    );
 
     output.dependencies.add(abi);
     output.assets.webAssemblyComponents.add(

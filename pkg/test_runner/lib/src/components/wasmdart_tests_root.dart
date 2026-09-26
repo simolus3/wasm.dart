@@ -1,7 +1,7 @@
 // ignore_for_file: type=warning
-import r'wasmdart_tests.dart' as i0;
+import r'package:wasm_components/wasm_components.dart' as i0;
 
-import r'package:wasm_components/wasm_components.dart' as i1;
+import r'wasmdart_tests.dart' as i1;
 
 // ignore: import_internal_library
 import r'dart:_wasm' as i2;
@@ -17,11 +17,11 @@ external i2.WasmVoid _import2(i2.WasmI64 p0);
 @pragma("wasm:import", r"component._import3")
 external i2.WasmVoid _import3(i2.WasmI32 p0);
 
-final class _Imported$0 implements i0.ResultCollector {
+final class _Imported$0 implements i1.ResultCollector {
   const _Imported$0();
   @override
   void recordString({required String e}) {
-    final tmp0 = i1.AllocatedString.allocateUtf16(e);
+    final tmp0 = i0.AllocatedString.allocateUtf16(e);
     _import0(tmp0.ptr, tmp0.packedLength);
     tmp0.free();
   }
@@ -42,16 +42,16 @@ final class _Imported$0 implements i0.ResultCollector {
   }
 }
 
-late i0.TestedModule _unnamedExport1;
+late i1.TestedModule _unnamedExport1;
 
 final class RootImports {
   const RootImports._();
 
-  i0.ResultCollector get testsResultCollector => const _Imported$0();
+  i1.ResultCollector get testsResultCollector => const _Imported$0();
 }
 
 @i3.RecordUse()
-void rootComponent(i0.TestedModule Function(RootImports) defineComponent) {
+void rootComponent(i1.TestedModule Function(RootImports) defineComponent) {
   final res = defineComponent(const RootImports._());
   _unnamedExport1 = res;
 }

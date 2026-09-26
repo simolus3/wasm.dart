@@ -68,6 +68,12 @@ jobs:
         dart format --set-exit-if-changed .
     - name: Analyze
       run: dart analyze --fatal-infos .
+    - name: witgen
+      run: ./tool/generate.sh
+    - name: Check generated files are up to date
+      run: |
+        git add -A
+        git diff --cached --exit-code --stat || (echo "::error::tool/generate.sh changed files, run it locally and commit the result." && exit 1)
 
   test:
     name: Dart tests
@@ -110,6 +116,9 @@ jobs:
 
     - name: Pub get
       run: dart pub get
+    - name: Compile integration test components
+      working-directory: integration_tests
+      run: dart run tool/compile.dart
     - name: Test wasm_tools
       working-directory: pkg/wasm_tools
       run: dart test
