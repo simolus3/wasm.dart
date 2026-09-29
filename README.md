@@ -125,3 +125,25 @@ __Legend__:
 | inspect                                  |             | 🛑        |                               |
 | dartTimelineStreamEnabled                |             | 🛑        |                               |
 | reportTaskEvent                          |             | 🛑        |                               |
+
+## Component tests
+
+The integration suite compiles `test/cases/*.dart` into components, executes them
+with the Rust/Wasmtime runner, and compares the output with Dart VM goldens.
+It exercises the component linker and the Rust runtime helper, including Talc.
+
+With a compatible Dart SDK and Rust/Cargo installed, run from the repository root:
+
+```sh
+dart pub get
+rustup toolchain install nightly --component rust-src
+./pkg/wasm_tools/tool/build_runtime_helpers.sh
+cd pkg/wasm_components
+dart test test/component_test.dart --reporter expanded
+```
+
+The helper build needs nightly Rust. The Dart SDK must support the standalone
+embedder APIs used by this checkout; Wasmtime execution also requires dart2wasm
+to emit standard exception instructions (`try_table`), available from
+`3.14.0-251.0.dev`. A sufficiently recent main-channel SDK can be used when the
+released SDKs are older.

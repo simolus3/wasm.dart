@@ -1,4 +1,4 @@
-name: Download and compile SQLite
+name: Build Rust helper libraries
 
 on:
   workflow_call:
@@ -20,11 +20,14 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - name: Test runtime allocator
+        run: cargo test --locked -p runtime_helpers --lib
+
       - uses: actions/cache@v5
         id: cache_build
         with:
           path: pkg/wasm_tools/assets/runtime_helpers.wasm
-          key: runtime-helpers-${{ hashFiles('Cargo.lock', 'pkg/runtime_helpers/**') }}
+          key: runtime-helpers-${{ hashFiles('Cargo.lock', 'pkg/runtime_helpers/**', 'pkg/wasm_tools/tool/build_runtime_helpers.sh') }}
       - name: Install rust
         if: steps.cache_build.outputs.cache-hit != 'true'
         run: rustup toolchain install nightly --component rust-src
@@ -87,6 +90,7 @@ jobs:
           cp ../../target/armv7-unknown-linux-gnueabihf/release/libwit_bindgen_dart.so lib/src/wit_gen/precompiled/libwit_bindgen_dart.linux_arm7.so
           cp ../../target/riscv64gc-unknown-linux-gnu/release/libwit_bindgen_dart.so lib/src/wit_gen/precompiled/libwit_bindgen_dart.linux_riscv.so
       - uses: actions/upload-artifact@v7
+        id: upload
         with:
           name: witgen-linux
           retention-days: 1
@@ -125,6 +129,7 @@ jobs:
           cp ../../target/x86_64-apple-darwin/release/libwit_bindgen_dart.dylib lib/src/wit_gen/precompiled/libwit_bindgen_dart.macos_x64.so
           cp ../../target/aarch64-apple-darwin/release/libwit_bindgen_dart.dylib lib/src/wit_gen/precompiled/libwit_bindgen_dart.macos_aarch64.so
       - uses: actions/upload-artifact@v7
+        id: upload
         with:
           name: witgen-macos
           retention-days: 1
@@ -163,6 +168,7 @@ jobs:
           cp ../../target/x86_64-pc-windows-msvc/release/wit_bindgen_dart.dll lib/src/wit_gen/precompiled/libwit_bindgen_dart.win_x64.dll
           cp ../../target/aarch64-pc-windows-msvc/release/wit_bindgen_dart.dll lib/src/wit_gen/precompiled/libwit_bindgen_dart.win_aarch64.dll
       - uses: actions/upload-artifact@v7
+        id: upload
         with:
           name: witgen-windows
           retention-days: 1
@@ -186,7 +192,7 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           path: pkg/wasm_tools/assets/
-          pattern: runtime-helpers
+          name: runtime-helpers
 
       - uses: actions/download-artifact@v8
         with:

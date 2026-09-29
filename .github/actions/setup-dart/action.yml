@@ -1,0 +1,31 @@
+name: Set up pinned Dart SDK
+description: Install the tested Linux x64 Dart SDK from its commit-specific archive.
+runs:
+  using: composite
+  steps:
+    - name: Download and verify Dart SDK
+      shell: bash
+      env:
+        # Includes dart2wasm's standard Wasm exception handling instructions.
+        DART_REVISION: 849024026d6585d750d40a88fcc42d9615047cd6
+        DART_SHA256: 9982079f4aaf115093b380bc07e97a51a6d24a1d94a38da1d7e270112912b8a4
+      run: |
+        sdk_dir="$RUNNER_TEMP/dart-$DART_REVISION"
+        archive="$RUNNER_TEMP/dartsdk-linux-x64-release.zip"
+        curl --fail --location --retry 3 \
+          "https://storage.googleapis.com/dart-archive/channels/main/raw/hash/$DART_REVISION/sdk/dartsdk-linux-x64-release.zip" \
+          --output "$archive"
+        echo "$DART_SHA256  $archive" | sha256sum --check
+        unzip -q "$archive" -d "$sdk_dir"
+        {
+          echo "DART_HOME=$sdk_dir/dart-sdk"
+          echo "DART_REVISION=$DART_REVISION"
+          echo "PUB_CACHE=$HOME/.pub-cache"
+        } >> "$GITHUB_ENV"
+        {
+          echo "$sdk_dir/dart-sdk/bin"
+          echo "$HOME/.pub-cache/bin"
+        } >> "$GITHUB_PATH"
+    - name: Report Dart SDK version
+      shell: bash
+      run: dart --version

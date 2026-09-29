@@ -4,3 +4,4 @@
 **/example/*.wat
 /.vscode
 **/bin/*.wasm
+*.wasm.map
