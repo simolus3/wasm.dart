@@ -7,6 +7,11 @@ environment:
 
 dependencies:
   hooks: ^2.0.2
+  shelf: ^1.4.0
+  shelf_router: ^1.1.0
   wasm_components:
   wasm_tools:
   wasi:
+
+dev_dependencies:
+  test: ^1.25.0
