@@ -48,7 +48,7 @@ __Legend__:
 | queueMicrotask                           | ✅          | 🎯        |                               |
 | clearSchedule                            | ✅          | 📦        |                               |
 | currentTimeMicros                        | ✅          | 📦        |                               |
-| stringFromCharCodeArray                  |             | 🎯        |                               |
+| stringFromCharCodeArray                  | ✅          | 🎯        |                               |
 | stringFromAsciiBytes                     | ✅          | 🎯        |                               |
 | stringLength                             | ✅          | 🎯        |                               |
 | stringEquals                             | ✅          | 🎯        |                               |
@@ -56,7 +56,7 @@ __Legend__:
 | stringCodeUnitAt                         | ✅          | 🎯        |                               |
 | stringIndexOfString                      | ✅          | 🎯        |                               |
 | stringLastIndexOfString                  | ✅          | 🎯        |                               |
-| stringReplaceAllString                   |             | 🎯        |                               |
+| stringReplaceAllString                   | ✅          | 🎯        |                               |
 | stringReplaceAllRegExp                   |             | 🎯        |                               |
 | stringSubstring                          | ✅          | 🎯        |                               |
 | stringToLowerCase                        | ✅          | 🎯        |                               |
@@ -79,22 +79,22 @@ __Legend__:
 | isWindows                                | ✅          | 📦        | Stub used                     |
 | stackTraceGetCurrent                     | ✅          | 🛑        | Impossible, stub used         |
 | stackTraceToString                       | ✅          | 🛑        | Impossible, stub used         |
-| doubleTryParse                           |             | 🎯        |                               |
-| tryParseResultGetDouble                  |             | 🎯        |                               |
-| doubleParseInfallible                    |             | 🎯        |                               |
+| doubleTryParse                           | ✅          | 🎯        |                               |
+| tryParseResultGetDouble                  | ✅          | 🎯        |                               |
+| doubleParseInfallible                    | ✅          | 🎯        |                               |
 | i64ToString                              | ✅          | 🎯        | Needs optimization for base10 |
 | f64ToExponential                         |             | 🎯        |                               |
 | f64ToExponentialWithFractionDigits       |             | 🎯        |                               |
 | f64ToPrecision                           |             | 🎯        |                               |
 | f64ToFixed                               |             | 🎯        |                               |
-| f64ToString                              |             | 🎯        | Currently a stub              |
+| f64ToString                              | ✅          | 🎯        |                               |
 | stringBufferCreate                       | ✅          | 🎯        |                               |
 | stringBufferWriteString                  | ✅          | 🎯        |                               |
 | stringBufferWriteCharCode                | ✅          | 🎯        |                               |
 | stringBufferClear                        | ✅          | 🎯        |                               |
 | stringBufferLength                       | ✅          | 🎯        |                               |
 | stringBufferToString                     | ✅          | 🎯        |                               |
-| regexpCreateOrFailWithString             |             | 🎯        | See [what Kotlin does](https://github.com/JetBrains/kotlin/tree/master/libraries/stdlib/native-wasm/src/kotlin/text/regex)          |
+| regexpCreateOrFailWithString             |             | 🎯        |                               |
 | regexpIsRegexp                           |             | 🎯        |                               |
 | regexpEscape                             |             | 🎯        |                               |
 | regexpMatch                              |             | 🎯        |                               |
