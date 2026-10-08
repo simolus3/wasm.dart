@@ -9,3 +9,5 @@ crate-type = ["cdylib"]
 [dependencies]
 libm = "0.2"
 talc = "5.0.3"
+# Built with release LTO and opt-level="z" in pkg/wasm_tools/tool/build_runtime_helpers.sh
+regex = { version = "1.10", default-features = false, features = ["unicode", "perf"] }
