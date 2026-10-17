@@ -34,6 +34,102 @@ final class const MatchCharacterInList(final List<int> charCodes)
   bool matchesCodeUnit(int codeUnit) => charCodes.contains(codeUnit);
 }
 
+/// Matches `\d` ([inverted] == false) or `\D` ([inverted] == true).
+final class const MatchDigit({this.inverted = false})
+    extends SingleCodeUnitNode {
+  final bool inverted;
+
+  @override
+  bool matchesCodeUnit(int codeUnit) {
+    final isDigit = isDigitChar(codeUnit);
+    return inverted ? !isDigit : isDigit;
+  }
+}
+
+/// Matches `\w` ([inverted] == false) or `\W` ([inverted] == true).
+final class const MatchWord({this.inverted = false})
+    extends SingleCodeUnitNode {
+  final bool inverted;
+
+  @override
+  bool matchesCodeUnit(int codeUnit) {
+    final isWord = isWordChar(codeUnit);
+    return inverted ? !isWord : isWord;
+  }
+}
+
+/// Matches `\s` ([inverted] == false) or `\S` ([inverted] == true).
+final class const MatchSpace({this.inverted = false})
+    extends SingleCodeUnitNode {
+  final bool inverted;
+
+  @override
+  bool matchesCodeUnit(int codeUnit) {
+    final isSpace = isSpaceChar(codeUnit);
+    return inverted ? !isSpace : isSpace;
+  }
+}
+
+final class const CharacterRange(final int start, final int end);
+
+/// Matches a character class `[...]` or `[^...]`.
+final class const CharacterClass(
+  final List<CharacterRange> ranges,
+  final List<SingleCodeUnitNode> escapes, {
+  this.negated = false,
+  this.ignoreCase = false,
+}) extends SingleCodeUnitNode {
+  final bool negated;
+  final bool ignoreCase;
+
+  @override
+  bool matchesCodeUnit(int codeUnit) {
+    final matched =
+        _matchesRaw(codeUnit) ||
+        (ignoreCase &&
+            (_matchesRaw(charToLower(codeUnit)) ||
+                _matchesRaw(charToUpper(codeUnit))));
+    return negated ? !matched : matched;
+  }
+
+  bool _matchesRaw(int codeUnit) {
+    for (final range in ranges) {
+      if (codeUnit >= range.start && codeUnit <= range.end) {
+        return true;
+      }
+    }
+    for (final escape in escapes) {
+      if (escape.matchesCodeUnit(codeUnit)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+bool isDigitChar(int code) => code >= $0 && code <= $9;
+
+bool isWordChar(int code) =>
+    (code >= $a && code <= $z) ||
+    (code >= $A && code <= $Z) ||
+    (code >= $0 && code <= $9) ||
+    code == 0x5f; // '_'
+
+bool isSpaceChar(int code) {
+  // https://tc39.es/ecma262/#prod-WhiteSpace and LineTerminator
+  return (code >= 0x09 && code <= 0x0d) ||
+      code == 0x20 ||
+      code == 0xa0 ||
+      code == 0x1680 ||
+      (code >= 0x2000 && code <= 0x200a) ||
+      code == 0x2028 ||
+      code == 0x2029 ||
+      code == 0x202f ||
+      code == 0x205f ||
+      code == 0x3000 ||
+      code == 0xfeff;
+}
+
 int charToUpper(int code) {
   if (code >= $a && code <= $z) {
     return code - 32;

@@ -10,5 +10,6 @@ environment:
 dependencies:
   meta: ^1.19.0
   hooks: ^2.0.2
+  shelf: ^1.4.0
   wasm_components: ^0.1.0-preview.0
   wasm_tools: ^0.1.0-preview.0
