@@ -1,16 +1,45 @@
 // ignore: import_internal_library
 import 'dart:_wasm';
 
+import 'regex/character.dart';
+import 'regex/regex.dart';
 import 'utils.dart';
 
 /// The string implementation used when compiling Dart to WebAssembly
 /// components.
-sealed class WasmStringImplementation {
+sealed class WasmStringImplementation extends RegexString {
   const WasmStringImplementation._();
 
+  factory WasmStringImplementation.fromDartCodeUnits(
+    List<int> units,
+    bool isAscii,
+  ) {
+    if (isAscii) {
+      final array = WasmArray<WasmI8>(units.length);
+      for (var i = 0; i < units.length; i++) {
+        array.write(i, units[i]);
+      }
+
+      return Latin1String.unsafeWrap(array);
+    } else {
+      final array = WasmArray<WasmI16>(units.length);
+      for (var i = 0; i < units.length; i++) {
+        array.write(i, units[i]);
+      }
+
+      return Utf16String.unsafeWrap(array);
+    }
+  }
+
+  @override
   int get length;
 
+  @override
   int codeUnitAtUnchecked(int offset);
+
+  @override
+  bool get isOneByteString => this is Latin1String;
+
   void writeIntoCharArray(
     WasmArray<WasmI16> target,
     int targetStart,
@@ -58,45 +87,6 @@ sealed class WasmStringImplementation {
     // If one string is a prefix of the other, then the shorter string is
     // ordered before the longer string.
     return WasmI32.fromInt(aLength - bLength);
-  }
-
-  int indexOfString(WasmStringImplementation substring, int start) {
-    // TODO: Explore more efficient string matching algorithms.
-    final substringLength = substring.length;
-    final limit = length - substringLength;
-
-    for (var i = start; i <= limit; i++) {
-      var match = true;
-      for (var j = 0; j < substringLength; j++) {
-        if (codeUnitAtUnchecked(i + j) != substring.codeUnitAtUnchecked(j)) {
-          match = false;
-          break;
-        }
-      }
-      if (match) return i;
-    }
-
-    return -1;
-  }
-
-  int lastIndexOfString(WasmStringImplementation substring, int start) {
-    final substringLength = substring.length;
-    final limit = length - substringLength;
-    if (limit < 0) return -1;
-    if (start > limit) start = limit;
-
-    for (var i = start; i >= 0; i--) {
-      var match = true;
-      for (var j = 0; j < substringLength; j++) {
-        if (codeUnitAtUnchecked(i + j) != substring.codeUnitAtUnchecked(j)) {
-          match = false;
-          break;
-        }
-      }
-      if (match) return i;
-    }
-
-    return -1;
   }
 
   static WasmStringImplementation fromExtern(WasmExternRef? ref) {
@@ -288,24 +278,15 @@ final class _CaseMapping {
 
   int processCharCode(int original) {
     if (toUpper) {
-      if (original >= _a && original <= _z) {
-        hadChanges = true;
-        return original - 32;
-      }
+      final toUpper = charToUpper(original);
+      if (toUpper != original) hadChanges = true;
+
+      return toUpper;
     } else {
-      if (original >= _A && original <= _Z) {
-        hadChanges = true;
-        return original + 32;
-      }
+      final toLower = charToLower(original);
+      if (toLower != original) hadChanges = true;
+
+      return toLower;
     }
-
-    return original;
   }
-
-  // ignore: constant_identifier_names
-  static const _A = 0x41;
-  // ignore: constant_identifier_names
-  static const _Z = 0x5a;
-  static const _a = 0x61;
-  static const _z = 0x7a;
 }
