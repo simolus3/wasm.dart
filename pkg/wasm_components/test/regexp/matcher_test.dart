@@ -156,6 +156,46 @@ void main() {
         'abcdefghija',
       ]);
     });
+
+    test('character escapes and classes', () {
+      check(r'\d+', ['abc123def', 'no-digits', '0']);
+      check(r'\D+', ['123abc456', '123']);
+      check(r'\w+', ['hello_world 123', '---']);
+      check(r'\W+', ['hello---world', 'abc_123']);
+      check(r'\s+', ['a \t\r\n b', 'nospace']);
+      check(r'\S+', ['  hello  ', '   ']);
+      check(r'[\t\r\n\x20\u0021]+', [' \t\r\n!abc', 'abc']);
+      check(r'[a-z0-9_-]+', ['hello_123-world', 'UPPER']);
+      check(r'[a-z]+', ['HeLLo', '123'], caseSensitive: false);
+      check(r'[^<]+', ['hello<world>', '<']);
+      check(r'[^^]+[a-z]+', ['123abc', '^abc']);
+      check(r'[\b]', ['\x08', 'b']);
+    });
+
+    test('word boundaries and lookaheads', () {
+      check(r'\bword\b', ['a word here', 'sword', 'words']);
+      check(r'\Bword\B', ['swords', 'word', 'a word']);
+      check(r'\n|\r\n|\r(?!\n)', ['a\nb', 'a\r\nb', 'a\rb']);
+      check(r'foo(?=bar)', ['foobar', 'foobaz']);
+      check(r'foo(?!bar)', ['foobaz', 'foobar']);
+      check(r'(?=(a+))a*b\1', ['aaabaaa', 'aaaba']);
+    });
+
+    test('shelf_router and http_parser patterns', () {
+      check(r'([^<]*)(?:<([^>|]+)(?:\|([^>]*))?>)?', [
+        '/hello/<name>',
+        r'/users/<id|[0-9]+>/profile',
+        '/static/path',
+      ]);
+      check(r'[^()<>@,;:"\\/[\]?={} \t\x00-\x1F\x7F]+', [
+        'application/json; charset=utf-8',
+        'text/plain',
+      ]);
+      check(r'"(?:[^"\x00-\x1F\x7F\\]|\\.)*"', [
+        '"hello \\"world\\""',
+        'unquoted',
+      ]);
+    });
   });
 
   group('non-simple quantifiers', () {

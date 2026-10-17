@@ -106,6 +106,29 @@ WasmExternRef f64ToString(WasmF64 value) {
 }
 
 @pragma('wasm:export')
+WasmExternRef? doubleTryParse(WasmExternRef? string) {
+  final parsed = parseDoubleFromWasmString(
+    WasmStringImplementation.fromExtern(string),
+  );
+  if (parsed == null) return WasmExternRef.nullRef;
+  return WasmAnyRef.fromObject(BoxedDoubleResult(parsed)).externalize();
+}
+
+@pragma('wasm:export')
+WasmF64 tryParseResultGetDouble(WasmExternRef? parseResult) {
+  final boxed = parseResult!.internalize().toObject() as BoxedDoubleResult;
+  return WasmF64.fromDouble(boxed.value);
+}
+
+@pragma('wasm:export')
+WasmF64 doubleParseInfallible(WasmExternRef? string) {
+  final parsed = parseDoubleFromWasmString(
+    WasmStringImplementation.fromExtern(string),
+  );
+  return WasmF64.fromDouble(parsed ?? double.nan);
+}
+
+@pragma('wasm:export')
 WasmExternRef f64ToFixed(WasmF64 value, WasmI32 fractionDigits) {
   final digits = fractionDigits.toIntUnsigned();
   if (digits > maxFixedFractionDigits) {
@@ -515,6 +538,47 @@ WasmVoid debugger(WasmExternRef? message) {
 WasmVoid wasiPrint(WasmExternRef? string) {
   printImpl(.fromExtern(string));
   return WasmVoid();
+}
+
+@pragma('wasm:export')
+WasmExternRef? stringReplaceAllString(
+  WasmExternRef? stringRef,
+  WasmExternRef? needleRef,
+  WasmExternRef? replacementRef,
+) {
+  final string = WasmStringImplementation.fromExtern(stringRef);
+  final needle = WasmStringImplementation.fromExtern(needleRef);
+  final replacement = WasmStringImplementation.fromExtern(replacementRef);
+
+  final len = string.length;
+  final nLen = needle.length;
+  final buffer = WasmStringBuffer();
+
+  if (nLen == 0) {
+    buffer.writeString(replacement);
+    for (var i = 0; i < len; i++) {
+      buffer
+        ..writeCharCode(string.codeUnitAtUnchecked(i))
+        ..writeString(replacement);
+    }
+    return buffer.renderToString().externalize();
+  }
+
+  final literal = LiteralNode(needle);
+  var start = 0;
+  while (true) {
+    final idx = literal.firstIndexOf(string, start);
+    if (idx == -1) {
+      if (start == 0) return stringRef;
+      buffer.writeString(string.substring(start.toWasmI32(), len.toWasmI32()));
+      break;
+    }
+    buffer
+      ..writeString(string.substring(start.toWasmI32(), idx.toWasmI32()))
+      ..writeString(replacement);
+    start = idx + nLen;
+  }
+  return buffer.renderToString().externalize();
 }
 
 @pragma('wasm:export', 'randomInt')

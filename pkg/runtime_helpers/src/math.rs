@@ -49,3 +49,21 @@ pub extern "C" fn dart_mathExp(a: f64) -> f64 {
 pub extern "C" fn dart_mathLog(a: f64) -> f64 {
     log(a)
 }
+
+#[unsafe(no_mangle)]
+pub extern "C" fn dart_doubleParse(ptr: *const u8, len: usize, out_val: *mut f64) -> i32 {
+    if ptr.is_null() || len == 0 || out_val.is_null() {
+        return 0;
+    }
+    let slice = unsafe { core::slice::from_raw_parts(ptr, len) };
+    let Ok(s) = core::str::from_utf8(slice) else {
+        return 0;
+    };
+    match s.parse::<f64>() {
+        Ok(v) => {
+            unsafe { *out_val = v };
+            1
+        }
+        Err(_) => 0,
+    }
+}
