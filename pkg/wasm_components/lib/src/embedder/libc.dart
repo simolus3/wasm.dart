@@ -23,10 +23,3 @@ external WasmVoid dartFree(WasmI32 ptr, WasmI32 sizeInBytes, WasmI32 alignment);
 
 @pragma('wasm:import', 'libc.dart_doubleParse')
 external WasmI32 dartDoubleParse(WasmI32 ptr, WasmI32 len, WasmI32 outValPtr);
-
-@pragma('wasm:import', 'libc.dart_doubleToString')
-external WasmI32 dartDoubleToString(
-  WasmF64 val,
-  WasmI32 outBufPtr,
-  WasmI32 maxLen,
-);

@@ -8,10 +8,17 @@ import 'dart:_wasm';
 import 'dart:convert';
 
 import '../runtime/async/task.dart';
+import 'charcodes.dart';
 import 'clock.dart';
 import 'constants.dart';
 import 'dark_arts.dart';
 import 'number_format.dart';
+import 'numbers/ryu.dart';
+import 'numbers/to_exponential.dart';
+import 'numbers/to_fixed.dart';
+import 'regex/literal.dart';
+import 'regex/parser.dart';
+import 'regex/regex.dart';
 import 'stack_trace.dart';
 import 'string.dart';
 import 'string_buffer.dart';
@@ -95,7 +102,7 @@ WasmExternRef i64ToString(WasmI64 value, WasmI32 radix) {
 
 @pragma('wasm:export')
 WasmExternRef f64ToString(WasmF64 value) {
-  return doubleToWasmString(value.toDouble()).externalize();
+  return formatDouble(value.toDouble()).externalize();
 }
 
 @pragma('wasm:export')
@@ -119,6 +126,49 @@ WasmF64 doubleParseInfallible(WasmExternRef? string) {
     WasmStringImplementation.fromExtern(string),
   );
   return WasmF64.fromDouble(parsed ?? double.nan);
+}
+
+@pragma('wasm:export')
+WasmExternRef f64ToFixed(WasmF64 value, WasmI32 fractionDigits) {
+  final digits = fractionDigits.toIntUnsigned();
+  if (digits > maxFixedFractionDigits) {
+    throw RangeError.range(digits, 0, maxFixedFractionDigits, 'fractionDigits');
+  }
+
+  return formatDoubleToFixed(value.toDouble(), digits).externalize();
+}
+
+@pragma('wasm:export')
+WasmExternRef f64ToExponential(WasmF64 value) {
+  return formatDoubleToExponential(value.toDouble(), null).externalize();
+}
+
+@pragma('wasm:export')
+WasmExternRef f64ToExponentialWithFractionDigits(
+  WasmF64 value,
+  WasmI32 fractionDigits,
+) {
+  final digits = fractionDigits.toIntUnsigned();
+  if (digits > maxExponentialFractionDigits) {
+    throw RangeError.range(
+      digits,
+      0,
+      maxExponentialFractionDigits,
+      'fractionDigits',
+    );
+  }
+
+  return formatDoubleToExponential(value.toDouble(), digits).externalize();
+}
+
+@pragma('wasm:export')
+WasmExternRef f64ToPrecision(WasmF64 value, WasmI32 precision) {
+  final dartPrecision = precision.toIntUnsigned();
+  if (dartPrecision < 1 || dartPrecision > maxPrecision) {
+    throw RangeError.range(dartPrecision, 1, maxPrecision, 'precision');
+  }
+
+  return formatDoubleToPrecision(value.toDouble(), dartPrecision).externalize();
 }
 
 @pragma('wasm:export')
@@ -159,11 +209,11 @@ WasmExternRef? stringSubstring(
 
 @pragma('wasm:export')
 WasmI32 stringIndexOfString(WasmExternRef? a, WasmExternRef? b, WasmI32 start) {
+  final haystack = WasmStringImplementation.fromExtern(a);
+  final needle = WasmStringImplementation.fromExtern(b);
+
   return WasmI32.fromInt(
-    WasmStringImplementation.fromExtern(a).indexOfString(
-      WasmStringImplementation.fromExtern(b),
-      start.toIntSigned(),
-    ),
+    LiteralNode(needle).firstIndexOf(haystack, start.toIntUnsigned()),
   );
 }
 
@@ -173,11 +223,11 @@ WasmI32 stringLastIndexOfString(
   WasmExternRef? b,
   WasmI32 start,
 ) {
+  final haystack = WasmStringImplementation.fromExtern(a);
+  final needle = WasmStringImplementation.fromExtern(b);
+
   return WasmI32.fromInt(
-    WasmStringImplementation.fromExtern(a).lastIndexOfString(
-      WasmStringImplementation.fromExtern(b),
-      start.toIntSigned(),
-    ),
+    LiteralNode(needle).searchBackwards(haystack, start.toIntUnsigned()),
   );
 }
 
@@ -264,6 +314,149 @@ WasmVoid stringToCodeUnits(
   final impl = WasmStringImplementation.fromExtern(string);
   impl.writeIntoCharArray(outArray, startIndex.toIntUnsigned(), 0, impl.length);
   return WasmVoid();
+}
+
+@pragma('wasm:export')
+WasmExternRef regexpCreateOrFailWithString(
+  WasmExternRef? string,
+  WasmI32 multiLine,
+  WasmI32 caseSensitive,
+  WasmI32 unicode,
+  WasmI32 dotAll,
+) {
+  final options = RegexParseOptions(
+    multiline: multiLine.toBool(),
+    caseSensitive: caseSensitive.toBool(),
+    unicode: unicode.toBool(),
+    dotAll: dotAll.toBool(),
+  );
+
+  final parser = RegexParser(
+    WasmStringImplementation.fromExtern(string),
+    options,
+    WasmStringImplementation.fromDartCodeUnits,
+  );
+  return WasmAnyRef.fromObject(parser.parse()).externalize();
+}
+
+@pragma('wasm:export')
+WasmI32 regexpIsRegexp(WasmExternRef? ref) {
+  // We throw a Dart exception directly in regexpCreateOrFailWithString instead.
+  return const WasmI32(1);
+}
+
+@pragma('wasm:export')
+WasmExternRef regexpEscape(WasmExternRef? string) {
+  final input = WasmStringImplementation.fromExtern(string);
+  final length = input.length;
+
+  List<int>? escaped;
+  for (var i = 0; i < length; i++) {
+    final char = input.codeUnitAtUnchecked(i);
+    final needsEscape = switch (char) {
+      $$ ||
+      $lparen ||
+      $rparen ||
+      $asterisk ||
+      $plus ||
+      $dot ||
+      $question ||
+      $lbracket ||
+      $backslash ||
+      $rbracket ||
+      $caret ||
+      $lbrace ||
+      $bar ||
+      $rbrace => true,
+      _ => false,
+    };
+
+    if (needsEscape) {
+      escaped ??= [for (var j = 0; j < i; j++) input.codeUnitAtUnchecked(j)];
+      escaped.add($backslash);
+    }
+    escaped?.add(char);
+  }
+
+  if (escaped == null) {
+    // Nothing to escape.
+    return input.externalize();
+  }
+
+  return WasmStringImplementation.fromDartCodeUnits(
+    escaped,
+    input.isOneByteString,
+  ).externalize();
+}
+
+@pragma('wasm:export')
+WasmExternRef? regexpMatch(
+  WasmExternRef? regexp,
+  WasmExternRef? string,
+  WasmI32 start,
+  WasmI32 asPrefix,
+) {
+  final regex = regexp!.internalize().toObject() as Regex;
+  final match = regex.search(
+    WasmStringImplementation.fromExtern(string),
+    start.toIntUnsigned(),
+    asPrefix: asPrefix.toBool(),
+  );
+
+  return match?.externalize();
+}
+
+RegexMatch _regexMatchFromExtern(WasmExternRef? match) {
+  return match!.internalize().toObject() as RegexMatch;
+}
+
+@pragma('wasm:export')
+WasmI32 regexpMatchGetStart(WasmExternRef? match) {
+  return _regexMatchFromExtern(match).start.toWasmI32();
+}
+
+@pragma('wasm:export')
+WasmI32 regexpMatchGetEnd(WasmExternRef? match) {
+  return _regexMatchFromExtern(match).end.toWasmI32();
+}
+
+@pragma('wasm:export')
+WasmI32 regexpMatchGetGroupCount(WasmExternRef? match) {
+  return _regexMatchFromExtern(match).groupCount.toWasmI32();
+}
+
+@pragma('wasm:export')
+WasmExternRef? regexpMatchGetGroup(WasmExternRef? match, WasmI32 index) {
+  final regexMatch = _regexMatchFromExtern(match);
+  final group = index.toIntUnsigned();
+  final start = regexMatch.groupStart(group);
+  if (start == -1) {
+    return null;
+  }
+
+  return (regexMatch.input as WasmStringImplementation)
+      .substring(start.toWasmI32(), regexMatch.groupEnd(group).toWasmI32())
+      .externalize();
+}
+
+@pragma('wasm:export')
+WasmI32 regexpMatchGetNamedGroups(WasmExternRef? match) {
+  // TODO: Support named groups. The parser rejects them for now, so no match
+  // has any.
+  return const WasmI32(0);
+}
+
+@pragma('wasm:export')
+WasmExternRef regexpMatchGetGroupName(WasmExternRef? match, WasmI32 index) {
+  throw UnsupportedError('Named groups are not supported');
+}
+
+@pragma('wasm:export')
+WasmExternRef? regexpMatchGetGroupByName(
+  WasmExternRef? match,
+  WasmI32 nameIndex,
+) {
+  throw UnsupportedError('Named groups are not supported');
 }
 
 @pragma('wasm:export')
@@ -371,9 +564,10 @@ WasmExternRef? stringReplaceAllString(
     return buffer.renderToString().externalize();
   }
 
+  final literal = LiteralNode(needle);
   var start = 0;
   while (true) {
-    final idx = string.indexOfString(needle, start);
+    final idx = literal.firstIndexOf(string, start);
     if (idx == -1) {
       if (start == 0) return stringRef;
       buffer.writeString(string.substring(start.toWasmI32(), len.toWasmI32()));

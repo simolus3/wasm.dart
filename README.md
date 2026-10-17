@@ -83,10 +83,10 @@ __Legend__:
 | tryParseResultGetDouble                  | ✅          | 🎯        |                               |
 | doubleParseInfallible                    | ✅          | 🎯        |                               |
 | i64ToString                              | ✅          | 🎯        | Needs optimization for base10 |
-| f64ToExponential                         |             | 🎯        |                               |
-| f64ToExponentialWithFractionDigits       |             | 🎯        |                               |
-| f64ToPrecision                           |             | 🎯        |                               |
-| f64ToFixed                               |             | 🎯        |                               |
+| f64ToExponential                         | ✅          | 🎯        |                               |
+| f64ToExponentialWithFractionDigits       | ✅          | 🎯        |                               |
+| f64ToPrecision                           | ✅          | 🎯        |                               |
+| f64ToFixed                               | ✅          | 🎯        |                               |
 | f64ToString                              | ✅          | 🎯        |                               |
 | stringBufferCreate                       | ✅          | 🎯        |                               |
 | stringBufferWriteString                  | ✅          | 🎯        |                               |
@@ -94,14 +94,14 @@ __Legend__:
 | stringBufferClear                        | ✅          | 🎯        |                               |
 | stringBufferLength                       | ✅          | 🎯        |                               |
 | stringBufferToString                     | ✅          | 🎯        |                               |
-| regexpCreateOrFailWithString             |             | 🎯        |                               |
-| regexpIsRegexp                           |             | 🎯        |                               |
-| regexpEscape                             |             | 🎯        |                               |
-| regexpMatch                              |             | 🎯        |                               |
-| regexpMatchGetStart                      |             | 🎯        |                               |
-| regexpMatchGetEnd                        |             | 🎯        |                               |
-| regexpMatchGetGroupCount                 |             | 🎯        |                               |
-| regexpMatchGetGroup                      |             | 🎯        |                               |
+| regexpCreateOrFailWithString             | ✅          | 🎯        |                               |
+| regexpIsRegexp                           | ✅          | 🎯        |                               |
+| regexpEscape                             | ✅          | 🎯        |                               |
+| regexpMatch                              | ✅          | 🎯        |                               |
+| regexpMatchGetStart                      | ✅          | 🎯        |                               |
+| regexpMatchGetEnd                        | ✅          | 🎯        |                               |
+| regexpMatchGetGroupCount                 | ✅          | 🎯        |                               |
+| regexpMatchGetGroup                      | ✅          | 🎯        |                               |
 | regexpMatchGetNamedGroups                |             | 🎯        |                               |
 | regexpMatchGetGroupName                  |             | 🎯        |                               |
 | regexpMatchGetGroupByName                |             | 🎯        |                               |

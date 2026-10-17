@@ -22,6 +22,46 @@ import 'string.dart';
     );
   }
 
+  /// Defines a table of unsigned integers with [limbs] 64-bit limbs each as a
+  /// flat array of 64-bit integers, storing limb `k` (from least significant
+  /// to most significant) of entry `i` at `limbs * i + k`.
+  void defineWideTable(
+    String constantName,
+    List<BigInt> values,
+    String doc, {
+    int limbs = 2,
+  }) {
+    final mask = (BigInt.one << 64) - BigInt.one;
+    final elements = <String>[];
+    for (final value in values) {
+      if (value.bitLength > 64 * limbs) {
+        throw ArgumentError('$value does not fit into $limbs limbs');
+      }
+      for (var k = 0; k < limbs; k++) {
+        elements.add(((value >> (64 * k)) & mask).toSigned(64).toString());
+      }
+    }
+
+    buffer.writeln(
+      '/// Entry `i` (split into $limbs 64-bit limbs, least significant '
+      'first) is $doc.',
+    );
+    buffer.writeln(
+      'const WasmArray<WasmI64> $constantName = WasmArray.literal(['
+      '${elements.join(', ')}'
+      ']);',
+    );
+  }
+
+  void defineI16Array(String constantName, List<int> values, String doc) {
+    buffer.writeln('/// $doc');
+    buffer.writeln(
+      'const WasmArray<WasmI16> $constantName = WasmArray.literal(['
+      '${values.join(', ')}'
+      ']);',
+    );
+  }
+
   void defineString(
     String constantName,
     String contents, {
@@ -45,6 +85,199 @@ import 'string.dart';
   defineCharCodes('digits', '0123456789abcdefghijklmnopqrstuvwxyz');
   defineString('unknownTimezone', 'UNKNOWN TZ');
   defineString('stubRootUri', 'cm-root:/');
+  defineString('nan', 'NaN');
+  defineString('infinity', 'Infinity');
+  defineString('negativeInfinity', '-Infinity');
+  defineString('zeroDouble', '0.0');
+  defineString('negativeZeroDouble', '-0.0');
+
+  // Tables for the Ryū double-to-string algorithm, see lib/src/embedder/numbers/ryu.dart.
+  const pow5InvBitCount = 125;
+  const pow5BitCount = 125;
+  final pow5Split = <BigInt>[];
+  final pow5InvSplit = <BigInt>[];
+  for (var i = 0; i < 342; i++) {
+    final pow = BigInt.from(5).pow(i);
+    final pow5Len = pow.bitLength;
+
+    if (i < 326) {
+      // floor(5^i * 2^(pow5BitCount - bitlength(5^i)))
+      final j = pow5Len - pow5BitCount;
+      pow5Split.add(j >= 0 ? pow >> j : pow << -j);
+    }
+
+    // floor(2^(bitlength(5^i) - 1 + pow5InvBitCount) / 5^i) + 1
+    final j = pow5Len - 1 + pow5InvBitCount;
+    pow5InvSplit.add((BigInt.one << j) ~/ pow + BigInt.one);
+  }
+  defineWideTable(
+    'doublePow5InvSplit',
+    pow5InvSplit,
+    '`floor(2^(bitlength(5^i) - 1 + 125) / 5^i) + 1`',
+  );
+  defineWideTable('doublePow5Split', pow5Split, '`5^i` normalized to 125 bits');
+
+  // Tables for Number.prototype.toFixed, toExponential and toPrecision, see
+  // lib/src/embedder/numbers/to_fixed.dart and to_exponential.dart.
+  //
+  // These are the tables from Ryū's d2fixed.c, but only including entries
+  // that can be reached when printing up to 100 fraction digits with toFixed
+  // or up to 22 significant digits (21 digits plus one for rounding) with
+  // toExponential and toPrecision.
+  {
+    const maxFixedFractionDigits = 100;
+    const maxSignificantDigits = 22;
+    // The amount of 9-digit blocks after the first non-zero block that we may
+    // need to print maxSignificantDigits digits.
+    const extraBlocks = (maxSignificantDigits - 1 + 8) ~/ 9;
+
+    const doubleMantissaBits = 52;
+    const minE2 = 1 - 1023 - doubleMantissaBits; // -1074
+    const maxE2 = 2046 - 1023 - doubleMantissaBits; // 971
+    final ten = BigInt.from(10);
+    final billion = ten.pow(9);
+    // All multipliers are only relevant modulo 10^9 * 2^136, since we only
+    // use them in ((m * mul) >> j) % 10^9 with j <= 136 (with the exception
+    // of index 0 in pow10Split, which is small enough to not be reduced).
+    final modulus = billion << 136;
+
+    /// Returns the index of the 9-digit block containing the most significant
+    /// digit of the integer [value], where block 0 contains the lowest digits.
+    int topIntegerBlock(BigInt value) => (value.toString().length - 1) ~/ 9;
+
+    /// Returns the index of the 9-digit fraction block containing the first
+    /// non-zero digit of `numerator / denominator` (assumed to be < 1).
+    int firstFractionBlock(BigInt numerator, BigInt denominator) {
+      var block = 0;
+      while (numerator * billion.pow(block + 1) < denominator) {
+        block++;
+      }
+      return block;
+    }
+
+    // Integral part.
+    const pow10AdditionalBits = 120;
+    final maxIndex = (maxE2 + 15) ~/ 16;
+    // Doubles below 1e21 (relevant for toFixed) have an index of at most 2.
+    const maxFixedIndex = 2;
+    final pow10Split = <BigInt>[];
+    final pow10Offset = <int>[];
+    final pow10MinBlock = <int>[];
+    for (var idx = 0; idx <= maxIndex; idx++) {
+      // Each index covers 16 exponents, the smallest double for the index has
+      // the smallest exponent and an implicit leading one bit.
+      final minE2ForIndex = idx == 0 ? -doubleMantissaBits : 16 * idx - 15;
+      final smallest = BigInt.one << (doubleMantissaBits + minE2ForIndex);
+      final length = (((16 * idx * 78913) >> 18) + 1 + 16 + 8) ~/ 9;
+
+      // Blocks are printed from most significant to least significant ones.
+      // Lower blocks are not needed once we have enough digits.
+      var minBlock = topIntegerBlock(smallest) - extraBlocks;
+      if (minBlock < 0 || idx <= maxFixedIndex) minBlock = 0;
+
+      pow10Offset.add(pow10Split.length);
+      pow10MinBlock.add(minBlock);
+      for (var i = minBlock; i < length; i++) {
+        // floor(2^(16 * idx + 120) / 10^(9 * i)) + 1
+        var value =
+            (BigInt.one << (16 * idx + pow10AdditionalBits)) ~/ ten.pow(9 * i) +
+            BigInt.one;
+        if (idx != 0) value = value % modulus;
+        pow10Split.add(value);
+      }
+    }
+    pow10Offset.add(pow10Split.length);
+
+    defineWideTable(
+      'pow10Split',
+      pow10Split,
+      '`floor(2^(16 * idx + 120) / 10^(9 * i)) + 1 mod (10^9 * 2^136)` for '
+          'block `i` of index `idx` (starting at '
+          '`pow10Offset[idx] + i - pow10MinBlock[idx]`)',
+      limbs: 3,
+    );
+    defineI16Array(
+      'pow10Offset',
+      pow10Offset,
+      'Start offsets of each index in `pow10Split`.',
+    );
+    defineI16Array(
+      'pow10MinBlock',
+      pow10MinBlock,
+      'For each index, the first block that has an entry in `pow10Split`.',
+    );
+
+    // Fractional part.
+    const additionalBits2 = 120;
+    final maxIndex2 = -minE2 ~/ 16;
+    // We only support up to 100 fraction digits in toFixed, so blocks of 9
+    // digits >= 12 are never used there.
+    const maxFixedBlocks = maxFixedFractionDigits ~/ 9 + 1;
+    final pow10Split2 = <BigInt>[];
+    final pow10Offset2 = <int>[];
+    final minBlock2 = <int>[];
+
+    for (var idx = 0; idx <= maxIndex2; idx++) {
+      // Blocks before minBlock are always zero for doubles with this index
+      // (since m2 * 2^e2 < 2^54 * 2^(-16 * idx)).
+      var minBlock = 0;
+      while ((BigInt.one << 54) * ten.pow(9 * (minBlock + 1)) <=
+          BigInt.one << (16 * idx)) {
+        minBlock++;
+      }
+      // There are at most 16 * idx + 16 non-zero fractional digits.
+      final endBlock = (16 * idx + 16 + 8) ~/ 9;
+
+      // The smallest double for this index determines how many blocks we need
+      // to go through until we've found enough significant digits.
+      var smallestE2 = -(16 * idx + 15);
+      var smallestM2 = BigInt.one << doubleMantissaBits;
+      if (smallestE2 <= minE2) {
+        smallestE2 = minE2;
+        smallestM2 = BigInt.one; // Subnormal
+      }
+      final denominator = BigInt.one << -smallestE2;
+      final firstBlock = smallestM2 >= denominator
+          ? 0
+          : firstFractionBlock(smallestM2, denominator);
+
+      var maxBlock = firstBlock + extraBlocks + 1;
+      if (maxBlock < maxFixedBlocks) maxBlock = maxFixedBlocks;
+      if (maxBlock > endBlock) maxBlock = endBlock;
+
+      minBlock2.add(minBlock);
+      pow10Offset2.add(pow10Split2.length);
+      for (var i = minBlock; i < maxBlock; i++) {
+        // floor(10^(9 * (i + 1)) * 2^(120 - 16 * idx)) mod (10^9 * 2^136)
+        final pow10 = ten.pow(9 * (i + 1));
+        final shift = additionalBits2 - 16 * idx;
+        final value = shift >= 0 ? pow10 << shift : pow10 >> -shift;
+        pow10Split2.add(value % modulus);
+      }
+    }
+    pow10Offset2.add(pow10Split2.length);
+
+    defineWideTable(
+      'pow10Split2',
+      pow10Split2,
+      '`floor(10^(9 * (i + 1)) * 2^(120 - 16 * idx)) mod (10^9 * 2^136)` for '
+          'block `i` of index `idx` (starting at '
+          '`pow10Offset2[idx] + i - minBlock2[idx]`)',
+      limbs: 3,
+    );
+    defineI16Array(
+      'pow10Offset2',
+      pow10Offset2,
+      'Start offsets of each index in `pow10Split2`. Blocks not covered by '
+          'the table are zero or never needed.',
+    );
+    defineI16Array(
+      'minBlock2',
+      minBlock2,
+      'For each index, the amount of leading 9-digit fraction blocks that are '
+          'always zero.',
+    );
+  }
 
   File('lib/src/embedder/constants.dart').writeAsStringSync(buffer.toString());
 }
