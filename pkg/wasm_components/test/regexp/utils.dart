@@ -1,3 +1,4 @@
+import 'package:wasm_components/src/embedder/regex/assertion.dart';
 import 'package:wasm_components/src/embedder/regex/character.dart';
 import 'package:wasm_components/src/embedder/regex/literal.dart';
 import 'package:wasm_components/src/embedder/regex/parser.dart';
@@ -110,6 +111,12 @@ extension DumpIR on Node {
         buffer.write(')');
       case BackReference(:final index, :final ignoreCase):
         buffer.write('ref($index${ignoreCase ? ', i' : ''})');
+      case WordBoundary(:final inverted):
+        buffer.write(inverted ? r'\B' : r'\b');
+      case Lookahead(:final inner, :final positive):
+        buffer.write(positive ? '(?=' : '(?!');
+        inner.writeTo(buffer);
+        buffer.write(')');
       case LiteralNode(:final needle):
         buffer.write('lit($needle)');
       case MatchAny(:final dotAll):
@@ -120,6 +127,29 @@ extension DumpIR on Node {
         buffer.write(
           'c(${charCodes.map((e) => '0x${e.toRadixString(16)}').join(', ')})',
         );
+      case MatchDigit(:final inverted):
+        buffer.write(inverted ? r'\D' : r'\d');
+      case MatchWord(:final inverted):
+        buffer.write(inverted ? r'\W' : r'\w');
+      case MatchSpace(:final inverted):
+        buffer.write(inverted ? r'\S' : r'\s');
+      case CharacterClass(:final ranges, :final escapes, :final negated):
+        buffer.write(negated ? '[^' : '[');
+        for (final range in ranges) {
+          if (range.start == range.end) {
+            buffer.write('0x${range.start.toRadixString(16)}');
+          } else {
+            buffer.write(
+              '0x${range.start.toRadixString(16)}-0x${range.end.toRadixString(16)}',
+            );
+          }
+          buffer.write(' ');
+        }
+        for (final escape in escapes) {
+          escape.writeTo(buffer);
+          buffer.write(' ');
+        }
+        buffer.write(']');
       default:
         throw UnimplementedError('Unknown node type');
     }
