@@ -20,6 +20,3 @@ WasmI32 mallocAligned(WasmI32 align, WasmI32 length) {
 
 @pragma('wasm:import', 'libc.dart_free')
 external WasmVoid dartFree(WasmI32 ptr, WasmI32 sizeInBytes, WasmI32 alignment);
-
-@pragma('wasm:import', 'libc.dart_doubleParse')
-external WasmI32 dartDoubleParse(WasmI32 ptr, WasmI32 len, WasmI32 outValPtr);
