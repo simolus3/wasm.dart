@@ -182,24 +182,10 @@ final class RegexParser(
         case $lparen:
           if (_matchMultiple(const [$lparen, $question, $equal])) {
             // (?=, positive lookahead.
-            final contents = _disjunction();
-            next = Lookahead(
-              contents,
-              positive: true,
-              firstCapture: groupsBeforeAtom + 1,
-              captureCount: _openedGroups - groupsBeforeAtom,
-            );
-            isAssertion = true;
+            _error('todo');
           } else if (_matchMultiple(const [$lparen, $question, $exclamation])) {
             // (?!, negative lookahead
-            final contents = _disjunction();
-            next = Lookahead(
-              contents,
-              positive: false,
-              firstCapture: groupsBeforeAtom + 1,
-              captureCount: _openedGroups - groupsBeforeAtom,
-            );
-            isAssertion = true;
+            _error('todo');
           } else if (_matchMultiple(const [$lparen, $question, $lt, $equal])) {
             // (?<=, positive lookbehind
             _error('todo');
@@ -234,12 +220,9 @@ final class RegexParser(
         case $backslash:
           _advance();
           next = _atomEscape();
-          if (next is WordBoundary) {
-            isAssertion = true;
-          }
         case $lbracket:
           _advance();
-          next = _characterClass();
+          _error('todo');
         case $asterisk:
         case $plus:
         case $question:
@@ -253,7 +236,23 @@ final class RegexParser(
 
           _advance();
           // Everything else: SyntaxCharacter
-          next = _matchCharCode(firstChar);
+          if (!options.caseSensitive) {
+            final matchedCharCodes = [firstChar];
+
+            final upper = charToUpper(firstChar);
+            final lower = charToLower(firstChar);
+
+            if (upper != firstChar) matchedCharCodes.add(upper);
+            if (lower != firstChar) matchedCharCodes.add(lower);
+
+            if (matchedCharCodes.length == 1) {
+              next = MatchSingleCharacter(firstChar);
+            } else {
+              next = MatchCharacterInList(matchedCharCodes);
+            }
+          } else {
+            next = MatchSingleCharacter(firstChar);
+          }
       }
 
       if (!isAssertion) {
@@ -288,108 +287,6 @@ final class RegexParser(
     };
   }
 
-  SingleCodeUnitNode _matchCharCode(int codeUnit) {
-    if (!options.caseSensitive) {
-      final matchedCharCodes = [codeUnit];
-
-      final upper = charToUpper(codeUnit);
-      final lower = charToLower(codeUnit);
-
-      if (upper != codeUnit) matchedCharCodes.add(upper);
-      if (lower != codeUnit) matchedCharCodes.add(lower);
-
-      if (matchedCharCodes.length > 1) {
-        return MatchCharacterInList(matchedCharCodes);
-      }
-    }
-    return MatchSingleCharacter(codeUnit);
-  }
-
-  /// Parses a character class `[...]` after the opening `[` has been consumed.
-  ///
-  /// https://tc39.es/ecma262/#prod-CharacterClass
-  Node _characterClass() {
-    final negated = _match($caret);
-    final ranges = <CharacterRange>[];
-    final escapes = <SingleCodeUnitNode>[];
-
-    while (!_match($rbracket)) {
-      if (_isAtEnd) _error('Unclosed character class');
-
-      final startAtom = _classAtom();
-      if (startAtom is SingleCodeUnitNode) {
-        if (!_isAtEnd &&
-            _peek() == $minus &&
-            _position + 1 < _length &&
-            string.codeUnitAtUnchecked(_position + 1) != $rbracket) {
-          if (options.unicode) {
-            _error('Invalid character class range');
-          }
-        }
-        escapes.add(startAtom);
-        continue;
-      }
-
-      final startCode = startAtom as int;
-      if (!_isAtEnd &&
-          _peek() == $minus &&
-          _position + 1 < _length &&
-          string.codeUnitAtUnchecked(_position + 1) != $rbracket) {
-        final savedMinusPos = _position;
-        _advance(); // consume '-'
-        final endAtom = _classAtom();
-        if (endAtom is SingleCodeUnitNode) {
-          if (options.unicode) {
-            _error('Invalid character class range');
-          }
-          // Annex B: treat `startAtom`, `-`, and `endAtom` as individual class atoms.
-          ranges.add(CharacterRange(startCode, startCode));
-          ranges.add(const CharacterRange($minus, $minus));
-          escapes.add(endAtom);
-          continue;
-        }
-        final endCode = endAtom as int;
-        if (startCode > endCode) {
-          _position = savedMinusPos;
-          _error('Range out of order in character class');
-        }
-        ranges.add(CharacterRange(startCode, endCode));
-      } else {
-        ranges.add(CharacterRange(startCode, startCode));
-      }
-    }
-
-    return CharacterClass(
-      ranges,
-      escapes,
-      negated: negated,
-      ignoreCase: !options.caseSensitive,
-    );
-  }
-
-  /// Returns either an `int` code unit or a [SingleCodeUnitNode] (for `\d`,
-  /// `\D`, `\s`, `\S`, `\w`, `\W`).
-  Object _classAtom() {
-    final char = _advance();
-    if (char != $backslash) {
-      return char;
-    }
-
-    if (_isAtEnd) _error('Expected escape sequence in character class');
-    final escaped = _peek();
-    if (escaped == 0x62) {
-      // `\b` inside a character class is backspace (0x08).
-      _advance();
-      return 0x08;
-    }
-
-    if (_tryParseCharClassEscape() case final classEscape?) {
-      return classEscape;
-    }
-
-    return _characterEscapeCodeUnit();
-  }
-
   /// Parses the part of an AtomEscape after the backslash.
   ///
   /// https://tc39.es/ecma262/#prod-AtomEscape
@@ -397,21 +294,6 @@ final class RegexParser(
     if (_isAtEnd) _error('Expected escape sequence');
 
     final first = _peek();
-    if (first == 0x62) {
-      // 'b' -> \b word boundary
-      _advance();
-      return const WordBoundary(false);
-    }
-    if (first == 0x42) {
-      // 'B' -> \B non-word boundary
-      _advance();
-      return const WordBoundary(true);
-    }
-
-    if (_tryParseCharClassEscape() case final classEscape?) {
-      return classEscape;
-    }
-
     if (first > $0 && first <= $9) {
       // https://tc39.es/ecma262/#prod-DecimalEscape. Without the unicode flag,
       // this is only a backreference if the group exists (Annex B).
@@ -423,100 +305,11 @@ final class RegexParser(
 
       // Otherwise, this is a legacy octal escape or an identity escape.
       _position = start;
-      if (options.unicode) {
-        _error('Invalid decimal escape');
-      }
     }
 
-    return _matchCharCode(_characterEscapeCodeUnit());
-  }
-
-  SingleCodeUnitNode? _tryParseCharClassEscape() {
-    if (_isAtEnd) return null;
-    switch (_peek()) {
-      case 0x64: // 'd'
-        _advance();
-        return const MatchDigit(inverted: false);
-      case 0x44: // 'D'
-        _advance();
-        return const MatchDigit(inverted: true);
-      case 0x73: // 's'
-        _advance();
-        return const MatchSpace(inverted: false);
-      case 0x53: // 'S'
-        _advance();
-        return const MatchSpace(inverted: true);
-      case 0x77: // 'w'
-        _advance();
-        return const MatchWord(inverted: false);
-      case 0x57: // 'W'
-        _advance();
-        return const MatchWord(inverted: true);
-      default:
-        return null;
-    }
-  }
-
-  int _characterEscapeCodeUnit() {
-    if (_isAtEnd) _error('Expected escape sequence');
-    final first = _advance();
     switch (first) {
-      case 0x74: // 't'
-        return 0x09;
-      case 0x6e: // 'n'
-        return $lf;
-      case 0x76: // 'v'
-        return 0x0b;
-      case 0x66: // 'f'
-        return 0x0c;
-      case $cr:
-      case 0x72: // 'r'
-        return $cr;
-      case $0:
-        if (!_isAtEnd) {
-          final next = _peek();
-          if (next >= $0 && next <= $9) {
-            if (options.unicode) {
-              _error('Invalid decimal escape');
-            }
-          }
-        }
-        return 0x00;
-      case 0x63: // 'c' ControlLetter
-        if (!_isAtEnd) {
-          final letter = _peek();
-          if ((letter >= $a && letter <= $z) ||
-              (letter >= $A && letter <= $Z)) {
-            _advance();
-            return letter % 32;
-          }
-        }
-        if (options.unicode) {
-          _error('Invalid control escape');
-        }
-        return first;
-      case 0x78: // 'x' HexEscapeSequence \xHH
-        final hex = _tryHexDigits(2);
-        if (hex != null) return hex;
-        if (options.unicode) {
-          _error('Invalid hex escape');
-        }
-        return first;
-      case 0x75: // 'u' RegExpUnicodeEscapeSequence \uHHHH or \u{H...}
-        if (!_isAtEnd && _peek() == $lbrace && options.unicode) {
-          _advance();
-          final codePoint = _bracedHexDigits();
-          if (codePoint > 0x10ffff) {
-            _error('Unicode code point out of range');
-          }
-          return codePoint;
-        }
-        final hex = _tryHexDigits(4);
-        if (hex != null) return hex;
-        if (options.unicode) {
-          _error('Invalid unicode escape');
-        }
-        return first;
+      // https://tc39.es/ecma262/#prod-IdentityEscape for syntax characters and
+      // `/`, which are valid with and without the unicode flag.
       case $caret ||
           $$ ||
           $backslash ||
@@ -531,49 +324,12 @@ final class RegexParser(
           $lbrace ||
           $rbrace ||
           $bar ||
-          $slash ||
-          $minus:
-        return first;
-      default:
-        if (options.unicode) {
-          _error('Invalid identity escape');
-        }
-        return first;
+          $slash:
+        _advance();
+        return MatchSingleCharacter(first);
     }
-  }
 
-  int? _tryHexDigits(int count) {
-    if (_position + count > _length) return null;
-    var value = 0;
-    for (var i = 0; i < count; i++) {
-      final digit = _hexDigitValue(string.codeUnitAtUnchecked(_position + i));
-      if (digit == null) return null;
-      value = (value << 4) | digit;
-    }
-    _position += count;
-    return value;
-  }
-
-  int _bracedHexDigits() {
-    if (_isAtEnd) _error('Expected hex digits');
-    var value = 0;
-    var count = 0;
-    while (!_isAtEnd && !_has($rbrace)) {
-      final digit = _hexDigitValue(_advance());
-      if (digit == null) _error('Invalid hex digit');
-      value = (value << 4) | digit;
-      count++;
-    }
-    if (count == 0) _error('Expected hex digits');
-    _require($rbrace);
-    return value;
-  }
-
-  static int? _hexDigitValue(int charCode) {
-    if (charCode >= $0 && charCode <= $9) return charCode - $0;
-    if (charCode >= $a && charCode <= 0x66) return charCode - $a + 10;
-    if (charCode >= $A && charCode <= 0x46) return charCode - $A + 10;
-    return null;
+    _error('todo');
   }
 
   Node _maybeWrapInQuantifier(

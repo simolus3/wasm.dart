@@ -73,13 +73,5 @@ void main() {
         'cat(g1(c(0x61, 0x41)), ref(1, i))',
       );
     });
-
-    test('character classes and lookahead', () {
-      expect(parse('[a-z0-9]').nodeToString(), '[0x61-0x7a 0x30-0x39 ]');
-      expect(parse(r'[^\d\s]').nodeToString(), r'[^\d \s ]');
-      expect(parse(r'a(?!b)').nodeToString(), 'cat(c(0x61), (?!c(0x62)))');
-      expect(() => parse('[z-a]'), throwsFormatException);
-      expect(() => parse('[abc'), throwsFormatException);
-    });
   });
 }

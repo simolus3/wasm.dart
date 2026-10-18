@@ -106,29 +106,6 @@ WasmExternRef f64ToString(WasmF64 value) {
 }
 
 @pragma('wasm:export')
-WasmExternRef? doubleTryParse(WasmExternRef? string) {
-  final parsed = parseDoubleFromWasmString(
-    WasmStringImplementation.fromExtern(string),
-  );
-  if (parsed == null) return WasmExternRef.nullRef;
-  return WasmAnyRef.fromObject(BoxedDoubleResult(parsed)).externalize();
-}
-
-@pragma('wasm:export')
-WasmF64 tryParseResultGetDouble(WasmExternRef? parseResult) {
-  final boxed = parseResult!.internalize().toObject() as BoxedDoubleResult;
-  return WasmF64.fromDouble(boxed.value);
-}
-
-@pragma('wasm:export')
-WasmF64 doubleParseInfallible(WasmExternRef? string) {
-  final parsed = parseDoubleFromWasmString(
-    WasmStringImplementation.fromExtern(string),
-  );
-  return WasmF64.fromDouble(parsed ?? double.nan);
-}
-
-@pragma('wasm:export')
 WasmExternRef f64ToFixed(WasmF64 value, WasmI32 fractionDigits) {
   final digits = fractionDigits.toIntUnsigned();
   if (digits > maxFixedFractionDigits) {

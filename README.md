@@ -56,7 +56,7 @@ __Legend__:
 | stringCodeUnitAt                         | ✅          | 🎯        |                               |
 | stringIndexOfString                      | ✅          | 🎯        |                               |
 | stringLastIndexOfString                  | ✅          | 🎯        |                               |
-| stringReplaceAllString                   | ✅          | 🎯        |                               |
+| stringReplaceAllString                   |             | 🎯        |                               |
 | stringReplaceAllRegExp                   |             | 🎯        |                               |
 | stringSubstring                          | ✅          | 🎯        |                               |
 | stringToLowerCase                        | ✅          | 🎯        |                               |
@@ -79,9 +79,9 @@ __Legend__:
 | isWindows                                | ✅          | 📦        | Stub used                     |
 | stackTraceGetCurrent                     | ✅          | 🛑        | Impossible, stub used         |
 | stackTraceToString                       | ✅          | 🛑        | Impossible, stub used         |
-| doubleTryParse                           | ✅          | 🎯        |                               |
-| tryParseResultGetDouble                  | ✅          | 🎯        |                               |
-| doubleParseInfallible                    | ✅          | 🎯        |                               |
+| doubleTryParse                           |             | 🎯        |                               |
+| tryParseResultGetDouble                  |             | 🎯        |                               |
+| doubleParseInfallible                    |             | 🎯        |                               |
 | i64ToString                              | ✅          | 🎯        | Needs optimization for base10 |
 | f64ToExponential                         | ✅          | 🎯        |                               |
 | f64ToExponentialWithFractionDigits       | ✅          | 🎯        |                               |
