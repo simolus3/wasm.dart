@@ -14,6 +14,8 @@ concurrency:
 jobs:
   compile_rust:
     uses: ./.github/workflows/compile_rust.yml
+    permissions:
+      contents: read # Might not be required??
 
   publish:
     name: Publish to pub.dev
