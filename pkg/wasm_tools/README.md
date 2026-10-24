@@ -1,6 +1,12 @@
 ## wasm_tools
 
-Tools to compile Dart to standalone WebAssembly targets, including the WebAssembly component model.
+Tools to compile Dart to the [WebAssembly component model](https://component-model.bytecodealliance.org/).
+
+> [!WARNING]
+> These tools should be considered a proof of concept. They perform very poorly
+> due to a lack of GC support in the Component Model.
+> A _much_ better way to embed `dart2wasm` into existing applications is to use
+> a [custom embedder](https://github.com/simolus3/standalone-embedders).
 
 ## Installation
 

@@ -1,5 +1,11 @@
 Dart bindings to the [WebAssembly System Interface](https://github.com/WebAssembly/WASI/).
 
+> [!WARNING]
+> These tools should be considered a proof of concept. They perform very poorly
+> due to a lack of GC support in the Component Model.
+> A _much_ better way to embed `dart2wasm` into existing applications is to use
+> a [custom embedder](https://github.com/simolus3/standalone-embedders).
+
 ## Usage
 
 This package allows Dart WebAssembly components (built with the [wasm_tools package](https://pub.dev/packages/wasm_tools))
