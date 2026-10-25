@@ -48,10 +48,11 @@ jobs:
       run: dart pub publish -f
       working-directory: pkg/wasm_components
 
-    - name: Publish wasm_tools - dry run
-      if: "${{ startsWith(github.ref_name, 'wasm_tools-') }}"
-      run: dart pub publish --dry-run
-      working-directory: pkg/wasm_tools
+    # This complains about lib/hooks.dart not being named libs/wasm_tools.dart, ignore
+    # - name: Publish wasm_tools - dry run
+    #   if: "${{ startsWith(github.ref_name, 'wasm_tools-') }}"
+    #   run: dart pub publish --dry-run
+    #   working-directory: pkg/wasm_tools
     - name: Publish wasm_tools to pub.dev
       if: "${{ startsWith(github.ref_name, 'wasm_tools-') }}"
       run: dart pub publish -f
