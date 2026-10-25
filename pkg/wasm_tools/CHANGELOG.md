@@ -1,4 +1,4 @@
-## 0.1.1-preview.0
+## 0.1.1-preview.1
 
 - Improve witgen.
 - Export types when needed.

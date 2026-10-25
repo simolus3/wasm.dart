@@ -106,7 +106,7 @@ jobs:
         id: cache_build
         with:
           path: pkg/wasm_tools/lib/src/wit_gen/precompiled
-          key: bindgen-macos-${{ hashFiles('Cargo.lock', 'pkg/wit_bindgen_dart/**') }}
+          key: bindgen-macos-2-${{ hashFiles('Cargo.lock', 'pkg/wit_bindgen_dart/**') }}
       - name: Install rust
         if: steps.cache_build.outputs.cache-hit != 'true'
         run: |
@@ -123,8 +123,8 @@ jobs:
         working-directory: pkg/wasm_tools
         run: |
           mkdir lib/src/wit_gen/precompiled
-          cp ../../target/x86_64-apple-darwin/release/libwit_bindgen_dart.dylib lib/src/wit_gen/precompiled/libwit_bindgen_dart.macos_x64.so
-          cp ../../target/aarch64-apple-darwin/release/libwit_bindgen_dart.dylib lib/src/wit_gen/precompiled/libwit_bindgen_dart.macos_aarch64.so
+          cp ../../target/x86_64-apple-darwin/release/libwit_bindgen_dart.dylib lib/src/wit_gen/precompiled/libwit_bindgen_dart.macos_x64.dylib
+          cp ../../target/aarch64-apple-darwin/release/libwit_bindgen_dart.dylib lib/src/wit_gen/precompiled/libwit_bindgen_dart.macos_aarch64.dylib
       - uses: actions/upload-artifact@v7
         id: upload
         with:
