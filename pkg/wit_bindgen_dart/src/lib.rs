@@ -184,6 +184,7 @@ mod test {
 
     use crate::{
         GenerateDartOptions, GenerationRun, InputFile,
+        abi::ImportedFunctionDefinition,
         bindgen::{DartWorldGenerator, ImportsAndExports},
         dart_source::ImportMap,
         wit_bindgen_dart_internal,
@@ -252,6 +253,55 @@ package wasi:cli@0.3.0 {
 ",
         )
         .expect("Could not generate definitions")
+    }
+
+    #[test]
+    fn async_export_task_return_options() {
+        let mut resolve = Resolve::default();
+        let package = resolve
+            .push_str(
+                "test.wit",
+                "
+package root:component;
+
+interface echo {
+  echo-length: async func(msg: string) -> u32;
+  split-words: async func(msg: string) -> list<string>;
+  consume-bytes: async func(bytes: list<u8>);
+}
+
+world root {
+  export echo;
+}
+",
+            )
+            .unwrap();
+        let world = resolve.select_world(&[package], Some("root")).unwrap();
+
+        let mut abi = ImportsAndExports::default();
+        let map = ImportMap::default();
+        let mut generator = DartWorldGenerator::new(&mut abi, &map);
+        let mut files = Files::default();
+        generator.generate(&mut resolve, world, &mut files).unwrap();
+
+        let task_returns: Vec<_> = abi
+            .imports
+            .iter()
+            .filter(|imp| {
+                matches!(
+                    imp.definition,
+                    ImportedFunctionDefinition::TaskReturn { .. }
+                )
+            })
+            .collect();
+        assert_eq!(task_returns.len(), 3);
+        for imp in task_returns {
+            assert!(
+                !imp.lower_options.uses_realloc,
+                "task.return import {} must not set uses_realloc",
+                imp.import_name
+            );
+        }
     }
 
     #[test]

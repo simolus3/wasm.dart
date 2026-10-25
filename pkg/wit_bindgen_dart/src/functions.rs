@@ -1059,7 +1059,10 @@ if ({is_err}.toBool()) {{
                                     Some(e) => vec![e.clone()],
                                 },
                             },
-                            lower_options: self.options.clone(),
+                            lower_options: CanonicalOptions {
+                                uses_realloc: false,
+                                ..self.options.clone()
+                            },
                         });
 
                         exported.async_return_name
